@@ -1,0 +1,17 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[context.production.environment]
+  # Supabase
+  NEXT_PUBLIC_SUPABASE_URL = "https://wmpwxsdemzkbzylswwht.supabase.co"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcHd4c2RlbXprYnp5bHN3d2h0IiwibG9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjEwMTUsImV4cCI6MjA5ODI5NzAxNX0.YjYEUwdA28-UgSkWxbrf90YDJkOjS5-heLchY6glGz4"
+  SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcHd4c2RlbXprYnp5bHN3d2h0IiwibG9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjcyMTAxNSwiZXhwIjoyMDk4Mjk3MDE1fQ.dNQyj6vFvzwa_-9knw_vDTF7jeEiSks-H1xohptTyps"
+  ENCRYPTION_KEY = "b63704dfd4b11e289d7e5c81e375b92e61913734eed2683034b73260d9f9188b"
+  # Meta (WhatsApp) credentials
+  META_APP_SECRET = "your-meta-app-secret"
+  META_APP_ID = ""
+
