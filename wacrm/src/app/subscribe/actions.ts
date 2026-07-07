@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 
 export async function provisionMockWorkspace(planId: string) {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     // Regular auth client to get the current user
     const supabaseAuth = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

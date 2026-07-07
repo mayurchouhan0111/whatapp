@@ -22,7 +22,7 @@ async function getAccounts(): Promise<AccountRow[]> {
 
   if (!data) return []
 
-  const accounts: AccountRow[] = data
+  const accounts = data as AccountRow[]
   const userIds = accounts.map((a) => a.owner_user_id)
 
   if (userIds.length > 0) {

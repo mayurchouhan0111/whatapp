@@ -421,19 +421,6 @@ export default async function AccountDetailPage({
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="store_expires_at" className="text-sm font-semibold text-foreground flex items-center justify-between">
-                  Store Expiry
-                  <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">Optional</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  id="store_expires_at"
-                  name="store_expires_at"
-                  defaultValue={account.store_expires_at ? new Date(account.store_expires_at).toISOString().slice(0, 16) : ""}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-                />
-              </div>
             </div>
           </div>
         </div>
