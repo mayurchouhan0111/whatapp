@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { CheckCircle, ArrowRight, HelpCircle, MessageSquare } from "lucide-react"
+import { CheckCircle, ArrowRight, HelpCircle } from "lucide-react"
+import { Header } from "@/components/marketing/header"
+import { Footer } from "@/components/marketing/footer"
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -130,173 +132,134 @@ const faqs = [
   },
 ]
 
-function Header() {
-  return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <MessageSquare className="h-4 w-4" />
-          </div>
-          <span className="text-sm font-semibold text-foreground">Vbuild CRM</span>
-        </Link>
-        <nav className="flex items-center gap-6">
-          <Link href="/#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Features
-          </Link>
-          <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Pricing
-          </Link>
-          <Link href="/login" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-            Sign in
-          </Link>
-          <Link
-            href="/signup"
-            className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            Get Started
-          </Link>
-        </nav>
-      </div>
-    </header>
-  )
-}
-
-function Footer() {
-  return (
-    <footer className="border-t border-border bg-card">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <MessageSquare className="h-4 w-4" />
-          <span>Vbuild CRM</span>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Vbuild CRM. All rights reserved.
-        </p>
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <Link href="/privacy-policy" className="hover:text-foreground transition-colors">
-            Privacy
-          </Link>
-        </div>
-      </div>
-    </footer>
-  )
-}
-
 export default function PricingPage() {
   return (
-    <div>
+    <>
       <Header />
-      {/* Header */}
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-2xl text-center">
-            <h1 className="text-4xl font-bold text-foreground sm:text-5xl">Pricing</h1>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Start free. Upgrade when you grow. No hidden fees, no surprises.
-            </p>
+      <main>
+        {/* Page header */}
+        <section className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-20">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="mx-auto max-w-2xl text-center">
+              <h1 className="text-balance text-4xl font-bold text-foreground sm:text-5xl">
+                Simple, <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">Transparent</span> Pricing
+              </h1>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Start free. Upgrade when you grow. No hidden fees, no surprises.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center justify-center gap-4 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">🇮🇳 INR</span>
+              <span className="h-4 w-px bg-border" />
+              <span>🇺🇸 USD</span>
+            </div>
+            <div className="mt-4 flex justify-center">
+              <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs text-muted-foreground">
+                Plans are configured by your admin. Contact sales to subscribe.
+              </span>
+            </div>
           </div>
-          <div className="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">🇮🇳 INR</span>
-            <span className="h-4 w-px bg-border" />
-            <span>🇺🇸 USD</span>
-          </div>
-          <div className="mt-4 flex justify-center">
-            <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs text-muted-foreground">
-              Plans are configured by your admin. Contact sales to subscribe.
-            </span>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Plans */}
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-            {plans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative flex flex-col rounded-xl border p-6 ${
-                  plan.highlighted
-                    ? "border-primary/30 bg-primary/5 shadow-lg shadow-primary/10"
-                    : "border-border bg-card"
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">{plan.description}</p>
-                </div>
-                <div className="mb-2">
-                  <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                  <span className="text-sm text-muted-foreground">{plan.period}</span>
-                </div>
-                <p className="mb-6 text-xs text-muted-foreground">
-                  {plan.usdPrice}
-                  {plan.period}
-                </p>
-                <div className="mb-6 flex-1 space-y-2">
-                  {plan.features.map((feature) => (
-                    <div
-                      key={feature.text}
-                      className={`flex items-center gap-2 text-sm ${
-                        feature.included ? "text-muted-foreground" : "text-muted-foreground/40"
-                      }`}
-                    >
-                      <CheckCircle
-                        className={`h-4 w-4 shrink-0 ${
-                          feature.included ? "text-primary" : "text-muted-foreground/30"
-                        }`}
-                      />
-                      {feature.text}
-                    </div>
-                  ))}
-                </div>
-                <Link
-                  href={plan.href}
-                  className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors ${
+        {/* Plans */}
+        <section className="border-b border-border/50">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+              {plans.map((plan) => (
+                <div
+                  key={plan.name}
+                  className={`group relative flex flex-col rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
                     plan.highlighted
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "border border-border bg-card text-foreground hover:bg-muted"
+                      ? "border-primary/40 bg-gradient-to-b from-primary/5 to-card shadow-lg shadow-primary/10"
+                      : "border-border bg-card hover:border-border/80 hover:shadow-lg"
                   }`}
                 >
-                  {plan.cta}
-                  {plan.name === "Enterprise" ? null : <ArrowRight className="h-4 w-4" />}
-                </Link>
-              </div>
-            ))}
+                  {plan.popular && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                      <span className="inline-flex items-center rounded-full bg-gradient-to-r from-primary to-primary/80 px-3 py-1 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/20">
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">{plan.description}</p>
+                  </div>
+                  <div className="mb-2">
+                    <span className="text-3xl font-bold text-foreground">{plan.price}</span>
+                    <span className="text-sm text-muted-foreground">{plan.period}</span>
+                  </div>
+                  <p className="mb-6 text-xs text-muted-foreground">
+                    {plan.usdPrice}{plan.period}
+                  </p>
+                  <div className="mb-6 flex-1 space-y-2.5">
+                    {plan.features.map((feature) => (
+                      <div
+                        key={feature.text}
+                        className={`flex items-center gap-2 text-sm ${
+                          feature.included ? "text-muted-foreground" : "text-muted-foreground/40"
+                        }`}
+                      >
+                        <CheckCircle
+                          className={`h-4 w-4 shrink-0 ${
+                            feature.included ? "text-primary" : "text-muted-foreground/30"
+                          }`}
+                        />
+                        {feature.text}
+                      </div>
+                    ))}
+                  </div>
+                  <Link
+                    href={plan.href}
+                    className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+                      plan.highlighted
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
+                        : "border border-border bg-card text-foreground hover:bg-accent hover:-translate-y-0.5"
+                    }`}
+                  >
+                    {plan.cta}
+                    {plan.name !== "Enterprise" && <ArrowRight className="h-4 w-4" />}
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* FAQ */}
-      <section>
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">Frequently Asked Questions</h2>
-          </div>
-          <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2">
-            {faqs.map((faq) => (
-              <div key={faq.q} className="rounded-xl border border-border bg-card p-5">
-                <div className="flex items-start gap-3">
-                  <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">{faq.q}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">{faq.a}</p>
+        {/* FAQ */}
+        <section>
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+                FAQ
+              </div>
+              <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
+                Frequently Asked Questions
+              </h2>
+            </div>
+            <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-5 sm:grid-cols-2">
+              {faqs.map((faq) => (
+                <div
+                  key={faq.q}
+                  className="rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:border-border/80"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <HelpCircle className="h-3.5 w-3.5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">{faq.q}</h3>
+                      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{faq.a}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
       <Footer />
-    </div>
+    </>
   )
 }
