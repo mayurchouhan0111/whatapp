@@ -2,6 +2,8 @@ import { notFound, redirect } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/flows/admin-client'
 import { getPlanDefaults, type PlanTier } from '@/lib/billing/limits'
 import { revalidatePath } from 'next/cache'
+import { ShieldAlert, Cpu, Palette, Store, Check, AlertCircle, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 interface AccountDetail {
   id: string
@@ -122,270 +124,304 @@ export default async function AccountDetailPage({
   const defaults = getPlanDefaults(account.plan_tier) as any
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">{account.name}</h2>
-        <p className="text-sm text-muted-foreground">
-          Owner: {account.owner_email} &middot; Created:{' '}
-          {new Date(account.created_at).toLocaleDateString()}
-        </p>
+    <div className="space-y-6 max-w-5xl animate-in fade-in duration-500">
+      <div className="flex items-center gap-4 mb-8">
+        <Link 
+          href="/admin/accounts"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">{account.name}</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Managed by <span className="font-medium text-foreground">{account.owner_email}</span> &middot; Created {new Date(account.created_at).toLocaleDateString()}
+          </p>
+        </div>
       </div>
 
       {updated === 'true' && (
-        <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-300">
-          Account updated successfully.
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 flex items-center gap-3">
+          <Check className="h-5 w-5 text-emerald-500" />
+          <p className="text-sm font-medium text-emerald-200">
+            Account settings and permissions updated successfully.
+          </p>
         </div>
       )}
 
-      <form action={updateAccount}>
+      <form action={updateAccount} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <input type="hidden" name="account_id" value={account.id} />
 
-        <div className="rounded-xl border border-border bg-card p-6 space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">
-              Plan & Limits
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Changing the plan tier pre-fills the default limits for that
-              tier. You can override individual values below.
-            </p>
-          </div>
+        {/* Feature Permissions / Pages - Making this the highlight as requested */}
+        <div className="lg:col-span-12">
+          <div className="rounded-2xl border border-border bg-card shadow-sm p-8">
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                <ShieldAlert className="h-6 w-6 text-primary" />
+                Page & Feature Permissions
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Toggle which sections and capabilities this account can access.
+              </p>
+            </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label htmlFor="plan_tier" className="text-sm font-medium text-foreground">Plan Tier</label>
-              <select
-                id="plan_tier"
-                name="plan_tier"
-                defaultValue={account.plan_tier}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {PLAN_TIERS.map((tier) => (
-                  <option key={tier} value={tier}>
-                    {tier.charAt(0).toUpperCase() + tier.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <label className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary">
+                <input
+                  type="checkbox"
+                  name="allow_flows"
+                  defaultChecked={account.allow_flows}
+                  className="sr-only"
+                />
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-teal-500/10 text-teal-500">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-foreground">Chatbot Flows</span>
+                  <span className="text-xs text-muted-foreground">Enables the Flows page, allowing the creation of automated WhatsApp chat workflows.</span>
+                </div>
+                <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
+                  <Check />
+                </div>
+              </label>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label htmlFor="max_users" className="text-sm font-medium text-foreground">Max Users</label>
-              <input
-                id="max_users"
-                name="max_users"
-                type="number"
-                min={1}
-                defaultValue={account.max_users}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Default: {defaults.max_users}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="max_contacts" className="text-sm font-medium text-foreground">Max Contacts</label>
-              <input
-                id="max_contacts"
-                name="max_contacts"
-                type="number"
-                min={1}
-                defaultValue={account.max_contacts}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Default: {defaults.max_contacts.toLocaleString()}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="max_pipelines" className="text-sm font-medium text-foreground">Max Pipelines</label>
-              <input
-                id="max_pipelines"
-                name="max_pipelines"
-                type="number"
-                min={1}
-                defaultValue={account.max_pipelines}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Default: {defaults.max_pipelines}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="max_active_flows" className="text-sm font-medium text-foreground">Max Active Flows</label>
-              <input
-                id="max_active_flows"
-                name="max_active_flows"
-                type="number"
-                min={0}
-                defaultValue={account.max_active_flows}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Default: {defaults.max_active_flows}
-              </p>
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <label htmlFor="max_broadcasts_per_month" className="text-sm font-medium text-foreground">
-                Max Broadcasts / Month
+              <label className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary">
+                <input
+                  type="checkbox"
+                  name="allow_api_access"
+                  defaultChecked={account.allow_api_access}
+                  className="sr-only"
+                />
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+                  <Cpu className="h-6 w-6" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-foreground">API Access</span>
+                  <span className="text-xs text-muted-foreground">Enables the API settings page for programmatic access and external integrations.</span>
+                </div>
+                <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
+                  <Check />
+                </div>
               </label>
-              <input
-                id="max_broadcasts_per_month"
-                name="max_broadcasts_per_month"
-                type="number"
-                min={1}
-                defaultValue={account.max_broadcasts_per_month}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Default: {defaults.max_broadcasts_per_month.toLocaleString()}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="max_products" className="text-sm font-medium text-foreground">
-                Max Store Products
+
+              <label className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary">
+                <input
+                  type="checkbox"
+                  name="allow_store"
+                  defaultChecked={account.allow_store}
+                  className="sr-only"
+                />
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
+                  <Store className="h-6 w-6" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-foreground">Storefront</span>
+                  <span className="text-xs text-muted-foreground">Enables the Store page for catalog management, orders, and commerce features.</span>
+                </div>
+                <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
+                  <Check />
+                </div>
               </label>
-              <input
-                id="max_products"
-                name="max_products"
-                type="number"
-                min={0}
-                defaultValue={account.max_products ?? defaults.max_products ?? 0}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Default: {defaults.max_products ?? 0}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="max_orders_per_month" className="text-sm font-medium text-foreground">
-                Max Store Orders / Month
+
+              <label className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary">
+                <input
+                  type="checkbox"
+                  name="allow_white_label"
+                  defaultChecked={account.allow_white_label}
+                  className="sr-only"
+                />
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
+                  <Palette className="h-6 w-6" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-foreground">White-label</span>
+                  <span className="text-xs text-muted-foreground">Allows removing platform branding and accessing custom domain settings.</span>
+                </div>
+                <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
+                  <Check />
+                </div>
               </label>
-              <input
-                id="max_orders_per_month"
-                name="max_orders_per_month"
-                type="number"
-                min={0}
-                defaultValue={account.max_orders_per_month ?? defaults.max_orders_per_month ?? 0}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Default: {defaults.max_orders_per_month ?? 0}
-              </p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-6 space-y-6 mt-6">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">
-              Feature Toggles
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Enable or disable features for this account.
-            </p>
-          </div>
+        {/* Usage Limits */}
+        <div className="lg:col-span-12">
+          <div className="rounded-2xl border border-border bg-card shadow-sm p-8">
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold tracking-tight text-foreground">
+                Usage Limits & Quotas
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Changing the tier pre-fills limits, but you can override specific quotas.
+              </p>
+            </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="mb-8 rounded-xl border border-primary/20 bg-primary/5 p-4 flex gap-4 items-start">
+              <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <div>
-                <label htmlFor="allow_flows" className="font-medium text-foreground">
-                  Chatbot Flows
-                </label>
-                <p className="text-xs text-muted-foreground">
-                  Allow the account to create and activate chatbot flows.
-                </p>
+                <label htmlFor="plan_tier" className="block text-sm font-semibold text-foreground mb-1">Base Plan Tier</label>
+                <select
+                  id="plan_tier"
+                  name="plan_tier"
+                  defaultValue={account.plan_tier}
+                  className="flex h-10 w-full md:w-64 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                >
+                  {PLAN_TIERS.map((tier) => (
+                    <option key={tier} value={tier}>
+                      {tier.charAt(0).toUpperCase() + tier.slice(1)} Tier
+                    </option>
+                  ))}
+                </select>
               </div>
-              <input
-                type="checkbox"
-                id="allow_flows"
-                name="allow_flows"
-                defaultChecked={account.allow_flows}
-                className="h-4 w-4 rounded border-input"
-              />
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <label htmlFor="allow_api_access" className="font-medium text-foreground">
-                  API Access
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-2">
+                <label htmlFor="max_contacts" className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  Max Contacts
+                  <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">Default: {defaults.max_contacts.toLocaleString()}</span>
                 </label>
-                <p className="text-xs text-muted-foreground">
-                  Allow the account to create API keys for programmatic access.
-                </p>
+                <input
+                  id="max_contacts"
+                  name="max_contacts"
+                  type="number"
+                  min={1}
+                  defaultValue={account.max_contacts}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                />
               </div>
-              <input
-                type="checkbox"
-                id="allow_api_access"
-                name="allow_api_access"
-                defaultChecked={account.allow_api_access}
-                className="h-4 w-4 rounded border-input"
-              />
+
+              <div className="space-y-2">
+                <label htmlFor="max_users" className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  Max Team Users
+                  <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">Default: {defaults.max_users}</span>
+                </label>
+                <input
+                  id="max_users"
+                  name="max_users"
+                  type="number"
+                  min={1}
+                  defaultValue={account.max_users}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="max_pipelines" className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  Max Pipelines
+                  <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">Default: {defaults.max_pipelines}</span>
+                </label>
+                <input
+                  id="max_pipelines"
+                  name="max_pipelines"
+                  type="number"
+                  min={1}
+                  defaultValue={account.max_pipelines}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="max_active_flows" className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  Active Flows Limit
+                  <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">Default: {defaults.max_active_flows}</span>
+                </label>
+                <input
+                  id="max_active_flows"
+                  name="max_active_flows"
+                  type="number"
+                  min={0}
+                  defaultValue={account.max_active_flows}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-2 lg:col-span-2">
+                <label htmlFor="max_broadcasts_per_month" className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  Monthly Broadcast Limit
+                  <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">Default: {defaults.max_broadcasts_per_month.toLocaleString()}</span>
+                </label>
+                <input
+                  id="max_broadcasts_per_month"
+                  name="max_broadcasts_per_month"
+                  type="number"
+                  min={1}
+                  defaultValue={account.max_broadcasts_per_month}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                />
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <label htmlFor="allow_white_label" className="font-medium text-foreground">
-                  White-labeling
-                </label>
-                <p className="text-xs text-muted-foreground">
-                  Allow the account to remove branding and use a custom domain.
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                id="allow_white_label"
-                name="allow_white_label"
-                defaultChecked={account.allow_white_label}
-                className="h-4 w-4 rounded border-input"
-              />
+
+            <hr className="my-8 border-border" />
+
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold text-foreground">Storefront Limits</h4>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <label htmlFor="allow_store" className="font-medium text-foreground">
-                  Storefront Access
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-2">
+                <label htmlFor="max_products" className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  Max Products
+                  <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">Default: {defaults.max_products ?? 0}</span>
                 </label>
-                <p className="text-xs text-muted-foreground">
-                  Allow the account to have an online store and customize their catalog.
-                </p>
+                <input
+                  id="max_products"
+                  name="max_products"
+                  type="number"
+                  min={0}
+                  defaultValue={account.max_products ?? defaults.max_products ?? 0}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                />
               </div>
-              <input
-                type="checkbox"
-                id="allow_store"
-                name="allow_store"
-                defaultChecked={account.allow_store}
-                className="h-4 w-4 rounded border-input"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div>
-                <label htmlFor="store_expires_at" className="font-medium text-foreground">
-                  Storefront Subscription Expiry
+
+              <div className="space-y-2">
+                <label htmlFor="max_orders_per_month" className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  Orders / Month
+                  <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">Default: {defaults.max_orders_per_month ?? 0}</span>
                 </label>
-                <p className="text-xs text-muted-foreground">
-                  Set storefront license expiration date. Leave blank for no expiration (permanent).
-                </p>
+                <input
+                  id="max_orders_per_month"
+                  name="max_orders_per_month"
+                  type="number"
+                  min={0}
+                  defaultValue={account.max_orders_per_month ?? defaults.max_orders_per_month ?? 0}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                />
               </div>
-              <input
-                type="datetime-local"
-                id="store_expires_at"
-                name="store_expires_at"
-                defaultValue={account.store_expires_at ? new Date(account.store_expires_at).toISOString().slice(0, 16) : ""}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
+
+              <div className="space-y-2">
+                <label htmlFor="store_expires_at" className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  Store Expiry
+                  <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">Optional</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  id="store_expires_at"
+                  name="store_expires_at"
+                  defaultValue={account.store_expires_at ? new Date(account.store_expires_at).toISOString().slice(0, 16) : ""}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="lg:col-span-12 flex justify-end gap-4 mb-20">
+          <Link
+            href="/admin/accounts"
+            className="inline-flex h-12 items-center justify-center rounded-xl border border-input bg-background px-6 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            Cancel
+          </Link>
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="inline-flex h-12 items-center justify-center rounded-xl bg-primary px-8 text-sm font-bold text-primary-foreground hover:bg-primary/90 shadow-md transition-all hover:shadow-lg active:scale-95"
           >
-            Save Changes
+            Save Account Settings
           </button>
         </div>
       </form>
     </div>
   )
 }
-
