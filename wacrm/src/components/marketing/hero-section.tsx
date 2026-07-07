@@ -26,7 +26,7 @@ export function HeroSection() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl animate-slide-up text-balance text-lg text-muted-foreground sm:text-xl [animation-delay:100ms]">
-            Shared inbox, contact management, sales pipelines, broadcasts, and automations —
+            Shared inbox, contact management, sales pipelines, broadcasts, automations, and WhatsApp Storefront —
             all connected to your WhatsApp Business API.
           </p>
 

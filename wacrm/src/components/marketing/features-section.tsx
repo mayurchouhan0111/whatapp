@@ -1,4 +1,5 @@
-import { MessageSquare, Users, GitBranch, Radio, Zap, Workflow } from "lucide-react"
+import { MessageSquare, Users, GitBranch, Radio, Zap, Workflow, ShoppingBag } from "lucide-react"
+import Link from "next/link"
 
 const features = [
   {
@@ -55,6 +56,16 @@ const features = [
     borderColor: "hover:border-cyan-500/30",
     shadowColor: "hover:shadow-cyan-500/5",
   },
+  {
+    icon: ShoppingBag,
+    title: "WhatsApp Store",
+    description: "Launch a mobile storefront at /shop/your-brand. Customers browse, cart, and order via WhatsApp — from browse to delivery in seconds.",
+    gradient: "from-primary/20 to-primary/5",
+    iconColor: "text-primary",
+    borderColor: "hover:border-primary/30",
+    shadowColor: "hover:shadow-primary/5",
+    href: "/shop",
+  },
 ]
 
 export function FeaturesSection() {
@@ -72,7 +83,7 @@ export function FeaturesSection() {
             From shared inbox to automations — a complete CRM built on the official WhatsApp Business API.
           </p>
         </div>
-        <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((feature, i) => {
             const Icon = feature.icon
             return (
@@ -86,7 +97,15 @@ export function FeaturesSection() {
                   <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${feature.gradient} ${feature.iconColor}`}>
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">{feature.title}</h3>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {feature.href ? (
+                      <Link href={feature.href} className="hover:text-primary transition-colors">
+                        {feature.title} <span className="text-xs text-primary">&#8599;</span>
+                      </Link>
+                    ) : (
+                      feature.title
+                    )}
+                  </h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
                 </div>
               </div>
