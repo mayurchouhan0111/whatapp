@@ -77,12 +77,53 @@ export async function middleware(request: NextRequest) {
     return withRefreshedCookies(NextResponse.redirect(url))
   }
 
+  let hasActiveAccess = false
+  let hasWorkspace = false
+
+  if (user) {
+    // Check workspace and subscription status
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('account_id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (profile?.account_id) {
+      hasWorkspace = true
+      // We will check saas_subscriptions for an active state. 
+      // If none exists, or if it's expired/canceled, access is denied.
+      const { data: sub } = await supabase
+        .from('saas_subscriptions')
+        .select('status')
+        .eq('account_id', profile.account_id)
+        .maybeSingle()
+
+      if (sub && (sub.status === 'active' || sub.status === 'trialing')) {
+        hasActiveAccess = true
+      }
+    }
+  }
+
   // Protected pages - redirect to login if not authenticated
-  const protectedPaths = ['/dashboard', '/inbox', '/contacts', '/pipelines', '/broadcasts', '/automations', '/settings', '/admin']
-  if (!user && protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))) {
+  const protectedPaths = ['/dashboard', '/inbox', '/contacts', '/pipelines', '/broadcasts', '/automations', '/settings']
+  const adminPaths = ['/admin']
+  const isProtectedPath = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))
+  const isAdminPath = adminPaths.some(path => request.nextUrl.pathname.startsWith(path))
+
+  if ((isProtectedPath || isAdminPath) && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return withRefreshedCookies(NextResponse.redirect(url))
+  }
+
+  // SaaS Provisioning Gate
+  // If the user is authenticated but trying to access the CRM without an active subscription
+  if (isProtectedPath && user) {
+    if (!hasWorkspace || !hasActiveAccess) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/pricing'
+      return withRefreshedCookies(NextResponse.redirect(url))
+    }
   }
 
   // API routes that need auth (not webhooks)

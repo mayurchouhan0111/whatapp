@@ -15,6 +15,7 @@ import { TemplateManager } from '@/components/settings/template-manager';
 import { FieldsAndTagsPanel } from '@/components/settings/fields-and-tags-panel';
 import { DealsSettings } from '@/components/settings/deals-settings';
 import { MembersTab } from '@/components/settings/members-tab';
+import { RolesTab } from '@/components/settings/roles-tab';
 import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { StoreSettings } from '@/components/settings/store-settings';
 import {
@@ -61,6 +62,7 @@ export default function SettingsPage() {
     fields: <FieldsAndTagsPanel />,
     deals: <DealsSettings />,
     members: <MembersTab />,
+    roles: <RolesTab />,
     store: <StoreSettings />,
     api: <ApiKeysSettings />,
   };

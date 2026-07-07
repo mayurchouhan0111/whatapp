@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/flows/admin-client'
 import Link from 'next/link'
-import { Building2, ChevronRight, CheckCircle2, MessageSquare, Code, Store, Palette } from 'lucide-react'
+import { Building2, ChevronRight, CheckCircle2, Blocks } from 'lucide-react'
 
 interface AccountRow {
   id: string
@@ -8,11 +8,8 @@ interface AccountRow {
   owner_user_id: string
   plan_tier: string
   created_at: string
-  allow_flows: boolean
-  allow_api_access: boolean
-  allow_white_label: boolean
-  allow_store: boolean
   owner_email?: string
+  active_modules: string[]
 }
 
 async function getAccounts(): Promise<AccountRow[]> {
@@ -20,7 +17,7 @@ async function getAccounts(): Promise<AccountRow[]> {
 
   const { data } = await admin
     .from('accounts')
-    .select('id, name, owner_user_id, plan_tier, created_at, allow_flows, allow_api_access, allow_white_label, allow_store')
+    .select('id, name, owner_user_id, plan_tier, created_at')
     .order('created_at', { ascending: false })
 
   if (!data) return []
@@ -38,6 +35,30 @@ async function getAccounts(): Promise<AccountRow[]> {
     for (const account of accounts) {
       account.owner_email = emailMap.get(account.owner_user_id) ?? 'Unknown'
     }
+  }
+
+  }
+
+  // Fetch active modules for all these accounts
+  const { data: allModules } = await admin
+    .from('saas_account_modules')
+    .select('account_id, saas_modules(name)')
+    .in('account_id', accounts.map(a => a.id))
+    .eq('is_active', true)
+
+  const modulesByAccount = new Map<string, string[]>()
+  if (allModules) {
+    for (const row of allModules as any[]) {
+      if (!row.saas_modules?.name) continue
+      const accId = row.account_id
+      const mods = modulesByAccount.get(accId) || []
+      mods.push(row.saas_modules.name)
+      modulesByAccount.set(accId, mods)
+    }
+  }
+
+  for (const account of accounts) {
+    account.active_modules = modulesByAccount.get(account.id) || []
   }
 
   return accounts
@@ -118,28 +139,14 @@ export default async function AdminAccountsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1.5">
-                        {account.allow_flows && (
-                          <span title="Chatbot Flows" className="inline-flex items-center gap-1 rounded bg-teal-500/10 px-2 py-0.5 text-xs font-medium text-teal-400 border border-teal-500/20">
-                            <MessageSquare className="h-3 w-3" /> Flows
-                          </span>
-                        )}
-                        {account.allow_api_access && (
-                          <span title="API Access" className="inline-flex items-center gap-1 rounded bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-400 border border-indigo-500/20">
-                            <Code className="h-3 w-3" /> API
-                          </span>
-                        )}
-                        {account.allow_store && (
-                          <span title="Storefront" className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400 border border-amber-500/20">
-                            <Store className="h-3 w-3" /> Store
-                          </span>
-                        )}
-                        {account.allow_white_label && (
-                          <span title="White-label" className="inline-flex items-center gap-1 rounded bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-400 border border-rose-500/20">
-                            <Palette className="h-3 w-3" /> White-label
-                          </span>
-                        )}
-                        {(!account.allow_flows && !account.allow_api_access && !account.allow_store && !account.allow_white_label) && (
+                        {account.active_modules.length === 0 ? (
                           <span className="text-xs text-muted-foreground/60 italic">None</span>
+                        ) : (
+                          account.active_modules.map((modName) => (
+                            <span key={modName} title={modName} className="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary border border-primary/20">
+                              <Blocks className="h-3 w-3" /> {modName}
+                            </span>
+                          ))
                         )}
                       </div>
                     </td>

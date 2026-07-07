@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useTotalUnread } from "@/hooks/use-total-unread";
 import {
   Crown,
@@ -22,6 +23,7 @@ import {
   Workflow,
   X,
   Zap,
+  ShoppingCart
 } from "lucide-react";
 import type { AccountRole } from "@/lib/auth/roles";
 
@@ -79,21 +81,19 @@ interface NavItem {
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
-  /**
-   * When true, the nav row renders a small "Beta" chip after the label.
-   * Purely informational — doesn't affect routing or access.
-   */
   beta?: boolean;
+  permission?: string;
 }
 
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/inbox", label: "Inbox", icon: MessageSquare },
-  { href: "/contacts", label: "Contacts", icon: Users },
-  { href: "/pipelines", label: "Pipelines", icon: GitBranch },
-  { href: "/broadcasts", label: "Broadcasts", icon: Radio },
-  { href: "/automations", label: "Automations", icon: Zap },
-  { href: "/flows", label: "Flows", icon: Workflow, beta: true },
+  { href: "/inbox", label: "Inbox", icon: MessageSquare, permission: "inbox.view" },
+  { href: "/contacts", label: "Contacts", icon: Users, permission: "contacts.view" },
+  { href: "/pipelines", label: "Pipelines", icon: GitBranch, permission: "pipelines.view" },
+  { href: "/broadcasts", label: "Broadcasts", icon: Radio, permission: "broadcasts.view" },
+  { href: "/automations", label: "Automations", icon: Zap, permission: "automations.view" },
+  { href: "/flows", label: "Flows", icon: Workflow, beta: true, permission: "automations.view" },
+  { href: "/shop", label: "Store", icon: ShoppingCart, permission: "store.view" }
 ];
 
 const bottomNavItems = [
@@ -109,6 +109,7 @@ interface SidebarProps {
 export function Sidebar({ open = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { profile, profileLoading, account, accountRole, signOut } = useAuth();
+  const { hasPermission } = usePermissions();
   const totalUnread = useTotalUnread();
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them
@@ -200,6 +201,11 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="flex flex-col gap-1">
             {navItems.map((item) => {
+              // Navigation Engine: Hide item if the user lacks the required permission
+              if (item.permission && !hasPermission(item.permission)) {
+                return null;
+              }
+
               const isActive =
                 pathname === item.href ||
                 (item.href !== "/dashboard" && pathname.startsWith(item.href));

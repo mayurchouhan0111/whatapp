@@ -15,16 +15,22 @@ interface AccountDetail {
   max_pipelines: number
   max_active_flows: number
   max_broadcasts_per_month: number
-  allow_flows: boolean
   allow_api_access: boolean
   allow_white_label: boolean
-  allow_store?: boolean
-  store_expires_at?: string | null
   max_products?: number
   max_orders_per_month?: number
   created_at: string
   updated_at: string
   owner_email?: string
+  active_module_ids: string[]
+  used_contacts: number
+}
+
+interface SaasModule {
+  id: string
+  key: string
+  name: string
+  description: string
 }
 
 async function getAccount(id: string): Promise<AccountDetail | null> {
@@ -47,7 +53,33 @@ async function getAccount(id: string): Promise<AccountDetail | null> {
     .maybeSingle()
 
   account.owner_email = profile?.email ?? 'Unknown'
+
+  // Fetch active modules
+  const { data: activeModules } = await admin
+    .from('saas_account_modules')
+    .select('module_id')
+    .eq('account_id', id)
+    .eq('is_active', true)
+
+  account.active_module_ids = (activeModules || []).map((m: any) => m.module_id)
+
+  // Fetch exact contact usage
+  const { data: limitUsage } = await admin
+    .from('saas_account_limit_usage')
+    .select('used')
+    .eq('account_id', id)
+    .eq('limit_id', 'contacts')
+    .maybeSingle()
+
+  account.used_contacts = limitUsage?.used ?? 0
+
   return account
+}
+
+async function getAllModules(): Promise<SaasModule[]> {
+  const admin = supabaseAdmin()
+  const { data } = await admin.from('saas_modules').select('*').order('name')
+  return (data || []) as SaasModule[]
 }
 
 async function updateAccount(formData: FormData) {
@@ -68,13 +100,8 @@ async function updateAccount(formData: FormData) {
   const maxProducts = parseInt(formData.get('max_products') as string, 10) || defaults.max_products || 0
   const maxOrders = parseInt(formData.get('max_orders_per_month') as string, 10) || defaults.max_orders_per_month || 0
 
-  const allowFlows = formData.get('allow_flows') === 'on'
   const allowApiAccess = formData.get('allow_api_access') === 'on'
   const allowWhiteLabel = formData.get('allow_white_label') === 'on'
-  const allowStore = formData.get('allow_store') === 'on'
-
-  const storeExpiresAtInput = formData.get('store_expires_at') as string
-  const storeExpiresAt = storeExpiresAtInput ? new Date(storeExpiresAtInput).toISOString() : null
 
   const { error } = await admin
     .from('accounts')
@@ -85,11 +112,8 @@ async function updateAccount(formData: FormData) {
       max_pipelines: maxPipelines,
       max_active_flows: maxActiveFlows,
       max_broadcasts_per_month: maxBroadcasts,
-      allow_flows: allowFlows,
       allow_api_access: allowApiAccess,
       allow_white_label: allowWhiteLabel,
-      allow_store: allowStore,
-      store_expires_at: storeExpiresAt,
       max_products: maxProducts,
       max_orders_per_month: maxOrders,
     })
@@ -99,6 +123,24 @@ async function updateAccount(formData: FormData) {
     console.error('[admin] account update failed:', error.message)
     throw new Error('Failed to update account: ' + error.message)
   }
+
+  // Handle module toggles
+  const allModuleIds = (formData.get('all_module_ids') as string || '').split(',').filter(Boolean)
+  for (const mid of allModuleIds) {
+    const isActive = formData.get(`module_${mid}`) === 'on'
+    await admin
+      .from('saas_account_modules')
+      .upsert(
+        { account_id: accountId, module_id: mid, is_active: isActive },
+        { onConflict: 'account_id,module_id' }
+      )
+  }
+
+  // Ensure limit_usage exists or gets updated limit
+  await admin.from('saas_account_limit_usage').upsert(
+    { account_id: accountId, limit_id: 'contacts', remaining: maxContacts },
+    { onConflict: 'account_id,limit_id' }
+  )
 
   revalidatePath(`/admin/accounts/${accountId}`)
   redirect(`/admin/accounts/${accountId}?updated=true`)
@@ -116,6 +158,7 @@ export default async function AccountDetailPage({
   const { id } = await params
   const { updated } = await searchParams
   const account = await getAccount(id)
+  const allModules = await getAllModules()
 
   if (!account) {
     notFound()
@@ -151,6 +194,7 @@ export default async function AccountDetailPage({
 
       <form action={updateAccount} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <input type="hidden" name="account_id" value={account.id} />
+        <input type="hidden" name="all_module_ids" value={allModules.map(m => m.id).join(',')} />
 
         {/* Feature Permissions / Pages - Making this the highlight as requested */}
         <div className="lg:col-span-12">
@@ -166,25 +210,31 @@ export default async function AccountDetailPage({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <label className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary">
-                <input
-                  type="checkbox"
-                  name="allow_flows"
-                  defaultChecked={account.allow_flows}
-                  className="sr-only"
-                />
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-teal-500/10 text-teal-500">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-foreground">Chatbot Flows</span>
-                  <span className="text-xs text-muted-foreground">Enables the Flows page, allowing the creation of automated WhatsApp chat workflows.</span>
-                </div>
-                <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
-                  <Check />
-                </div>
-              </label>
+              {allModules.map((mod) => {
+                const isChecked = account.active_module_ids.includes(mod.id)
+                return (
+                  <label key={mod.id} className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary">
+                    <input
+                      type="checkbox"
+                      name={`module_${mod.id}`}
+                      defaultChecked={isChecked}
+                      className="sr-only"
+                    />
+                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Cpu className="h-6 w-6" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="font-semibold text-foreground">{mod.name}</span>
+                      <span className="text-xs text-muted-foreground">{mod.description || 'Enterprise Module'}</span>
+                    </div>
+                    <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
+                      <Check />
+                    </div>
+                  </label>
+                )
+              })}
 
+              {/* Legacy API/Whitelabel settings that don't have modules yet */}
               <label className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary">
                 <input
                   type="checkbox"
@@ -197,26 +247,7 @@ export default async function AccountDetailPage({
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="font-semibold text-foreground">API Access</span>
-                  <span className="text-xs text-muted-foreground">Enables the API settings page for programmatic access and external integrations.</span>
-                </div>
-                <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
-                  <Check />
-                </div>
-              </label>
-
-              <label className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary">
-                <input
-                  type="checkbox"
-                  name="allow_store"
-                  defaultChecked={account.allow_store}
-                  className="sr-only"
-                />
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
-                  <Store className="h-6 w-6" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-foreground">Storefront</span>
-                  <span className="text-xs text-muted-foreground">Enables the Store page for catalog management, orders, and commerce features.</span>
+                  <span className="text-xs text-muted-foreground">Enables programmatic access.</span>
                 </div>
                 <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
                   <Check />
@@ -235,7 +266,7 @@ export default async function AccountDetailPage({
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="font-semibold text-foreground">White-label</span>
-                  <span className="text-xs text-muted-foreground">Allows removing platform branding and accessing custom domain settings.</span>
+                  <span className="text-xs text-muted-foreground">Removes branding.</span>
                 </div>
                 <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
                   <Check />
@@ -279,7 +310,7 @@ export default async function AccountDetailPage({
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
                 <label htmlFor="max_contacts" className="text-sm font-semibold text-foreground flex items-center justify-between">
-                  Max Contacts
+                  Max Contacts (Used: {account.used_contacts.toLocaleString()})
                   <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">Default: {defaults.max_contacts.toLocaleString()}</span>
                 </label>
                 <input
