@@ -37,8 +37,6 @@ async function getAccounts(): Promise<AccountRow[]> {
     }
   }
 
-  }
-
   // Fetch active modules for all these accounts
   const { data: allModules } = await admin
     .from('saas_account_modules')
