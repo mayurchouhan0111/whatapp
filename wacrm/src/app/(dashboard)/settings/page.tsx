@@ -21,6 +21,7 @@ import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { StoreSettings } from '@/components/settings/store-settings';
 import {
   resolveSection,
+  SECTION_META,
   type SettingsSection,
 } from '@/components/settings/settings-sections';
 
