@@ -136,6 +136,40 @@ async function updateAccount(formData: FormData) {
       )
   }
 
+  // Sync Owner role permissions with active modules
+  const { data: ownerRole } = await admin
+    .from('saas_roles')
+    .select('id')
+    .eq('account_id', accountId)
+    .eq('name', 'Owner')
+    .single()
+
+  if (ownerRole) {
+    const { data: activeModules } = await admin
+      .from('saas_account_modules')
+      .select('module_id')
+      .eq('account_id', accountId)
+      .eq('is_active', true)
+    
+    if (activeModules && activeModules.length > 0) {
+      const activeModIds = activeModules.map((m) => m.module_id)
+      const { data: permissions } = await admin
+        .from('saas_permissions')
+        .select('id')
+        .in('module_id', activeModIds)
+      
+      if (permissions && permissions.length > 0) {
+        const permInserts = permissions.map((p) => ({
+          role_id: ownerRole.id,
+          permission_id: p.id,
+        }))
+        await admin
+          .from('saas_role_permissions')
+          .upsert(permInserts, { onConflict: 'role_id,permission_id' })
+      }
+    }
+  }
+
   // Ensure limit_usage exists or gets updated limit
   await admin.from('saas_account_limit_usage').upsert(
     { account_id: accountId, limit_id: 'contacts', remaining: maxContacts },
