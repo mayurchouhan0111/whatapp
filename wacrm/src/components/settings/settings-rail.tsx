@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
+import { usePermissions } from '@/hooks/use-permissions';
 import {
   RAIL_GROUPS,
   SECTION_META,
@@ -31,6 +32,7 @@ export function SettingsRail({
   hints?: Partial<Record<SettingsSection, ReactNode>>;
 }) {
   const activeRef = useRef<HTMLButtonElement>(null);
+  const { hasPermission } = usePermissions();
 
   // When horizontal (mobile), keep the active chip in view. On desktop
   // the rail is a static column, so skip.
@@ -55,8 +57,11 @@ export function SettingsRail({
     >
       {RAIL_GROUPS.map(({ label, group }) => {
         const items = SETTINGS_SECTIONS.filter(
-          (s) => SECTION_META[s].group === group,
+          (s) => SECTION_META[s].group === group && (!SECTION_META[s].permission || hasPermission(SECTION_META[s].permission!))
         );
+        
+        if (items.length === 0) return null;
+
         return (
           <div
             key={group}

@@ -40,12 +40,12 @@ export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
 
 export const DEFAULT_SECTION: SettingsSection = 'overview';
 
-/** Rail grouping. `adminOnly` items are hidden for non-admins. */
 export interface SectionMeta {
   id: SettingsSection;
   label: string;
   icon: LucideIcon;
   group: 'top' | 'account' | 'workspace';
+  permission?: string;
 }
 
 export const SECTION_META: Record<SettingsSection, SectionMeta> = {
@@ -59,7 +59,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   deals: { id: 'deals', label: 'Deals & currency', icon: Coins, group: 'workspace' },
   members: { id: 'members', label: 'Team members', icon: UsersRound, group: 'workspace' },
   roles: { id: 'roles', label: 'Roles & permissions', icon: Shield, group: 'workspace' },
-  store: { id: 'store', label: 'Online store', icon: Store, group: 'workspace' },
+  store: { id: 'store', label: 'Online store', icon: Store, group: 'workspace', permission: 'store.view' },
   api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace' },
 };
 
