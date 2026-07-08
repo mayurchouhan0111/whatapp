@@ -111,24 +111,15 @@ export default function StorefrontPage({
       }
 
       // 2. Fetch license/gating check from account
-      const { data: account, error: accountError } = await supabase
-        .from("accounts")
-        .select("allow_store, store_expires_at")
-        .eq("id", config.account_id)
-        .maybeSingle();
+      const { data: storeActive, error: storeActiveError } = await supabase.rpc(
+        "is_store_active",
+        { p_account_id: config.account_id }
+      );
 
-      if (accountError || !account || !account.allow_store) {
+      if (storeActiveError || !storeActive) {
         setHasAccess(false);
         setLoading(false);
         return;
-      }
-
-      if (account.store_expires_at) {
-        if (new Date(account.store_expires_at) < new Date()) {
-          setHasAccess(false);
-          setLoading(false);
-          return;
-        }
       }
 
       setStore(config);
