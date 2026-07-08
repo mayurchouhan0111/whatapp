@@ -93,7 +93,7 @@ const navItems: NavItem[] = [
   { href: "/broadcasts", label: "Broadcasts", icon: Radio, permission: "broadcasts.view" },
   { href: "/automations", label: "Automations", icon: Zap, permission: "automations.view" },
   { href: "/flows", label: "Flows", icon: Workflow, beta: true, permission: "automations.view" },
-  { href: "/shop", label: "Store", icon: ShoppingCart, permission: "store.view" }
+  { href: "/settings?tab=store", label: "Store", icon: ShoppingCart, permission: "store.view" }
 ];
 
 const bottomNavItems = [
