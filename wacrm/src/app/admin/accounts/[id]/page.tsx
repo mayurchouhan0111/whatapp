@@ -141,8 +141,9 @@ async function updateAccount(formData: FormData) {
     .from('saas_roles')
     .select('id')
     .eq('account_id', accountId)
-    .eq('name', 'Owner')
-    .single()
+    .ilike('name', 'owner')
+    .limit(1)
+    .maybeSingle()
 
   if (ownerRole) {
     const { data: activeModules } = await admin
