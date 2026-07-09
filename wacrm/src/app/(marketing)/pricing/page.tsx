@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
-import Link from "next/link"
-import { CheckCircle, ArrowRight, HelpCircle } from "lucide-react"
+import { CheckCircle, HelpCircle } from "lucide-react"
 import { Header } from "@/components/marketing/header"
 import { Footer } from "@/components/marketing/footer"
+import { PricingSubscribeButton } from "@/components/marketing/pricing-subscribe-button"
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -210,17 +210,11 @@ export default function PricingPage() {
                       </div>
                     ))}
                   </div>
-                  <Link
-                    href={plan.href}
-                    className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-                      plan.highlighted
-                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
-                        : "border border-border bg-card text-foreground hover:bg-accent hover:-translate-y-0.5"
-                    }`}
-                  >
-                    {plan.cta}
-                    {plan.name !== "Enterprise" && <ArrowRight className="h-4 w-4" />}
-                  </Link>
+                  <PricingSubscribeButton
+                    planName={plan.name}
+                    cta={plan.cta}
+                    highlighted={plan.highlighted}
+                  />
                 </div>
               ))}
             </div>
