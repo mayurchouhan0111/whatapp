@@ -89,28 +89,27 @@ BEGIN
   INSERT INTO saas_limits (key, name, unit) VALUES ('broadcasts_per_month', 'Monthly Broadcasts', 'count') ON CONFLICT (key) DO UPDATE SET name = EXCLUDED.name RETURNING id INTO v_limit_broadcasts;
 
   -- 6. PLANS
-  -- Starter
-  INSERT INTO saas_plans (name, billing_interval, price) VALUES ('Starter', 'monthly', 2499.00) RETURNING id INTO v_plan_starter;
-  INSERT INTO saas_plan_products (plan_id, product_id) VALUES (v_plan_starter, v_prod_wacrm);
+  -- Free
+  INSERT INTO saas_plans (name, billing_interval, price) VALUES ('Free', 'monthly', 0) RETURNING id INTO v_plan_starter;
   INSERT INTO saas_plan_limits (plan_id, limit_id, max_value) VALUES 
-    (v_plan_starter, v_limit_contacts, 1000),
-    (v_plan_starter, v_limit_users, 3),
-    (v_plan_starter, v_limit_broadcasts, 2);
+    (v_plan_starter, v_limit_contacts, 500),
+    (v_plan_starter, v_limit_users, 1),
+    (v_plan_starter, v_limit_broadcasts, 100);
 
-  -- Growth
-  INSERT INTO saas_plans (name, billing_interval, price) VALUES ('Growth', 'monthly', 6499.00) RETURNING id INTO v_plan_growth;
+  -- Starter
+  INSERT INTO saas_plans (name, billing_interval, price) VALUES ('Starter', 'monthly', 999.00) RETURNING id INTO v_plan_growth;
   INSERT INTO saas_plan_products (plan_id, product_id) VALUES (v_plan_growth, v_prod_wacrm);
   INSERT INTO saas_plan_limits (plan_id, limit_id, max_value) VALUES 
-    (v_plan_growth, v_limit_contacts, 10000),
-    (v_plan_growth, v_limit_users, 10),
-    (v_plan_growth, v_limit_broadcasts, 10);
+    (v_plan_growth, v_limit_contacts, 5000),
+    (v_plan_growth, v_limit_users, 3),
+    (v_plan_growth, v_limit_broadcasts, 1000);
 
-  -- Enterprise (Includes Store)
-  INSERT INTO saas_plans (name, billing_interval, price) VALUES ('Enterprise', 'monthly', 16499.00) RETURNING id INTO v_plan_enterprise;
+  -- Pro (includes Store)
+  INSERT INTO saas_plans (name, billing_interval, price) VALUES ('Pro', 'monthly', 2999.00) RETURNING id INTO v_plan_enterprise;
   INSERT INTO saas_plan_products (plan_id, product_id) VALUES (v_plan_enterprise, v_prod_wacrm), (v_plan_enterprise, v_prod_wastore);
   INSERT INTO saas_plan_limits (plan_id, limit_id, max_value) VALUES 
-    (v_plan_enterprise, v_limit_contacts, 999999),
-    (v_plan_enterprise, v_limit_users, 999),
-    (v_plan_enterprise, v_limit_broadcasts, 999999);
+    (v_plan_enterprise, v_limit_contacts, 50000),
+    (v_plan_enterprise, v_limit_users, 10),
+    (v_plan_enterprise, v_limit_broadcasts, 10000);
 
 END $$;
