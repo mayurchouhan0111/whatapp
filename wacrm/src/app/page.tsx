@@ -1,11 +1,15 @@
 import { Header } from "@/components/marketing/header"
 import { HeroSection } from "@/components/marketing/hero-section"
 import { TrustBar } from "@/components/marketing/trust-bar"
-import { FeaturesSection } from "@/components/marketing/features-section"
-import { ProductShowcase } from "@/components/marketing/product-showcase"
+import { ChannelSection } from "@/components/marketing/channel-section"
+import { AISection } from "@/components/marketing/ai-section"
+
+import { MarketingSection } from "@/components/marketing/marketing-section"
+import { SalesSection } from "@/components/marketing/sales-section"
+import { SupportSection } from "@/components/marketing/support-section"
+
 import { StatsSection } from "@/components/marketing/stats-section"
 import { TestimonialsSection } from "@/components/marketing/testimonials-section"
-import { WhySection } from "@/components/marketing/why-section"
 import { PricingSection } from "@/components/marketing/pricing-section"
 import { CTASection } from "@/components/marketing/cta-section"
 import { Footer } from "@/components/marketing/footer"
@@ -14,14 +18,18 @@ export default function LandingPage() {
   return (
     <>
       <Header />
-      <main>
+      <main className="pt-20">
         <HeroSection />
         <TrustBar />
-        <FeaturesSection />
-        <ProductShowcase />
+        <ChannelSection />
+
+        <AISection />
+        <MarketingSection />
+        <SalesSection />
+        <SupportSection />
+
         <StatsSection />
         <TestimonialsSection />
-        <WhySection />
         <PricingSection />
         <CTASection />
       </main>

@@ -3,8 +3,8 @@ import { Header } from "@/components/marketing/header"
 import { Footer } from "@/components/marketing/footer"
 import { ShopHero } from "@/components/marketing/shop-hero"
 import { ShopTrustBar } from "@/components/marketing/shop-trust-bar"
-import { ShopHowItWorks } from "@/components/marketing/shop-how-it-works"
-import { ShopFeatures } from "@/components/marketing/shop-features"
+import { PremiumWorkflowSection } from "@/components/marketing/premium-workflow-section"
+import { PremiumFeaturesSection } from "@/components/marketing/premium-features-section"
 import { ShopShowcase } from "@/components/marketing/shop-showcase"
 import { ShopStats } from "@/components/marketing/shop-stats"
 import { ShopTestimonials } from "@/components/marketing/shop-testimonials"
@@ -23,8 +23,8 @@ export default function ShopPage() {
       <main>
         <ShopHero />
         <ShopTrustBar />
-        <ShopHowItWorks />
-        <ShopFeatures />
+        <PremiumWorkflowSection />
+          <PremiumFeaturesSection />
         <ShopShowcase />
         <ShopStats />
         <ShopTestimonials />

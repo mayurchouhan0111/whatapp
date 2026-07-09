@@ -33,9 +33,7 @@ export default async function AdminLayout({
     <div className="flex h-screen overflow-hidden bg-background">
       <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-card">
         <div className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive text-destructive-foreground">
-            <Shield className="h-4 w-4" />
-          </div>
+          <img src="/logo.png" alt="Vbuild CRM" className="h-9 w-auto max-w-[130px] object-contain" />
           <span className="text-sm font-semibold text-foreground">
             Super Admin
           </span>

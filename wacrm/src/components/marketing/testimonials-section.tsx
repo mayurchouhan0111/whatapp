@@ -1,85 +1,138 @@
 import { Star, Quote } from "lucide-react"
+import Link from "next/link"
+import { SectionBadge } from "./section-badge"
 
 const testimonials = [
   {
-    name: "Rajesh Mehta",
+    name: "Emily Watson",
     role: "Founder, ShopIndia",
-    content: "We moved all our customer support and sales to Vbuild CRM. Response time dropped from 4 hours to 8 minutes. Our WhatsApp sales doubled in the first month.",
+    content: "Finally, a dashboard that shows everything that matters — users, orders, and revenue all in one clean view. It helps us make informed decisions much faster.",
     rating: 5,
-    initials: "RM",
-    gradient: "from-violet-500/20 to-violet-500/5",
   },
   {
-    name: "Neha Kapoor",
+    name: "Alex Rivera",
     role: "Operations Head, QuickServe",
-    content: "The shared inbox alone saved us from chaos. Five agents, one WhatsApp number, zero confusion. The automation engine handles 60% of our replies now.",
+    content: "The interface is incredibly intuitive and the tools are very practical. We've cut our deal cycle time almost in half since making the switch.",
     rating: 5,
-    initials: "NK",
-    gradient: "from-emerald-500/20 to-emerald-500/5",
   },
   {
-    name: "Arun Pillai",
+    name: "Marcus Johnson",
     role: "CEO, GrowthX",
-    content: "We evaluated HubSpot, Pipedrive, and Zoho. Vbuild won because it's built specifically for WhatsApp. The pipeline + WhatsApp integration is a game changer.",
+    content: "From onboarding to daily usage, everything feels well thought out. The components are polished, consistent, and production-ready.",
     rating: 5,
-    initials: "AP",
-    gradient: "from-amber-500/20 to-amber-500/5",
   },
   {
-    name: "Sneha Reddy",
+    name: "Sarah Chen",
     role: "Marketing Lead, EduPrime",
-    content: "Broadcast campaigns that used to take us 2 days now take 10 minutes. The template message builder with variables is incredibly powerful yet simple.",
+    content: "Clean design and sensible defaults make a huge difference. The documentation is clear and easy to follow, which saved me hours during setup.",
     rating: 5,
-    initials: "SR",
-    gradient: "from-rose-500/20 to-rose-500/5",
+  },
+  {
+    name: "Ncdai",
+    role: "CTO, Mediconnect",
+    content: "I've used many CRM platforms, but this one strikes the perfect balance. The customization options are incredibly flexible without sacrificing design quality.",
+    rating: 5,
+  },
+  {
+    name: "Lisa Thompson",
+    role: "Sales Director, TechCorp",
+    content: "The seamless integrations streamlined my daily workflow significantly. I can manage emails, track clients, and schedule follow-ups without ever leaving the platform.",
+    rating: 5,
   },
 ]
 
 export function TestimonialsSection() {
   return (
-    <section className="border-b border-border/50">
+    <section className="border-b border-gray-100">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-            <Quote className="h-3 w-3" />
-            Testimonials
-          </div>
-          <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
-            Loved by Businesses Across India
+          <SectionBadge><Quote className="h-3 w-3" /> Testimonials</SectionBadge>
+          <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl">
+            Trusted by People Who Sell Smarter
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            See why companies are switching to Vbuild CRM for their WhatsApp sales.
+          <p className="mt-4 text-lg text-gray-500">
+            Real stories from businesses that simplified their WhatsApp sales and grew their revenue with Vbuild CRM.
           </p>
         </div>
 
-        <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {testimonials.map((t) => (
-            <div
-              key={t.name}
-              className="group relative rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${t.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
-              <div className="relative">
-                <div className="mb-1 flex items-center gap-0.5">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-500 text-amber-500" />
-                  ))}
-                </div>
-                <p className="mt-4 text-sm leading-relaxed text-muted-foreground italic">
-                  &ldquo;{t.content}&rdquo;
-                </p>
-                <div className="mt-5 flex items-center gap-3 border-t border-border/60 pt-4">
-                  <div className={`flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br ${t.gradient} text-xs font-bold text-foreground`}>
-                    {t.initials}
+        <div className="mt-10 flex items-center justify-center gap-3 text-center">
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
+            ))}
+          </div>
+          <span className="text-lg font-semibold text-gray-900">4.9</span>
+          <span className="text-sm text-gray-400">Stars out of 5</span>
+        </div>
+
+        <div className="relative mt-12 overflow-hidden">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-white to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-white to-transparent" />
+
+          <div className="flex overflow-hidden">
+            <div className="flex animate-marquee gap-6">
+              {testimonials.map((t, ti) => (
+                <div
+                  key={`${t.name}-${ti}`}
+                  className="w-80 shrink-0 rounded-xl border border-gray-200 bg-white p-6"
+                >
+                  <div className="mb-1 flex items-center gap-0.5">
+                    {Array.from({ length: t.rating }).map((_, ri) => (
+                      <Star key={ri} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-gray-600">
+                    &ldquo;{t.content}&rdquo;
+                  </p>
+                  <div className="mt-4 flex items-center gap-3 border-t border-gray-100 pt-4">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-600">
+                      {t.name.split(" ").map(n => n[0]).join("")}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{t.name}</p>
+                      <p className="text-xs text-gray-400">{t.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+            <div className="flex animate-marquee gap-6" aria-hidden="true">
+              {testimonials.map((t, ti) => (
+                <div
+                  key={`${t.name}-${ti}-dup`}
+                  className="w-80 shrink-0 rounded-xl border border-gray-200 bg-white p-6"
+                >
+                  <div className="mb-1 flex items-center gap-0.5">
+                    {Array.from({ length: t.rating }).map((_, ri) => (
+                      <Star key={ri} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed text-gray-600">
+                    &ldquo;{t.content}&rdquo;
+                  </p>
+                  <div className="mt-4 flex items-center gap-3 border-t border-gray-100 pt-4">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-600">
+                      {t.name.split(" ").map(n => n[0]).join("")}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{t.name}</p>
+                      <p className="text-xs text-gray-400">{t.role}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/testimonials"
+            className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700"
+          >
+            View all testimonials
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
         </div>
       </div>
     </section>

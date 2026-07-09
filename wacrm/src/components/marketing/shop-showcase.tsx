@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Store, ClipboardList, BarChart3, ShoppingBag, Package, TrendingUp, CheckCircle, Zap } from "lucide-react"
+import { SectionBadge } from "./section-badge"
 
 const tabs = [
   {
@@ -13,7 +14,7 @@ const tabs = [
   },
   {
     id: "orders",
-    label: "Orders Dashboard",
+    label: "Orders",
     icon: ClipboardList,
     gradient: "from-emerald-500/20 to-emerald-500/5",
     iconColor: "text-emerald-500",
@@ -37,46 +38,28 @@ const tabContent = {
       { icon: CheckCircle, text: "Works on any device" },
     ],
     mockup: (
-      <div className="space-y-3">
-        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-sm font-bold text-violet-500">HS</div>
-            <div>
-              <p className="text-sm font-medium text-foreground">Handloom Saree</p>
-              <p className="text-xs text-muted-foreground">Traditional · ₹899</p>
+      <div className="space-y-2.5">
+        {[
+          { name: "Handloom Saree", category: "Traditional", price: "₹899", sold: "24 sold", color: "violet" },
+          { name: "Organic Honey", category: "Food", price: "₹349", sold: "18 sold", color: "amber" },
+          { name: "Bamboo Planter", category: "Home", price: "₹499", sold: "12 sold", color: "emerald" },
+        ].map((item) => (
+          <div key={item.name} className="flex items-center justify-between rounded-xl border border-border/30 bg-card p-3 transition-colors hover:bg-accent/50">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-${item.color}-500/10 text-sm font-bold text-${item.color}-500`}>
+                {item.name.split(" ").map(n => n[0]).join("")}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">{item.name}</p>
+                <p className="text-xs text-muted-foreground">{item.category} · {item.price}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-bold text-primary">{item.price}</p>
+              <p className="text-[10px] text-emerald-500">{item.sold}</p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-bold text-primary">₹899</p>
-            <p className="text-[10px] text-emerald-500">24 sold</p>
-          </div>
-        </div>
-        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-sm font-bold text-amber-500">OH</div>
-            <div>
-              <p className="text-sm font-medium text-foreground">Organic Honey</p>
-              <p className="text-xs text-muted-foreground">Food · ₹349</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-bold text-primary">₹349</p>
-            <p className="text-[10px] text-emerald-500">18 sold</p>
-          </div>
-        </div>
-        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-sm font-bold text-emerald-500">BP</div>
-            <div>
-              <p className="text-sm font-medium text-foreground">Bamboo Planter</p>
-              <p className="text-xs text-muted-foreground">Home · ₹499</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-bold text-primary">₹499</p>
-            <p className="text-[10px] text-emerald-500">12 sold</p>
-          </div>
-        </div>
+        ))}
       </div>
     ),
   },
@@ -90,36 +73,24 @@ const tabContent = {
     ],
     mockup: (
       <div className="space-y-2">
-        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-violet-500/5 text-[10px] font-bold text-violet-500">PS</div>
-            <div>
-              <p className="text-sm font-medium text-foreground">#ORD-0042</p>
-              <p className="text-xs text-muted-foreground">Priya Sharma · ₹1,248</p>
+        {[
+          { id: "#ORD-0042", name: "Priya Sharma", amount: "₹1,248", status: "Pending", statusColor: "text-amber-500", bgColor: "bg-amber-500/10", initials: "PS", gradient: "from-violet-500/20 to-violet-500/5" },
+          { id: "#ORD-0041", name: "Rahul Verma", amount: "₹899", status: "Confirmed", statusColor: "text-blue-500", bgColor: "bg-blue-500/10", initials: "RV", gradient: "from-emerald-500/20 to-emerald-500/5" },
+          { id: "#ORD-0040", name: "Ananya Gupta", amount: "₹499", status: "Delivered", statusColor: "text-emerald-500", bgColor: "bg-emerald-500/10", initials: "AG", gradient: "from-amber-500/20 to-amber-500/5" },
+        ].map((order) => (
+          <div key={order.id} className="flex items-center justify-between rounded-xl border border-border/30 bg-card p-3 transition-colors hover:bg-accent/50">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br ${order.gradient} text-[10px] font-bold`}>
+                {order.initials}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">{order.id} · {order.name}</p>
+                <p className="text-xs text-muted-foreground">{order.amount}</p>
+              </div>
             </div>
+            <span className={`rounded-full ${order.bgColor} px-2.5 py-0.5 text-[10px] font-medium ${order.statusColor}`}>{order.status}</span>
           </div>
-          <span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-medium text-amber-500">Pending</span>
-        </div>
-        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 text-[10px] font-bold text-emerald-500">RV</div>
-            <div>
-              <p className="text-sm font-medium text-foreground">#ORD-0041</p>
-              <p className="text-xs text-muted-foreground">Rahul Verma · ₹899</p>
-            </div>
-          </div>
-          <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-medium text-blue-500">Confirmed</span>
-        </div>
-        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/20 to-amber-500/5 text-[10px] font-bold text-amber-500">AG</div>
-            <div>
-              <p className="text-sm font-medium text-foreground">#ORD-0040</p>
-              <p className="text-xs text-muted-foreground">Ananya Gupta · ₹499</p>
-            </div>
-          </div>
-          <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-500">Delivered</span>
-        </div>
+        ))}
       </div>
     ),
   },
@@ -134,18 +105,18 @@ const tabContent = {
     mockup: (
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg border border-border/60 bg-card p-3 text-center">
+          <div className="rounded-xl border border-border/30 bg-card p-3 text-center">
             <p className="text-xs text-muted-foreground">Today</p>
             <p className="text-lg font-bold text-foreground">₹12.4K</p>
             <p className="text-[10px] text-emerald-500">+18% vs yesterday</p>
           </div>
-          <div className="rounded-lg border border-border/60 bg-card p-3 text-center">
+          <div className="rounded-xl border border-border/30 bg-card p-3 text-center">
             <p className="text-xs text-muted-foreground">This Week</p>
             <p className="text-lg font-bold text-foreground">₹84.2K</p>
             <p className="text-[10px] text-emerald-500">+12% vs last week</p>
           </div>
         </div>
-        <div className="rounded-lg border border-border/60 bg-card p-3">
+        <div className="rounded-xl border border-border/30 bg-card p-3">
           <p className="mb-2 text-xs font-medium text-foreground">Top Products</p>
           <div className="space-y-1.5">
             {[
@@ -170,13 +141,13 @@ const tabContent = {
 
 export function ShopShowcase() {
   const [activeTab, setActiveTab] = useState("storefront")
-
   const current = tabContent[activeTab as keyof typeof tabContent]
 
   return (
-    <section className="border-b border-border/50 bg-card/30">
+    <section className="border-b border-border/40 bg-card/10">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
+          <SectionBadge><BarChart3 className="h-3 w-3" /> Product</SectionBadge>
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
             See the Store in Action
           </h2>
@@ -186,7 +157,7 @@ export function ShopShowcase() {
         </div>
 
         <div className="mt-12 flex justify-center">
-          <div className="inline-flex rounded-xl border border-border/60 bg-card p-1 shadow-sm">
+          <div className="inline-flex rounded-xl border border-border/40 bg-card p-1 shadow-sm">
             {tabs.map((tab) => {
               const Icon = tab.icon
               const isActive = activeTab === tab.id
@@ -229,14 +200,12 @@ export function ShopShowcase() {
 
           <div className="relative">
             <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent blur-lg" />
-            <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-2xl shadow-primary/5">
+            <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-card p-5 shadow-2xl shadow-primary/5">
               <div className="mb-4 flex items-center gap-1.5">
                 <div className="h-2 w-2 rounded-full bg-destructive/60" />
                 <div className="h-2 w-2 rounded-full bg-amber-500/60" />
                 <div className="h-2 w-2 rounded-full bg-emerald-500/60" />
-                <span className="ml-2 text-[10px] text-muted-foreground">
-                  {activeTab === "storefront" ? "Customer Storefront" : activeTab === "orders" ? "Orders Dashboard" : "Analytics View"}
-                </span>
+                <span className="ml-2 text-[10px] text-muted-foreground">{current.title}</span>
               </div>
               {current.mockup}
             </div>

@@ -3,17 +3,18 @@
 import { useState } from "react"
 import { ShoppingBag, ShoppingCart, ClipboardList, CreditCard, Send, PackageCheck, ArrowRight, Smartphone } from "lucide-react"
 import Link from "next/link"
+import { SectionBadge } from "./section-badge"
 
 const steps = [
   {
     icon: ShoppingBag,
     title: "Browse Products",
     description: "Customers visit your branded storefront, browse by category, and search products with instant results.",
-    gradient: "from-violet-500/20 to-violet-500/5",
-    iconColor: "text-violet-500",
+    gradient: "from-emerald-500/20 to-emerald-500/5",
+    iconColor: "text-emerald-500",
     mockup: (
       <div className="space-y-2">
-        <div className="flex items-center justify-between rounded-lg bg-card p-2">
+        <div className="flex items-center justify-between rounded-lg bg-card p-2.5">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10 text-xs font-bold text-violet-500">H</div>
             <div>
@@ -21,11 +22,11 @@ const steps = [
               <p className="text-[10px] text-muted-foreground">₹899</p>
             </div>
           </div>
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <ShoppingBag className="h-3 w-3" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <ShoppingBag className="h-3.5 w-3.5" />
           </div>
         </div>
-        <div className="flex items-center justify-between rounded-lg bg-card p-2">
+        <div className="flex items-center justify-between rounded-lg bg-card p-2.5">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-xs font-bold text-amber-500">O</div>
             <div>
@@ -33,8 +34,8 @@ const steps = [
               <p className="text-[10px] text-muted-foreground">₹349</p>
             </div>
           </div>
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <ShoppingBag className="h-3 w-3" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <ShoppingBag className="h-3.5 w-3.5" />
           </div>
         </div>
       </div>
@@ -44,27 +45,27 @@ const steps = [
     icon: ShoppingCart,
     title: "Add to Cart",
     description: "Select items with quantity controls. Real-time subtotal, delivery fee calculation, and savings badges.",
-    gradient: "from-blue-500/20 to-blue-500/5",
-    iconColor: "text-blue-500",
+gradient: "from-emerald-500/20 to-emerald-500/5",
+      iconColor: "text-emerald-500",
     mockup: (
-      <div className="rounded-lg border border-border/60 bg-card p-3">
+      <div className="rounded-lg border border-border/30 bg-card p-3">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-[10px] font-semibold text-foreground">Cart (2 items)</span>
-          <span className="text-[10px] text-primary">₹1,248</span>
+          <span className="text-[10px] text-primary font-medium">₹1,248</span>
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-muted-foreground">Handloom Saree x1</span>
-            <span className="text-foreground">₹899</span>
+            <span className="text-foreground font-medium">₹899</span>
           </div>
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-muted-foreground">Organic Honey x1</span>
-            <span className="text-foreground">₹349</span>
+            <span className="text-foreground font-medium">₹349</span>
           </div>
-          <div className="border-t border-border/60 pt-1.5 text-[10px]">
+          <div className="border-t border-border/30 pt-1.5 text-[10px]">
             <div className="flex justify-between text-muted-foreground">
               <span>Delivery</span>
-              <span className="text-emerald-500">Free</span>
+              <span className="text-emerald-500 font-medium">Free</span>
             </div>
           </div>
         </div>
@@ -80,9 +81,9 @@ const steps = [
     mockup: (
       <div className="space-y-1.5">
         {["Full Name", "WhatsApp Number", "Delivery Address"].map((label) => (
-          <div key={label} className="rounded-lg border border-border/60 bg-card px-2.5 py-1.5">
+          <div key={label} className="rounded-lg border border-border/30 bg-card px-3 py-2">
             <p className="text-[9px] text-muted-foreground">{label}</p>
-            <p className="text-[11px] text-foreground/40">&nbsp;</p>
+            <p className="text-[11px] text-foreground/30">&nbsp;</p>
           </div>
         ))}
       </div>
@@ -92,15 +93,15 @@ const steps = [
     icon: CreditCard,
     title: "Choose Payment",
     description: "UPI (QR/ID) or Cash on Delivery. Delivery free above ₹300, minimal handling fee otherwise.",
-    gradient: "from-amber-500/20 to-amber-500/5",
-    iconColor: "text-amber-500",
+gradient: "from-emerald-500/20 to-emerald-500/5",
+      iconColor: "text-emerald-500",
     mockup: (
       <div className="space-y-1.5">
-        <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-2.5 py-2">
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[8px]">✓</div>
+        <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-[8px] font-bold text-primary">✓</div>
           <span className="text-[11px] font-medium text-foreground">UPI Payment</span>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-card px-2.5 py-2">
+        <div className="flex items-center gap-2 rounded-lg border border-border/30 bg-card px-3 py-2">
           <div className="flex h-5 w-5 items-center justify-center rounded-full bg-card text-[8px] text-muted-foreground">○</div>
           <span className="text-[11px] text-muted-foreground">Cash on Delivery</span>
         </div>
@@ -114,14 +115,14 @@ const steps = [
     gradient: "from-emerald-500/20 to-emerald-500/5",
     iconColor: "text-emerald-500",
     mockup: (
-      <div className="rounded-lg border border-border/60 bg-card p-3">
+      <div className="rounded-lg border border-border/30 bg-card p-3">
         <div className="mb-2 flex items-center gap-1.5">
-          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/10">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/10">
             <Send className="h-2.5 w-2.5 text-emerald-500" />
           </div>
           <span className="text-[10px] font-medium text-foreground">WhatsApp Preview</span>
         </div>
-        <div className="rounded-lg bg-muted p-2">
+        <div className="rounded-lg bg-muted p-2.5">
           <p className="text-[9px] text-muted-foreground">Hi! My order:</p>
           <p className="mt-1 text-[9px] text-muted-foreground">1x Handloom Saree - ₹899</p>
           <p className="text-[9px] text-muted-foreground">1x Organic Honey - ₹349</p>
@@ -138,19 +139,19 @@ const steps = [
     iconColor: "text-primary",
     mockup: (
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-2">
+        <div className="flex items-center justify-between rounded-lg border border-border/30 bg-card p-2.5">
           <div>
             <p className="text-[10px] font-medium text-foreground">#ORD-0042</p>
-            <p className="text-[9px] text-muted-foreground">Priya Sharma</p>
+            <p className="text-[9px] text-muted-foreground">Priya Sharma · ₹1,248</p>
           </div>
-          <span className="rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-medium text-amber-500">Pending</span>
+          <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-medium text-amber-500">Pending</span>
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-2">
+        <div className="flex items-center justify-between rounded-lg border border-border/30 bg-card p-2.5">
           <div>
             <p className="text-[10px] font-medium text-foreground">#ORD-0041</p>
-            <p className="text-[9px] text-muted-foreground">Rahul Verma</p>
+            <p className="text-[9px] text-muted-foreground">Rahul Verma · ₹899</p>
           </div>
-          <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium text-emerald-500">Delivered</span>
+          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-medium text-emerald-500">Delivered</span>
         </div>
       </div>
     ),
@@ -161,13 +162,10 @@ export function ShopHowItWorks() {
   const [activeStep, setActiveStep] = useState(0)
 
   return (
-    <section className="border-b border-border/50">
+    <section className="border-b border-border/40">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-            <Smartphone className="h-3 w-3" />
-            How It Works
-          </div>
+          <SectionBadge><Smartphone className="h-3 w-3" /> How It Works</SectionBadge>
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
             From Browse to Delivery — All in Under 30 Seconds
           </h2>
@@ -188,7 +186,7 @@ export function ShopHowItWorks() {
                   className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all duration-300 ${
                     isActive
                       ? "border-primary/30 bg-primary/5 shadow-lg shadow-primary/5"
-                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
+                      : "border-border/40 bg-card hover:border-border hover:shadow-md"
                   }`}
                 >
                   <div
@@ -225,11 +223,11 @@ export function ShopHowItWorks() {
 
           <div className="relative flex items-center justify-center">
             <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent blur-xl" />
-            <div className="relative w-full max-w-xs overflow-hidden rounded-2xl border border-border/60 bg-card p-4 shadow-2xl shadow-primary/5">
+            <div className="relative w-full max-w-xs overflow-hidden rounded-2xl border border-border/40 bg-card p-5 shadow-2xl shadow-primary/5">
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <ShoppingBag className="h-2.5 w-2.5" />
+                  <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <ShoppingBag className="h-3 w-3" />
                   </div>
                   <span className="text-[10px] font-semibold text-foreground">Customer View</span>
                 </div>
