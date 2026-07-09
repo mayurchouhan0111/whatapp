@@ -1,67 +1,72 @@
 "use client"
 
 import Link from "next/link"
-import { ShoppingBag, Zap, CheckCircle, ArrowRight, Sparkles } from "lucide-react"
+import { ShoppingBag, Zap, CheckCircle, ArrowRight, Sparkles, Store, Gift } from "lucide-react"
 import { useState } from "react"
 import { SectionBadge } from "./section-badge"
 
 const TIERS = [
   {
-    plan: "Starter",
-    monthlyPrice: "₹999",
-    annualPrice: "₹799",
+    plan: "Store Only",
+    monthlyPrice: "₹499",
+    annualPrice: "₹4,999",
     period: "/mo",
-    description: "For small businesses launching their first online store.",
-    products: "20 products",
-    orders: "50 orders/mo",
+    description: "WhatsApp Storefront without the full CRM.",
+    products: "50 products",
+    orders: "100 orders/mo",
     highlighted: false,
     features: [
-      "Product catalog with categories",
+      "WhatsApp product catalog",
       "Instant search & filters",
-      "WhatsApp ordering",
+      "WhatsApp ordering via chat",
       "Order management dashboard",
       "UPI & COD payments",
       "Delivery fee auto-calculation",
-      "Basic analytics",
+      "Basic sales analytics",
     ],
   },
   {
-    plan: "Pro",
-    monthlyPrice: "₹2,999",
-    annualPrice: "₹2,499",
+    plan: "Included in Starter",
+    monthlyPrice: "₹999",
+    annualPrice: "₹9,999",
     period: "/mo",
-    description: "For growing businesses ready to scale their WhatsApp sales.",
-    products: "150 products",
-    orders: "500 orders/mo",
+    description: "Store + full WhatsApp CRM — best value.",
+    products: "50 products",
+    orders: "100 orders/mo",
     highlighted: true,
+    features: [
+      "Everything in Store Only",
+      "Full WhatsApp CRM (shared inbox)",
+      "Contact & lead management",
+      "Sales pipelines (Kanban)",
+      "1 active flow (bot builder)",
+      "1,000 broadcasts/month",
+      "3 team agents",
+    ],
+    cta: "Get Started",
+    href: "/pricing",
+  },
+  {
+    plan: "Included in Growth",
+    monthlyPrice: "₹1,999",
+    annualPrice: "₹19,999",
+    period: "/mo",
+    description: "For stores scaling with automation.",
+    products: "500 products",
+    orders: "1,000 orders/mo",
+    highlighted: false,
     features: [
       "Everything in Starter",
       "CSV bulk product import",
-      "Advanced sales analytics",
-      "Export reports to CSV",
-      "Auto-confirm & status updates",
-      "Customer order history",
+      "10 active flows (bot builder)",
+      "10,000 broadcasts/month",
+      "10 team agents",
+      "3 WhatsApp numbers",
+      "API access",
       "Priority support",
     ],
-  },
-  {
-    plan: "Enterprise",
-    monthlyPrice: "Custom",
-    annualPrice: "Custom",
-    period: "",
-    description: "For large businesses with custom requirements.",
-    products: "Unlimited products",
-    orders: "Unlimited orders",
-    highlighted: false,
-    features: [
-      "Everything in Pro",
-      "White-label storefront",
-      "Custom domain support",
-      "Dedicated account manager",
-      "Custom integrations",
-      "SLA guarantee",
-      "On-premise deployment",
-    ],
+    cta: "Get Started",
+    href: "/pricing",
   },
 ]
 
@@ -69,15 +74,15 @@ export function ShopPricing() {
   const [annual, setAnnual] = useState(false)
 
   return (
-    <section className="border-b border-border/40">
+    <section className="border-b border-border/40" id="shop-pricing">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <SectionBadge><Sparkles className="h-3 w-3" /> Pricing</SectionBadge>
+          <SectionBadge><Store className="h-3 w-3" /> WhatsApp Store Pricing</SectionBadge>
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
-            Simple Pricing for Every Store
+            Start Selling on WhatsApp Today
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            The WhatsApp Storefront is included in all paid plans. No setup fees, no hidden costs.
+            The WhatsApp Storefront is included free in every paid CRM plan. Or get it standalone for ₹499/mo.
           </p>
 
           <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-border/40 bg-card p-1">
@@ -97,7 +102,7 @@ export function ShopPricing() {
             >
               Annual
               <span className="ml-1.5 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-500">
-                Save 20%
+                Save ~16%
               </span>
             </button>
           </div>
@@ -119,7 +124,7 @@ export function ShopPricing() {
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                     <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-primary/80 px-4 py-1 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/20">
                       <Sparkles className="h-3 w-3" />
-                      Most Popular
+                      Best Value
                     </span>
                   </div>
                 )}
@@ -131,9 +136,11 @@ export function ShopPricing() {
 
                 <div className="mb-6">
                   <span className="text-3xl font-bold text-foreground">{price}</span>
-                  {tier.period && <span className="text-sm text-muted-foreground">{tier.period}</span>}
+                  {tier.period && <span className="text-sm text-muted-foreground">{annual ? "/yr" : tier.period}</span>}
                   {annual && tier.annualPrice !== "Custom" && (
-                    <p className="mt-1 text-xs text-emerald-500">Billed annually (₹{tier.annualPrice.replace("₹", "")} × 12)</p>
+                    <p className="mt-1 text-xs text-emerald-500">
+                      ₹{tier.monthlyPrice.replace("₹", "")}/mo billed annually
+                    </p>
                   )}
                 </div>
 
@@ -157,23 +164,37 @@ export function ShopPricing() {
                   ))}
                 </ul>
 
-                <Link
-                  href="/signup"
-                  className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition-all duration-300 ${
-                    tier.highlighted
-                      ? "bg-[#0fe875] border-2 border-gray-900 text-gray-900 shadow-[4px_4px_0px_0px_rgba(17,24,39,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none"
-                      : "border border-border bg-card text-foreground hover:bg-accent hover:-translate-y-0.5"
-                  }`}
-                >
-                  {tier.plan === "Enterprise" ? "Contact Sales" : "Start Free Trial"}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+                {tier.cta ? (
+                  <Link
+                    href={tier.href || "/signup"}
+                    className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition-all duration-300 ${
+                      tier.highlighted
+                        ? "bg-[#0fe875] border-2 border-gray-900 text-gray-900 shadow-[4px_4px_0px_0px_rgba(17,24,39,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none"
+                        : "border border-border bg-card text-foreground hover:bg-accent hover:-translate-y-0.5"
+                    }`}
+                  >
+                    {tier.cta}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ) : (
+                  <Link
+                    href="/signup"
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-bold text-foreground transition-all duration-300 hover:bg-accent hover:-translate-y-0.5"
+                  >
+                    Start Free Trial
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                )}
               </div>
             )
           })}
         </div>
 
-        <div className="mt-10 text-center">
+        <div className="mt-10 flex flex-col items-center gap-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Gift className="h-4 w-4 text-primary" />
+            <span>The WhatsApp Store is included <strong>free</strong> in Starter, Growth, and Pro CRM plans.</span>
+          </div>
           <p className="text-sm text-muted-foreground">
             All plans include a 14-day free trial. No credit card required.
           </p>

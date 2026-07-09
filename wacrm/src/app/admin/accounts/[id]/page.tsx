@@ -181,7 +181,7 @@ async function updateAccount(formData: FormData) {
   redirect(`/admin/accounts/${accountId}?updated=true`)
 }
 
-const PLAN_TIERS: PlanTier[] = ['starter', 'growth', 'professional', 'enterprise']
+const PLAN_TIERS: PlanTier[] = ['free', 'starter', 'growth', 'pro', 'enterprise']
 
 export default async function AccountDetailPage({
   params,

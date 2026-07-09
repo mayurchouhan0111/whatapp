@@ -21,6 +21,7 @@ const TIERS = [
     ],
     missingFeatures: [
       "WhatsApp Store",
+      "Flows & automations",
     ],
     cta: "Get Started",
     href: "/signup",
@@ -29,16 +30,37 @@ const TIERS = [
   {
     name: "Starter",
     monthlyPrice: "₹999",
-    annualPrice: "₹799",
+    annualPrice: "₹9,999",
     period: "/mo",
     description: "For small teams ready to grow.",
     features: [
       "3 agents",
-      "5,000 contacts",
-      "5,000 conversations/mo",
+      "2,500 contacts",
+      "2,500 conversations/mo",
       "1,000 broadcasts/mo",
-      "WhatsApp Store (20 products)",
-      "Flows & Automations",
+      "WhatsApp Store (50 products)",
+      "1 active flow (bot builder)",
+    ],
+    missingFeatures: [],
+    cta: "Start Free Trial",
+    href: "/signup",
+    highlighted: false,
+  },
+  {
+    name: "Growth",
+    monthlyPrice: "₹1,999",
+    annualPrice: "₹19,999",
+    period: "/mo",
+    description: "Most popular — for growing teams.",
+    features: [
+      "10 agents",
+      "15,000 contacts",
+      "15,000 conversations/mo",
+      "10,000 broadcasts/mo",
+      "WhatsApp Store (500 products)",
+      "10 active flows (bot builder)",
+      "3 WhatsApp numbers",
+      "API access",
     ],
     missingFeatures: [],
     cta: "Start Free Trial",
@@ -47,18 +69,19 @@ const TIERS = [
   },
   {
     name: "Pro",
-    monthlyPrice: "₹2,999",
-    annualPrice: "₹2,499",
+    monthlyPrice: "₹3,999",
+    annualPrice: "₹39,999",
     period: "/mo",
-    description: "For growing businesses at scale.",
+    description: "For businesses scaling high-volume sales.",
     features: [
-      "10 agents",
+      "25 agents",
       "50,000 contacts",
       "50,000 conversations/mo",
-      "10,000 broadcasts/mo",
-      "WhatsApp Store (150 products)",
-      "3 WhatsApp numbers",
-      "API access",
+      "50,000 broadcasts/mo",
+      "WhatsApp Store (2,500 products)",
+      "Unlimited active flows",
+      "5 WhatsApp numbers",
+      "Full API access",
       "Priority support",
     ],
     missingFeatures: [],
@@ -100,13 +123,13 @@ export function PricingSection() {
             >
               Annual
               <span className="ml-1.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-                Save 20%
+                Save ~16%
               </span>
             </button>
           </div>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-4">
           {TIERS.map((tier) => {
             const price = annual ? tier.annualPrice : tier.monthlyPrice
             return (
@@ -114,7 +137,7 @@ export function PricingSection() {
                 key={tier.name}
                 className={`relative flex flex-col rounded-2xl border p-8 transition-all duration-300 hover:-translate-y-1 ${
                   tier.highlighted
-                    ? "border-emerald-200 bg-white shadow-lg shadow-emerald-100/50"
+                    ? "border-emerald-200 bg-white shadow-lg shadow-emerald-100/50 ring-2 ring-emerald-200"
                     : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg"
                 }`}
               >
@@ -134,9 +157,13 @@ export function PricingSection() {
 
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-gray-900">{price}</span>
-                  <span className="text-sm text-gray-400">{tier.period}</span>
+                  <span className="text-sm text-gray-400">
+                    {annual && tier.annualPrice !== "₹0" ? "/yr" : tier.period}
+                  </span>
                   {annual && tier.annualPrice !== "₹0" && (
-                    <p className="mt-1 text-xs text-emerald-600">Billed annually (₹{tier.annualPrice.replace("₹", "")} × 12)</p>
+                    <p className="mt-1 text-xs text-emerald-600">
+                      ₹{tier.monthlyPrice.replace("₹", "").replace(",", "")}/mo billed annually
+                    </p>
                   )}
                 </div>
 

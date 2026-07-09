@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/flows/admin-client'
 
-export type PlanTier = 'starter' | 'growth' | 'professional' | 'enterprise'
+export type PlanTier = 'free' | 'starter' | 'growth' | 'pro' | 'enterprise'
 
 export type LimitType =
   | 'users'
@@ -41,47 +41,61 @@ export interface AccountLimits {
 }
 
 const PLAN_DEFAULTS: Record<PlanTier, Omit<AccountLimits, 'plan_tier'>> = {
+  free: {
+    max_users: 1,
+    max_contacts: 500,
+    max_pipelines: 1,
+    max_active_flows: 0,
+    max_broadcasts_per_month: 100,
+    allow_flows: false,
+    allow_api_access: false,
+    allow_white_label: false,
+    allow_store: false,
+    store_expires_at: null,
+    max_products: 0,
+    max_orders_per_month: 0,
+  },
   starter: {
-    max_users: 5,
-    max_contacts: 1000,
-    max_pipelines: 3,
+    max_users: 3,
+    max_contacts: 2500,
+    max_pipelines: 2,
     max_active_flows: 1,
     max_broadcasts_per_month: 1000,
-    allow_flows: false,
+    allow_flows: true,
     allow_api_access: false,
     allow_white_label: false,
     allow_store: true,
     store_expires_at: null,
-    max_products: 20,
-    max_orders_per_month: 50,
+    max_products: 50,
+    max_orders_per_month: 100,
   },
   growth: {
-    max_users: 15,
-    max_contacts: 5000,
-    max_pipelines: 10,
-    max_active_flows: 5,
+    max_users: 10,
+    max_contacts: 15_000,
+    max_pipelines: 5,
+    max_active_flows: 10,
     max_broadcasts_per_month: 10_000,
     allow_flows: true,
     allow_api_access: true,
     allow_white_label: false,
     allow_store: true,
     store_expires_at: null,
-    max_products: 50,
-    max_orders_per_month: 150,
+    max_products: 500,
+    max_orders_per_month: 1000,
   },
-  professional: {
-    max_users: 50,
-    max_contacts: 25_000,
-    max_pipelines: 50,
-    max_active_flows: 20,
-    max_broadcasts_per_month: 100_000,
+  pro: {
+    max_users: 25,
+    max_contacts: 50_000,
+    max_pipelines: 999,
+    max_active_flows: 999,
+    max_broadcasts_per_month: 50_000,
     allow_flows: true,
     allow_api_access: true,
     allow_white_label: false,
     allow_store: true,
     store_expires_at: null,
-    max_products: 150,
-    max_orders_per_month: 500,
+    max_products: 2500,
+    max_orders_per_month: 5000,
   },
   enterprise: {
     max_users: 9_999,
