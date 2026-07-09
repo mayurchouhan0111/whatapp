@@ -121,7 +121,7 @@ export async function middleware(request: NextRequest) {
   if (isProtectedPath && user) {
     if (!hasWorkspace || !hasActiveAccess) {
       const url = request.nextUrl.clone()
-      url.pathname = '/subscribe'
+      url.pathname = '/pricing'
       return withRefreshedCookies(NextResponse.redirect(url))
     }
   }
