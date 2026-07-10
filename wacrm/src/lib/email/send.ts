@@ -1,14 +1,22 @@
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || ''
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev'
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp-relay.brevo.com'
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10)
+const SMTP_USER = process.env.SMTP_USER || ''
+const SMTP_PASS = process.env.SMTP_PASS || ''
 
-let _resend: Resend | null = null
-function getResend() {
-  if (!_resend && process.env.RESEND_API_KEY) {
-    _resend = new Resend(process.env.RESEND_API_KEY)
+let _transporter: nodemailer.Transporter | null = null
+function getTransporter() {
+  if (!_transporter && SMTP_USER && SMTP_PASS) {
+    _transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: false,
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+    })
   }
-  return _resend
+  return _transporter
 }
 
 export async function sendEmail({
@@ -20,19 +28,19 @@ export async function sendEmail({
   subject: string
   html: string
 }) {
-  const resend = getResend()
-  if (!resend) {
-    console.warn('[email] RESEND_API_KEY not set — skipping email to', to)
+  const transporter = getTransporter()
+  if (!transporter) {
+    console.warn('[email] SMTP_USER/SMTP_PASS not set — skipping email to', to)
     return
   }
   try {
-    const result = await resend.emails.send({
-      from: `Vbuild CRM <${FROM_EMAIL}>`,
+    const info = await transporter.sendMail({
+      from: `"Vbuild CRM" <${SMTP_USER}>`,
       to,
       subject,
       html,
     })
-    console.log('[email] sent successfully to', to, 'id:', result.id)
+    console.log('[email] sent successfully to', to, 'id:', info.messageId)
   } catch (err) {
     console.error('[email] send failed to', to, ':', err)
   }
