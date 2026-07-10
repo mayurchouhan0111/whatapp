@@ -137,14 +137,6 @@ const plans = [
   },
 ]
 
-const AVATARS = [
-  { initials: "RM", color: "from-violet-500 to-violet-600" },
-  { initials: "KJ", color: "from-emerald-500 to-emerald-600" },
-  { initials: "AP", color: "from-amber-500 to-amber-600" },
-  { initials: "SR", color: "from-rose-500 to-rose-600" },
-  { initials: "VS", color: "from-blue-500 to-blue-600" },
-]
-
 const faqs = [
   {
     q: "Can I switch plans later?",
@@ -232,23 +224,26 @@ export default function PricingPage() {
                 </Link>
               </div>
 
-              <div className="mt-8 flex animate-fade-in flex-col items-center gap-4 sm:flex-row sm:justify-center [animation-delay:300ms]">
-                <div className="flex -space-x-3">
-                  {AVATARS.map((avatar) => (
-                    <div
-                      key={avatar.initials}
-                      className={`flex h-9 w-9 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br ${avatar.color} text-[10px] font-bold text-white shadow-sm`}
-                    >
-                      {avatar.initials}
-                    </div>
-                  ))}
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-background bg-primary/10 text-[10px] font-bold text-primary shadow-sm">
-                    +2.4K
+              {/* Trust metrics */}
+              <div className="mt-8 grid animate-fade-in grid-cols-2 gap-3 sm:grid-cols-4 [animation-delay:300ms]">
+                {[
+                  { value: "100+", label: "Active Stores" },
+                  { value: "5,000+", label: "Orders Processed" },
+                  { value: "₹15L+", label: "Revenue Generated" },
+                  { value: "4.9/5", label: "Customer Rating" },
+                ].map((metric) => (
+                  <div
+                    key={metric.label}
+                    className="rounded-xl border border-border/40 bg-card/50 px-3 py-3 text-center backdrop-blur-sm sm:px-4 sm:py-4"
+                  >
+                    <p className="text-lg font-extrabold text-foreground sm:text-xl">
+                      {metric.value}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground sm:text-xs">
+                      {metric.label}
+                    </p>
                   </div>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">2,400+</span> businesses trust Vbuild CRM
-                </div>
+                ))}
               </div>
 
               {/* Billing toggle + currency */}
