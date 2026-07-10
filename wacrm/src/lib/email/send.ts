@@ -7,6 +7,8 @@ const SMTP_USER = process.env.SMTP_USER || ''
 const SMTP_PASS = process.env.SMTP_PASS || ''
 
 let _transporter: nodemailer.Transporter | null = null
+let _transporterVerified = false
+
 function getTransporter() {
   if (!_transporter && SMTP_USER && SMTP_PASS) {
     _transporter = nodemailer.createTransport({
@@ -17,6 +19,20 @@ function getTransporter() {
     })
   }
   return _transporter
+}
+
+async function verifyTransporter() {
+  const transporter = getTransporter()
+  if (!transporter || _transporterVerified) return true
+  try {
+    await transporter.verify()
+    _transporterVerified = true
+    console.log('[email] SMTP connection verified')
+    return true
+  } catch (err) {
+    console.error('[email] SMTP connection failed:', err)
+    return false
+  }
 }
 
 export async function sendEmail({
@@ -33,6 +49,7 @@ export async function sendEmail({
     console.warn('[email] SMTP_USER/SMTP_PASS not set — skipping email to', to)
     return
   }
+  await verifyTransporter()
   try {
     const info = await transporter.sendMail({
       from: `"Vbuild CRM" <${SMTP_USER}>`,

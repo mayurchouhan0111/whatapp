@@ -104,11 +104,15 @@ export async function POST(
       })
       .eq('id', id)
 
-    notifyPaymentApproved({
-      email: payment.email,
-      name: payment.name,
-      plan_name: payment.plan_name,
-    })
+    try {
+      await notifyPaymentApproved({
+        email: payment.email,
+        name: payment.name,
+        plan_name: payment.plan_name,
+      })
+    } catch (emailErr) {
+      console.error('[admin/payments] approval email failed:', emailErr)
+    }
 
     return NextResponse.json({ success: true, action: 'approved' })
   }
@@ -124,12 +128,16 @@ export async function POST(
       })
       .eq('id', id)
 
-    notifyPaymentRejected({
-      email: payment.email,
-      name: payment.name,
-      plan_name: payment.plan_name,
-      reason: notes || '',
-    })
+    try {
+      await notifyPaymentRejected({
+        email: payment.email,
+        name: payment.name,
+        plan_name: payment.plan_name,
+        reason: notes || '',
+      })
+    } catch (emailErr) {
+      console.error('[admin/payments] rejection email failed:', emailErr)
+    }
 
     return NextResponse.json({ success: true, action: 'rejected' })
   }

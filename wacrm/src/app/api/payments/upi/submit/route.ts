@@ -85,16 +85,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to submit payment' }, { status: 500 })
     }
 
-    // Notify admin (best-effort)
-    notifyAdminNewPayment({
-      name: user.user_metadata?.full_name || user.email || 'Unknown',
-      email: user.email || '',
-      plan_name: planMeta.name,
-      amount: planMeta.price,
-      utr_number: utrNumber,
-      screenshot_url: screenshotUrl,
-      payment_id: payment.id,
-    })
+    // Notify admin
+    try {
+      await notifyAdminNewPayment({
+        name: user.user_metadata?.full_name || user.email || 'Unknown',
+        email: user.email || '',
+        plan_name: planMeta.name,
+        amount: planMeta.price,
+        utr_number: utrNumber,
+        screenshot_url: screenshotUrl,
+        payment_id: payment.id,
+      })
+    } catch (emailErr) {
+      console.error('[payments] admin notification failed:', emailErr)
+    }
 
     return NextResponse.json({ success: true, payment_id: payment.id })
   } catch (err: any) {
