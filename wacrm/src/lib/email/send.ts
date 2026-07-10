@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@vbuildcrm.com'
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@vbuildcrm.com'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || ''
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev'
 
 let _resend: Resend | null = null
 function getResend() {
@@ -26,14 +26,15 @@ export async function sendEmail({
     return
   }
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: `Vbuild CRM <${FROM_EMAIL}>`,
       to,
       subject,
       html,
     })
+    console.log('[email] sent successfully to', to, 'id:', result.id)
   } catch (err) {
-    console.error('[email] send failed:', err)
+    console.error('[email] send failed to', to, ':', err)
   }
 }
 
@@ -46,6 +47,10 @@ export function notifyAdminNewPayment(payment: {
   screenshot_url?: string
   payment_id: string
 }) {
+  if (!ADMIN_EMAIL) {
+    console.warn('[email] ADMIN_EMAIL not set — skipping admin notification')
+    return
+  }
   const screenshotHtml = payment.screenshot_url
     ? `<p><strong>Screenshot:</strong> <a href="${payment.screenshot_url}" target="_blank">View Screenshot</a></p>`
     : ''
