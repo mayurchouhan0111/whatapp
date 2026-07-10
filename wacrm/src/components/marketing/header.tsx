@@ -153,7 +153,7 @@ export function Header() {
           <div className={`glass-bar relative flex items-center justify-between px-3 py-1.5 overflow-hidden ${scrolled ? "is-scrolled" : ""}`}>
 
             {/* Logo */}
-            <Link href="/" className="relative z-10 flex items-center shrink-0">
+            <Link href="/" className="relative z-10 flex items-center shrink-0 pl-2">
               <img
                 src="/logo.png"
                 alt="Vbuild CRM"
