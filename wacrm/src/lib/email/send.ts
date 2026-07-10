@@ -6,6 +6,9 @@ const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10)
 const SMTP_USER = process.env.SMTP_USER || ''
 const SMTP_PASS = process.env.SMTP_PASS || ''
 
+const FROM_NAME = process.env.FROM_NAME || 'Vbuild CRM'
+const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER
+
 let _transporter: nodemailer.Transporter | null = null
 let _transporterVerified = false
 
@@ -52,7 +55,7 @@ export async function sendEmail({
   await verifyTransporter()
   try {
     const info = await transporter.sendMail({
-      from: `"Vbuild CRM" <${SMTP_USER}>`,
+      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
       to,
       subject,
       html,
