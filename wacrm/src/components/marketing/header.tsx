@@ -83,12 +83,13 @@ export function Header() {
           box-shadow: 0px 0px 0px 0px #111827;
         }
 
-        .logo-icon {
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .logo-link {
+          transition: filter 0.3s ease, transform 0.3s ease;
+          filter: drop-shadow(0 0 6px rgba(16,185,129,0.2));
         }
-        .logo-icon:hover {
-          transform: scale(1.06) translateY(-1px);
-          box-shadow: 0 12px 32px rgba(16,185,129,0.35), 0 0 0 1px rgba(255,255,255,0.3);
+        .logo-link:hover {
+          filter: drop-shadow(0 0 20px rgba(16,185,129,0.5));
+          transform: scale(1.04);
         }
 
         /* Default (not scrolled) — soft rounded rect */
@@ -151,22 +152,14 @@ export function Header() {
           {/* Main bar */}
           <div className={`glass-bar relative flex items-center justify-between px-3 py-1.5 overflow-hidden ${scrolled ? "is-scrolled" : ""}`}>
 
-            {/* Premium wordmark */}
-            <Link href="/" className="relative z-10 flex items-center gap-4 shrink-0 group">
-              <div className="logo-icon flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 shadow-xl shadow-emerald-500/30 ring-1 ring-white/20">
-                <svg width="30" height="30" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-sm">
-                  <path d="M7 19L14 9L21 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M11 15H17" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[26px] font-extrabold tracking-tight leading-none text-gray-900">
-                  Vbuild
-                </span>
-                <span className="text-xs font-semibold tracking-[0.25em] leading-none text-emerald-600 uppercase mt-0.5">
-                  CRM
-                </span>
-              </div>
+            {/* Logo */}
+            <Link href="/" className="relative z-10 flex items-center shrink-0">
+              <img
+                src="/logo.png"
+                alt="Vbuild CRM"
+                className="logo-link object-contain"
+                style={{ height: "92px", width: "auto" }}
+              />
             </Link>
 
             {/* Nav links — centered */}
