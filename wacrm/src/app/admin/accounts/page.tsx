@@ -83,7 +83,8 @@ export default async function AdminAccountsPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm whitespace-nowrap">
             <thead>
@@ -99,10 +100,7 @@ export default async function AdminAccountsPage() {
             <tbody className="divide-y divide-border">
               {accounts.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-12 text-center text-sm text-muted-foreground"
-                  >
+                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     <div className="flex flex-col items-center justify-center">
                       <Building2 className="h-10 w-10 text-muted-foreground/30 mb-3" />
                       <p>No accounts found.</p>
@@ -111,27 +109,18 @@ export default async function AdminAccountsPage() {
                 </tr>
               ) : (
                 accounts.map((account) => (
-                  <tr
-                    key={account.id}
-                    className="group hover:bg-muted/30 transition-colors"
-                  >
+                  <tr key={account.id} className="group hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                           <Building2 className="h-4 w-4" />
                         </div>
-                        <span className="font-medium text-foreground">
-                          {account.name}
-                        </span>
+                        <span className="font-medium text-foreground">{account.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-muted-foreground">
-                      {account.owner_email}
-                    </td>
+                    <td className="px-6 py-4 text-muted-foreground">{account.owner_email}</td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${PLAN_COLORS[account.plan_tier] ?? PLAN_COLORS.starter}`}
-                      >
+                      <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${PLAN_COLORS[account.plan_tier] ?? PLAN_COLORS.starter}`}>
                         {account.plan_tier}
                       </span>
                     </td>
@@ -149,19 +138,11 @@ export default async function AdminAccountsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
-                      {new Date(account.created_at).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
+                      {new Date(account.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/admin/accounts/${account.id}`}
-                        className="inline-flex items-center gap-1 rounded-lg border border-transparent bg-transparent px-3 py-1.5 text-sm font-medium text-primary transition-all hover:bg-primary hover:text-primary-foreground group-hover:border-primary/30 shadow-sm"
-                      >
-                        Manage
-                        <ChevronRight className="h-4 w-4" />
+                      <Link href={`/admin/accounts/${account.id}`} className="inline-flex items-center gap-1 rounded-lg border border-transparent bg-transparent px-3 py-1.5 text-sm font-medium text-primary transition-all hover:bg-primary hover:text-primary-foreground group-hover:border-primary/30 shadow-sm">
+                        Manage <ChevronRight className="h-4 w-4" />
                       </Link>
                     </td>
                   </tr>
@@ -170,6 +151,54 @@ export default async function AdminAccountsPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {accounts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <Building2 className="h-10 w-10 text-muted-foreground/30 mb-3" />
+            <p className="text-sm">No accounts found.</p>
+          </div>
+        ) : (
+          accounts.map((account) => (
+            <div key={account.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Building2 className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground text-sm">{account.name}</p>
+                    <p className="text-xs text-muted-foreground">{account.owner_email}</p>
+                  </div>
+                </div>
+                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold capitalize ${PLAN_COLORS[account.plan_tier] ?? PLAN_COLORS.starter}`}>
+                  {account.plan_tier}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {account.active_modules.length === 0 ? (
+                  <span className="text-xs text-muted-foreground/60 italic">No modules</span>
+                ) : (
+                  account.active_modules.map((modName) => (
+                    <span key={modName} className="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary border border-primary/20">
+                      {modName}
+                    </span>
+                  ))
+                )}
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">
+                  {new Date(account.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                </span>
+                <Link href={`/admin/accounts/${account.id}`} className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
+                  Manage <ChevronRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )

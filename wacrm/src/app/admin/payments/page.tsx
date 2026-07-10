@@ -80,19 +80,19 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">Payment Verification</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Payment Verification</h2>
           <p className="text-sm text-muted-foreground mt-1">
             Review and approve/reject manual UPI payments.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {['pending', 'approved', 'rejected'].map((s) => (
             <button
               key={s}
               onClick={() => setFilter(s)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === s
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -113,27 +113,27 @@ export default function AdminPaymentsPage() {
           {payments.map((payment) => (
             <div
               key={payment.id}
-              className="rounded-xl border border-border bg-card p-6 shadow-sm"
+              className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center text-base sm:text-lg font-bold text-primary shrink-0">
                     {payment.name.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">{payment.name}</h3>
-                    <p className="text-sm text-muted-foreground">{payment.email}</p>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">{payment.name}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{payment.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xl font-bold text-foreground">
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                  <span className="text-lg sm:text-xl font-bold text-foreground">
                     ₹{payment.amount.toLocaleString('en-IN')}
                   </span>
                   {statusBadge(payment.status)}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 mb-4 text-xs sm:text-sm">
                 <div>
                   <span className="text-muted-foreground block">Plan</span>
                   <span className="font-medium text-foreground">{payment.plan_name}</span>
@@ -175,27 +175,27 @@ export default function AdminPaymentsPage() {
                       />
                     </div>
                   )}
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => { setShowNotes(payment.id); setNotes('') }}
-                      className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:bg-muted"
+                      className="px-3 sm:px-4 py-2 rounded-lg border border-border text-xs sm:text-sm text-muted-foreground hover:bg-muted"
                     >
                       {showNotes === payment.id ? 'Cancel' : 'Add Note'}
                     </button>
                     <button
                       onClick={() => handleAction(payment.id, 'approve')}
                       disabled={processing === payment.id}
-                      className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 rounded-lg bg-emerald-600 text-white text-xs sm:text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
                     >
-                      <CheckCircle2 className="h-4 w-4" />
+                      <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       {processing === payment.id ? 'Processing...' : 'Approve'}
                     </button>
                     <button
                       onClick={() => handleAction(payment.id, 'reject')}
                       disabled={processing === payment.id}
-                      className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 rounded-lg bg-red-600 text-white text-xs sm:text-sm font-medium hover:bg-red-700 disabled:opacity-50"
                     >
-                      <XCircle className="h-4 w-4" />
+                      <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       {processing === payment.id ? 'Processing...' : 'Reject'}
                     </button>
                   </div>

@@ -63,15 +63,15 @@ export default function UpiSettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6 px-1">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">UPI Payment Settings</h2>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">UPI Payment Settings</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Configure the UPI details shown on the subscription checkout page.
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-8 shadow-sm space-y-6">
+      <div className="rounded-xl border border-border bg-card p-4 sm:p-8 shadow-sm space-y-6">
         <div className="space-y-2">
           <label className="text-sm font-semibold text-foreground">UPI ID</label>
           <input
@@ -96,18 +96,18 @@ export default function UpiSettingsPage() {
 
         <div className="space-y-2">
           <label className="text-sm font-semibold text-foreground">UPI QR Code</label>
-          <div className="flex items-start gap-6">
+          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
             {qrImageUrl && (
-              <div className="shrink-0">
+              <div className="shrink-0 w-full sm:w-auto flex justify-center sm:justify-start">
                 <img
                   src={qrImageUrl}
                   alt="UPI QR Code"
-                  className="w-40 h-40 object-contain rounded-xl border border-border"
+                  className="w-32 h-32 sm:w-40 sm:h-40 object-contain rounded-xl border border-border"
                 />
               </div>
             )}
-            <div className="flex-1">
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-background px-4 py-8 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors">
+            <div className="flex-1 w-full">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-background px-4 py-6 sm:py-8 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors">
                 <Upload className="h-5 w-5" />
                 {uploading ? 'Uploading...' : 'Upload QR Code Image'}
                 <input
@@ -129,17 +129,17 @@ export default function UpiSettingsPage() {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-border">
+        <div className="pt-4 border-t border-border flex flex-col sm:flex-row sm:items-center gap-3">
           <button
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
             {saving ? 'Saving...' : 'Save Settings'}
           </button>
           {message && (
-            <p className={`mt-2 text-sm ${message.includes('success') ? 'text-emerald-400' : 'text-red-400'}`}>
+            <p className={`text-sm ${message.includes('success') ? 'text-emerald-400' : 'text-red-400'}`}>
               {message}
             </p>
           )}
