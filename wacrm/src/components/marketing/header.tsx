@@ -158,7 +158,7 @@ export function Header() {
                 src="/logo.png"
                 alt="Vbuild CRM"
                 className="logo-link object-contain"
-                style={{ height: "92px", width: "auto" }}
+                style={{ height: "56px", width: "auto" }}
               />
             </Link>
 

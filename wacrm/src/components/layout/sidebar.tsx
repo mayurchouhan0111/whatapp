@@ -183,7 +183,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
             <img
               src="/logo.png"
               alt="Vbuild CRM"
-              style={{height: '40px', width: 'auto', maxWidth: '160px'}}
+              style={{height: '32px', width: 'auto', maxWidth: '160px'}}
               className="object-contain"
             />
           </Link>

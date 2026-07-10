@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
       <Card className="w-full max-w-md border-border bg-card">
         <CardHeader className="items-center text-center">
           <div className="mb-4 flex items-center justify-center">
-            <img src="/logo.png" alt="Vbuild CRM" style={{height: '96px', width: 'auto'}} className="object-contain" />
+            <img src="/logo.png" alt="Vbuild CRM" style={{height: '56px', width: 'auto'}} className="object-contain" />
           </div>
           <CardTitle className="text-xl text-foreground">Reset password</CardTitle>
           <CardDescription className="text-muted-foreground">
