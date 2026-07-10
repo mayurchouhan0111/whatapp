@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/flows/admin-client'
 import Link from 'next/link'
-import { LayoutDashboard, Building2, Shield, LogOut } from 'lucide-react'
+import { LayoutDashboard, Building2, Shield, LogOut, IndianRupee, QrCode } from 'lucide-react'
 
 async function checkSuperAdmin(): Promise<boolean> {
   const supabase = await createClient()
@@ -56,6 +56,24 @@ export default async function AdminLayout({
               >
                 <Building2 className="h-4 w-4" />
                 Accounts
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/admin/payments"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <IndianRupee className="h-4 w-4" />
+                Payments
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/admin/payments/settings"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <QrCode className="h-4 w-4" />
+                UPI Settings
               </Link>
             </li>
           </ul>

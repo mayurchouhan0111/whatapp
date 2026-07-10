@@ -128,7 +128,7 @@ export async function middleware(request: NextRequest) {
 
   // Internal API routes that need auth + active subscription
   const internalApiPaths = ['/api/account', '/api/whatsapp/', '/api/flows', '/api/automations']
-  const publicApiPrefixes = ['/api/whatsapp/webhook', '/api/provision', '/api/shop/order', '/api/invitations/', '/api/v1/']
+  const publicApiPrefixes = ['/api/whatsapp/webhook', '/api/provision', '/api/shop/order', '/api/invitations/', '/api/v1/', '/api/payments/', '/api/public/']
   const internalOnlyPaths = ['/api/automations/engine', '/api/automations/cron', '/api/flows/cron', '/api/whatsapp/media/']
   const isInternalApi = internalApiPaths.some(path => request.nextUrl.pathname.startsWith(path)) &&
     !publicApiPrefixes.some(path => request.nextUrl.pathname.startsWith(path)) &&

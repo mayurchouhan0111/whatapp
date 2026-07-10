@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowRight } from 'lucide-react'
 
+const PAID_PLANS = ['starter', 'growth', 'pro']
+
 export function PricingSubscribeButton({
   planName,
   cta,
@@ -34,8 +36,16 @@ export function PricingSubscribeButton({
       return
     }
 
-    // User is logged in — provision the workspace
     const planSlug = planName.toLowerCase()
+
+    // Paid plans redirect to UPI checkout
+    if (PAID_PLANS.includes(planSlug)) {
+      router.push(`/subscribe?plan=${planSlug}`)
+      setLoading(false)
+      return
+    }
+
+    // Free plan provisions immediately
     const res = await fetch('/api/provision', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
