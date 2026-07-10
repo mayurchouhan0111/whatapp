@@ -1,6 +1,7 @@
 "use client"
 
-import { CheckCircle, HelpCircle, Sparkles } from "lucide-react"
+import Link from "next/link"
+import { ArrowRight, CheckCircle, HelpCircle, Sparkles } from "lucide-react"
 import { Header } from "@/components/marketing/header"
 import { Footer } from "@/components/marketing/footer"
 import { PricingSubscribeButton } from "@/components/marketing/pricing-subscribe-button"
@@ -136,6 +137,14 @@ const plans = [
   },
 ]
 
+const AVATARS = [
+  { initials: "RM", color: "from-violet-500 to-violet-600" },
+  { initials: "KJ", color: "from-emerald-500 to-emerald-600" },
+  { initials: "AP", color: "from-amber-500 to-amber-600" },
+  { initials: "SR", color: "from-rose-500 to-rose-600" },
+  { initials: "VS", color: "from-blue-500 to-blue-600" },
+]
+
 const faqs = [
   {
     q: "Can I switch plans later?",
@@ -178,59 +187,112 @@ export default function PricingPage() {
     <>
       <Header />
       <main>
-        {/* Page header */}
-        <section className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-20">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+        {/* Hero — visually identical to Store hero for consistent brand experience */}
+        <section className="relative overflow-hidden pt-28 pb-20 sm:pt-36 sm:pb-28">
+          <div className="absolute top-0 -left-40 h-[500px] w-[500px] animate-float rounded-full bg-gradient-to-br from-violet-600/20 via-primary/10 to-transparent blur-3xl" />
+          <div className="absolute bottom-0 -right-40 h-[500px] w-[500px] animate-float-slow rounded-full bg-gradient-to-br from-emerald-500/15 via-primary/5 to-transparent blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/5 blur-3xl" />
+
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="mx-auto max-w-2xl text-center">
-              <h1 className="text-balance text-4xl font-bold text-foreground sm:text-5xl">
-                Simple, <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">Transparent</span> Pricing
-              </h1>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Start free. Upgrade when you grow. No hidden fees, no surprises.
-              </p>
-            </div>
-            <div className="mt-6 flex items-center justify-center gap-4 text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">🇮🇳 INR</span>
-              <span className="h-4 w-px bg-border" />
-              <span>🇺🇸 USD</span>
-            </div>
-
-            {/* Billing toggle */}
-            <div className="mt-6 flex justify-center">
-              <div className="inline-flex items-center gap-3 rounded-full border border-border/40 bg-card p-1">
-                <button
-                  onClick={() => setAnnual(false)}
-                  className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                    !annual ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  onClick={() => setAnnual(true)}
-                  className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                    annual ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Annual
-                  <span className="ml-1.5 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-500">
-                    Save ~16%
-                  </span>
-                </button>
+            <div className="mx-auto max-w-4xl text-center">
+              <div className="inline-flex animate-fade-in items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary shadow-sm shadow-primary/5">
+                <span className="flex h-2 w-2">
+                  <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                Start Free — Upgrade When You Grow
               </div>
-            </div>
 
-            <div className="mt-4 flex justify-center">
-              <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs text-muted-foreground">
-                All paid plans include a 14-day free trial. No credit card required.
-              </span>
+              <h1 className="mt-6 animate-slide-up text-balance text-4xl font-extrabold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl leading-tight">
+                Simple,
+                <br className="hidden sm:block" />
+                <span className="inline-block bg-[#0fe875] border-2 border-gray-900 px-3 py-1 mt-2 rounded-lg shadow-[4px_4px_0px_0px_rgba(17,24,39,1)] -rotate-1 text-gray-900">
+                  Transparent
+                </span>
+                {" "}Pricing
+              </h1>
+
+              <p className="mx-auto mt-6 max-w-2xl animate-slide-up text-balance text-base leading-relaxed text-muted-foreground sm:text-lg [animation-delay:100ms]">
+                Start free. Upgrade when you grow. No hidden fees, no surprises — just the tools you need to turn WhatsApp into your sales channel.
+              </p>
+
+              <div className="mt-8 flex animate-slide-up flex-col items-center justify-center gap-3 sm:flex-row [animation-delay:200ms]">
+                <Link
+                  href="/signup"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#0fe875] border-2 border-gray-900 px-8 text-sm font-bold text-gray-900 shadow-[4px_4px_0px_0px_rgba(17,24,39,1)] transition-all hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none"
+                >
+                  Start Free Trial
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+                <Link
+                  href="#plans"
+                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-white shadow-[0_0_10px_rgba(16,185,129,0.2)] px-8 text-sm font-medium text-foreground transition-all hover:bg-emerald-100 hover:-translate-y-0.5"
+                >
+                  Compare Plans
+                </Link>
+              </div>
+
+              <div className="mt-8 flex animate-fade-in flex-col items-center gap-4 sm:flex-row sm:justify-center [animation-delay:300ms]">
+                <div className="flex -space-x-3">
+                  {AVATARS.map((avatar) => (
+                    <div
+                      key={avatar.initials}
+                      className={`flex h-9 w-9 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br ${avatar.color} text-[10px] font-bold text-white shadow-sm`}
+                    >
+                      {avatar.initials}
+                    </div>
+                  ))}
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-background bg-primary/10 text-[10px] font-bold text-primary shadow-sm">
+                    +2.4K
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">2,400+</span> businesses trust Vbuild CRM
+                </div>
+              </div>
+
+              {/* Billing toggle + currency */}
+              <div className="mt-8 animate-fade-in [animation-delay:400ms]">
+                <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">🇮🇳 INR</span>
+                  <span className="h-4 w-px bg-border" />
+                  <span>🇺🇸 USD</span>
+                </div>
+                <div className="mt-4 flex justify-center">
+                  <div className="inline-flex items-center gap-3 rounded-full border border-border/40 bg-card p-1">
+                    <button
+                      onClick={() => setAnnual(false)}
+                      className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                        !annual ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      onClick={() => setAnnual(true)}
+                      className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                        annual ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Annual
+                      <span className="ml-1.5 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-500">
+                        Save ~16%
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-center">
+                  <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs text-muted-foreground">
+                    All paid plans include a 14-day free trial. No credit card required.
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Plans */}
-        <section className="border-b border-border/50">
+        <section id="plans" className="border-b border-border/50">
           <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
               {plans.map((plan) => {

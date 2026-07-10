@@ -14,7 +14,7 @@ import { ShieldAlert } from "lucide-react";
 // client components can't export Next's metadata object.
 
 function DashboardShellInner({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, hasActiveSubscription, subscriptionLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { hasPermission } = usePermissions();
@@ -43,6 +43,14 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
       router.push("/login");
     }
   }, [user, loading, router]);
+
+  // Subscription firewall client-side guard — redirect logged-in users
+  // without an active subscription to the pricing page.
+  useEffect(() => {
+    if (!subscriptionLoading && user && !hasActiveSubscription) {
+      router.push("/pricing");
+    }
+  }, [user, hasActiveSubscription, subscriptionLoading, router]);
 
   if (loading) {
     return (

@@ -104,6 +104,16 @@ interface AuthContextValue {
   canSendMessages: boolean;
   /** Super admin flag — grants access to the /admin panel. */
   isSuperAdmin: boolean;
+
+  // ----------------------------------------------------------
+  // Subscription status
+  //
+  // True while the profile's account has an active or trialing
+  // saas_subscriptions row. Consumers (dashboard shell, sidebar)
+  // gate on this to block CRM access at the client layer.
+  // ----------------------------------------------------------
+  hasActiveSubscription: boolean;
+  subscriptionLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -123,6 +133,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // settles later. Callers that gate on `profile.*` need to know which
   // window they're in — see the type doc above.
   const [profileLoading, setProfileLoading] = useState(true);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
   // Shared across init, auth-state-change listener, and the exposed
   // refreshProfile() callback. Reads the current session's user id and
@@ -130,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     const supabase = createClient();
     setProfileLoading(true);
+    setSubscriptionLoading(true);
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -194,6 +207,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ? data.account_role
           : null;
 
+        // Fetch subscription status for the subscription firewall.
+        // This runs in parallel with the setProfile/setAccount calls
+        // below so consumers that gate on subscriptionLoading still
+        // wait for it to settle.
+        if (data.account_id) {
+          const { data: subData } = await supabase
+            .from('saas_subscriptions')
+            .select('status')
+            .eq('account_id', data.account_id)
+            .maybeSingle()
+          setHasActiveSubscription(
+            !!subData && (subData.status === 'active' || subData.status === 'trialing')
+          )
+        } else {
+          setHasActiveSubscription(false)
+        }
+
         setProfile({
           id: data.id,
           full_name: data.full_name,
@@ -215,6 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("[AuthProvider] fetchProfile threw:", err);
     } finally {
       setProfileLoading(false);
+      setSubscriptionLoading(false);
     }
   }, []);
 
@@ -335,6 +366,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshProfile,
         account,
         defaultCurrency: account?.default_currency ?? DEFAULT_CURRENCY,
+        hasActiveSubscription,
+        subscriptionLoading,
         ...derived,
       }}
     >
@@ -375,6 +408,8 @@ export function useAuth(): AuthContextValue {
       canEditSettings: false,
       canSendMessages: false,
       isSuperAdmin: false,
+      hasActiveSubscription: false,
+      subscriptionLoading: false,
     };
   }
   return ctx;

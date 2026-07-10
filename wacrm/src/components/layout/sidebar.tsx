@@ -108,7 +108,7 @@ interface SidebarProps {
 
 export function Sidebar({ open = false, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { profile, profileLoading, account, accountRole, signOut } = useAuth();
+  const { profile, profileLoading, account, accountRole, signOut, hasActiveSubscription, subscriptionLoading } = useAuth();
   const { hasPermission } = usePermissions();
   const totalUnread = useTotalUnread();
   // Only surface the account-name strip when it actually carries
@@ -197,82 +197,101 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           </button>
         </div>
 
-        {/* Main navigation */}
+        {/* Main navigation — hidden when no active subscription */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <ul className="flex flex-col gap-1">
-            {navItems.map((item) => {
-              // Navigation Engine: Hide item if the user lacks the required permission
-              if (item.permission && !hasPermission(item.permission)) {
-                return null;
-              }
+          {!subscriptionLoading && !hasActiveSubscription ? (
+            <div className="flex flex-col items-center justify-center gap-3 px-3 py-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                No active subscription
+              </p>
+              <Link
+                href="/pricing"
+                onClick={onClose}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                View Plans
+              </Link>
+            </div>
+          ) : (
+            <>
+              <ul className="flex flex-col gap-1">
+                {navItems.map((item) => {
+                  // Navigation Engine: Hide item if the user lacks the required permission
+                  if (item.permission && !hasPermission(item.permission)) {
+                    return null;
+                  }
 
-              const isActive =
-                pathname === item.href ||
-                (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== "/dashboard" && pathname.startsWith(item.href));
 
-              const showUnreadDot =
-                item.href === "/inbox" && totalUnread > 0 && !isActive;
+                  const showUnreadDot =
+                    item.href === "/inbox" && totalUnread > 0 && !isActive;
 
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      // Taller on mobile so fingers can hit the row reliably (≥44px).
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span className="flex-1">{item.label}</span>
-                    {item.beta && (
-                      <span
-                        aria-label="Beta feature"
-                        className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300"
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={onClose}
+                        className={cn(
+                          // Taller on mobile so fingers can hit the row reliably (≥44px).
+                          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        )}
                       >
-                        Beta
-                      </span>
-                    )}
-                    {showUnreadDot && (
-                      <span
-                        aria-label={`${totalUnread} unread conversation${totalUnread === 1 ? "" : "s"}`}
-                        className="relative flex h-2 w-2"
+                        <item.icon className="h-4 w-4" />
+                        <span className="flex-1">{item.label}</span>
+                        {item.beta && (
+                          <span
+                            aria-label="Beta feature"
+                            className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300"
+                          >
+                            Beta
+                          </span>
+                        )}
+                        {showUnreadDot && (
+                          <span
+                            aria-label={`${totalUnread} unread conversation${totalUnread === 1 ? "" : "s"}`}
+                            className="relative flex h-2 w-2"
+                          >
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div className="my-4 border-t border-border" />
+
+              <ul className="flex flex-col gap-1">
+                {bottomNavItems.map((item) => {
+                  const isActive = pathname.startsWith(item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={onClose}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        )}
                       >
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          <div className="my-4 border-t border-border" />
-
-          <ul className="flex flex-col gap-1">
-            {bottomNavItems.map((item) => {
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
         </nav>
 
         {/* User section */}

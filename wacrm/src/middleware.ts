@@ -105,7 +105,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protected pages - redirect to login if not authenticated
-  const protectedPaths = ['/dashboard', '/inbox', '/contacts', '/pipelines', '/broadcasts', '/automations', '/settings']
+  const protectedPaths = ['/dashboard', '/inbox', '/contacts', '/pipelines', '/broadcasts', '/automations', '/settings', '/flows']
   const adminPaths = ['/admin']
   const isProtectedPath = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))
   const isAdminPath = adminPaths.some(path => request.nextUrl.pathname.startsWith(path))
@@ -126,12 +126,25 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // API routes that need auth (not webhooks)
-  if (!user && request.nextUrl.pathname.startsWith('/api/whatsapp/') &&
-      !request.nextUrl.pathname.includes('/webhook')) {
-    return withRefreshedCookies(
-      NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    )
+  // Internal API routes that need auth + active subscription
+  const internalApiPaths = ['/api/account', '/api/whatsapp/', '/api/flows', '/api/automations']
+  const publicApiPrefixes = ['/api/whatsapp/webhook', '/api/provision', '/api/shop/order', '/api/invitations/', '/api/v1/']
+  const internalOnlyPaths = ['/api/automations/engine', '/api/automations/cron', '/api/flows/cron', '/api/whatsapp/media/']
+  const isInternalApi = internalApiPaths.some(path => request.nextUrl.pathname.startsWith(path)) &&
+    !publicApiPrefixes.some(path => request.nextUrl.pathname.startsWith(path)) &&
+    !internalOnlyPaths.some(path => request.nextUrl.pathname.startsWith(path))
+
+  if (isInternalApi) {
+    if (!user) {
+      return withRefreshedCookies(
+        NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      )
+    }
+    if (!hasWorkspace || !hasActiveAccess) {
+      return withRefreshedCookies(
+        NextResponse.json({ error: 'Active subscription required' }, { status: 403 })
+      )
+    }
   }
 
   return supabaseResponse

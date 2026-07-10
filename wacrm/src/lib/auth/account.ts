@@ -163,6 +163,19 @@ export async function getCurrentAccount(): Promise<AccountContext> {
     throw new ForbiddenError("Profile is not linked to an account");
   }
 
+  // Subscription check — every internal API route requires an active
+  // subscription (or trialing period). This acts as the server-side
+  // enforcement layer alongside the middleware gate.
+  const { data: sub } = await supabase
+    .from('saas_subscriptions')
+    .select('status')
+    .eq('account_id', data.account_id)
+    .maybeSingle()
+
+  if (!sub || (sub.status !== 'active' && sub.status !== 'trialing')) {
+    throw new ForbiddenError('Active subscription required')
+  }
+
   return {
     supabase,
     userId: user.id,
