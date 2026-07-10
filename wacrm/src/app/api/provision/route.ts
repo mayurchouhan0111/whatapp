@@ -4,7 +4,7 @@ import { cookies } from "next/headers"
 
 export async function POST(req: Request) {
   try {
-    const { plan } = await req.json()
+    let { plan } = await req.json()
     const cookieStore = await cookies()
 
     const supabaseAuth = createServerClient(
@@ -22,6 +22,17 @@ export async function POST(req: Request) {
     if (!user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
+
+    // Map pricing page plan names to actual DB plan names
+    // The DB currently only has Free / Starter / Pro plans seeded.
+    const planNameMap: Record<string, string> = {
+      free: 'Free',
+      starter: 'Starter',
+      growth: 'Pro',
+      pro: 'Pro',
+      enterprise: 'Pro',
+    }
+    plan = planNameMap[String(plan).toLowerCase()] ?? plan
 
     // Look up the plan by name from saas_plans
     const { data: plans, error: planError } = await supabaseAuth
