@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/flows/admin-client'
 import { sanitizePhoneForMeta, isValidE164 } from '@/lib/whatsapp/phone-utils'
+import { findExistingContact, isUniqueViolation } from '@/lib/contacts/dedupe'
 
 export async function GET(request: Request) {
   try {
@@ -62,14 +63,10 @@ export async function POST(request: Request) {
     }
 
     // Check if the contact already exists under this account
-    let { data: contact, error: contactErr } = await db
-      .from('contacts')
-      .select('*')
-      .eq('phone', sanitizedPhone)
-      .eq('account_id', accountId)
-      .maybeSingle()
-
-    if (contactErr) {
+    let contact: any = null
+    try {
+      contact = await findExistingContact(db, accountId, sanitizedPhone)
+    } catch (contactErr: any) {
       console.error('[public/reputation/qr] contact lookup failed:', contactErr.message)
     }
 
@@ -86,11 +83,20 @@ export async function POST(request: Request) {
         .select()
         .single()
 
-      if (createError || !newContact) {
-        console.error('[public/reputation/qr] create contact failed:', createError?.message)
-        return NextResponse.json({ error: 'Failed to register customer contact.' }, { status: 500 })
+      if (createError) {
+        if (isUniqueViolation(createError)) {
+          // If we lost a race or there was a unique constraint collision on phone_normalized,
+          // try to resolve the existing contact.
+          contact = await findExistingContact(db, accountId, sanitizedPhone)
+        }
+        
+        if (!contact) {
+          console.error('[public/reputation/qr] create contact failed:', createError?.message)
+          return NextResponse.json({ error: 'Failed to register customer contact.' }, { status: 500 })
+        }
+      } else {
+        contact = newContact
       }
-      contact = newContact
     } else {
       // If contact exists, update name if empty or generic
       if (!contact.name || contact.name.toLowerCase() === 'customer' || contact.name.toLowerCase() === 'there') {
