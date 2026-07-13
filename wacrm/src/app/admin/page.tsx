@@ -16,17 +16,18 @@ async function getDashboardStats() {
     admin.from('contacts').select('*', { count: 'exact', head: true }),
   ])
 
-  const { count: growthOrHigher } = await admin
-    .from('accounts')
-    .select('*', { count: 'exact', head: true })
-    .not('plan_tier', 'eq', 'starter')
+  const { count: paidAccounts } = await admin
+    .from('saas_subscriptions')
+    .select('id, saas_plans!inner(price)', { count: 'exact', head: true })
+    .in('status', ['active', 'trialing'])
+    .gt('saas_plans.price', 0)
 
   return {
     totalAccounts: totalAccounts ?? 0,
     totalProfiles: totalProfiles ?? 0,
     totalMessages: totalMessages ?? 0,
     totalContacts: totalContacts ?? 0,
-    paidAccounts: growthOrHigher ?? 0,
+    paidAccounts: paidAccounts ?? 0,
   }
 }
 
