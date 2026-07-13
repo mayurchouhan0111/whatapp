@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     // Verify account exists
     const { data: account, error: accErr } = await db
       .from('accounts')
-      .select('id, name')
+      .select('id, name, owner_user_id')
       .eq('id', accountId)
       .maybeSingle()
 
@@ -79,6 +79,7 @@ export async function POST(request: Request) {
         .from('contacts')
         .insert({
           account_id: accountId,
+          user_id: account.owner_user_id,
           name: name.trim(),
           phone: sanitizedPhone,
         })
