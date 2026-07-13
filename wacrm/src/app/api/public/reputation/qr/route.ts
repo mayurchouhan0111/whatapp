@@ -70,6 +70,9 @@ export async function POST(request: Request) {
       console.error('[public/reputation/qr] contact lookup failed:', contactErr.message)
     }
 
+    // Use the original phone (with +) for storage to stay consistent with the rest of the app
+    const phoneForStorage = phone.startsWith('+') ? phone : `+${sanitizedPhone}`
+
     // Create contact if they don't exist yet
     if (!contact) {
       const { data: newContact, error: createError } = await db
@@ -78,12 +81,13 @@ export async function POST(request: Request) {
           account_id: accountId,
           user_id: account.owner_user_id,
           name: name.trim(),
-          phone: sanitizedPhone,
+          phone: phoneForStorage,
         })
         .select()
         .single()
 
       if (createError) {
+        console.error('[public/reputation/qr] create contact failed:', createError)
         if (isUniqueViolation(createError)) {
           // If we lost a race or there was a unique constraint collision on phone_normalized,
           // try to resolve the existing contact.
@@ -91,11 +95,12 @@ export async function POST(request: Request) {
         }
         
         if (!contact) {
-          console.error('[public/reputation/qr] create contact failed:', createError?.message)
-          return NextResponse.json({ error: 'Failed to register customer contact.' }, { status: 500 })
+          return NextResponse.json({ error: `Failed to register customer contact: ${createError.message}` }, { status: 500 })
         }
-      } else {
+      } else if (newContact) {
         contact = newContact
+      } else {
+        return NextResponse.json({ error: 'Contact created but no data returned.' }, { status: 500 })
       }
     } else {
       // If contact exists, update name if empty or generic
