@@ -15,10 +15,12 @@ import {
   DollarSign,
   StickyNote,
   Plus,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface ContactSidebarProps {
   contact: Contact | null;
@@ -32,14 +34,16 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
   const [tags, setTags] = useState<(Tag & { contact_tag_id: string })[]>([]);
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
+  const [latestRequest, setLatestRequest] = useState<any>(null);
+  const [sendingReview, setSendingReview] = useState(false);
 
   const fetchContactData = useCallback(async () => {
     if (!contact) return;
 
     const supabase = createClient();
 
-    // Fetch deals, notes, and tags in parallel
-    const [dealsRes, notesRes, tagsRes] = await Promise.all([
+    // Fetch deals, notes, tags, and latest review request in parallel
+    const [dealsRes, notesRes, tagsRes, reviewReqRes] = await Promise.all([
       supabase
         .from("deals")
         .select("*, stage:pipeline_stages(*)")
@@ -54,10 +58,22 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
         .from("contact_tags")
         .select("id, tag_id, tags(*)")
         .eq("contact_id", contact.id),
+      supabase
+        .from("review_requests")
+        .select("*")
+        .eq("contact_id", contact.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
     if (dealsRes.data) setDeals(dealsRes.data);
     if (notesRes.data) setNotes(notesRes.data);
+    if (reviewReqRes?.data) {
+      setLatestRequest(reviewReqRes.data);
+    } else {
+      setLatestRequest(null);
+    }
     if (tagsRes.data) {
       const mapped = tagsRes.data
         .filter((ct: Record<string, unknown>) => ct.tags)
@@ -114,6 +130,27 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
     }
     setAddingNote(false);
   }, [contact, newNote, accountId]);
+
+  const handleSendReviewRequest = useCallback(async () => {
+    if (!contact) return;
+    setSendingReview(true);
+    try {
+      const res = await fetch("/api/reputation/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact_id: contact.id }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || "Failed to send review request.");
+      
+      toast.success("Review request sent successfully!");
+      fetchContactData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send review request.");
+    } finally {
+      setSendingReview(false);
+    }
+  }, [contact, fetchContactData]);
 
   if (!contact) {
     return (
@@ -244,6 +281,56 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="my-4 border-t border-border" />
+
+          {/* Reputation & Reviews */}
+          <div>
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <Star className="h-3 w-3" />
+                Reputation
+              </div>
+              {latestRequest && (
+                <span className="text-[10px] text-muted-foreground">
+                  {format(new Date(latestRequest.created_at), "MMM d")}
+                </span>
+              )}
+            </div>
+            
+            <div className="mt-2 space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Status:</span>
+                <span className="font-semibold capitalize">
+                  {latestRequest ? (
+                    latestRequest.status === 'clicked' ? 'Clicked' : latestRequest.status
+                  ) : (
+                    'Not Requested'
+                  )}
+                </span>
+              </div>
+              
+              {latestRequest?.rating && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Rating:</span>
+                  <span className="flex items-center gap-1 font-semibold text-amber-500">
+                    {latestRequest.rating}/5
+                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  </span>
+                </div>
+              )}
+
+              <Button
+                size="sm"
+                onClick={handleSendReviewRequest}
+                disabled={sendingReview}
+                className="w-full text-xs font-semibold mt-1"
+              >
+                {sendingReview ? 'Sending...' : 'Request Google Review'}
+              </Button>
             </div>
           </div>
 
