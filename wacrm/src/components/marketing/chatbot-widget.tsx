@@ -101,7 +101,7 @@ const RESULTS: Record<string, { title: string; points: string[]; stat: string }>
 
 function cleanTextForSpeech(text: string) {
   return text
-    .replace(/•/g, "")
+    .replace(/[•🛍️💼🏠📚🏥🤔👋🎉💡🚀😊🌟]/g, "")
     .replace(/\n{2,}/g, ". ")
     .replace(/\n/g, " ")
     .replace(/\s+/g, " ")
@@ -109,14 +109,37 @@ function cleanTextForSpeech(text: string) {
 }
 
 function speakText(text: string, lang: "en" | "hi" | null, onEnd?: () => void) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return
-  window.speechSynthesis.cancel()
-  const utterance = new SpeechSynthesisUtterance(cleanTextForSpeech(text))
-  utterance.lang = lang === "hi" ? "hi-IN" : "en-IN"
-  utterance.rate = 0.9
-  utterance.pitch = 1.1
-  if (onEnd) utterance.onend = onEnd
-  window.speechSynthesis.speak(utterance)
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    console.warn("SpeechSynthesis not available")
+    return
+  }
+  try {
+    window.speechSynthesis.cancel()
+    const clean = cleanTextForSpeech(text)
+    if (!clean) return
+
+    const utterance = new SpeechSynthesisUtterance(clean)
+    const langCode = lang === "hi" ? "hi-IN" : "en-IN"
+    utterance.lang = langCode
+    utterance.rate = 0.85
+    utterance.pitch = 1.0
+    utterance.volume = 1
+
+    const voices = window.speechSynthesis.getVoices()
+    const match = voices.find((v) => v.lang.startsWith(lang === "hi" ? "hi" : "en") && v.localService)
+    if (match) utterance.voice = match
+
+    if (onEnd) utterance.onend = onEnd
+    utterance.onerror = (e) => {
+      console.warn("Speech error:", e)
+      onEnd?.()
+    }
+
+    setTimeout(() => window.speechSynthesis.speak(utterance), 50)
+  } catch (err) {
+    console.error("Speech failed:", err)
+    onEnd?.()
+  }
 }
 
 function stopSpeech() {
@@ -358,56 +381,53 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[400px] min-h-[300px]">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : ""}`}>
-                {msg.role === "bot" && <BotAvatar />}
-                <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line relative group ${
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-sm"
-                      : "bg-muted text-foreground rounded-bl-sm border border-border/50"
-                  }`}
-                >
-                  {msg.role === "bot" && idx === messages.length - 1 && !typing ? (
-                    <TypeWriter
-                      text={msg.text}
-                      speed={18}
-                      onDone={() => {
-                        setBotDone(true)
-                        setTyping(false)
-                      }}
-                    />
-                  ) : (
-                    msg.text
-                  )}
-                  {msg.role === "bot" && botDone && idx === lastBotIdx && (
-                    <button
-                      onClick={() => handleListen(msg.text, idx)}
-                      className="absolute -bottom-5 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-muted border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground"
-                      title={speaking && msgEndRef.current === idx ? "Stop" : "Listen"}
-                    >
-                      {speaking && msgEndRef.current === idx ? (
-                        <VolumeX className="h-3 w-3" />
-                      ) : (
-                        <Volume2 className="h-3 w-3" />
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-            {typing && (
-              <div className="flex items-end gap-2">
-                <BotAvatar />
-                <div className="rounded-2xl rounded-bl-sm bg-muted border border-border/50 px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "0ms" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "150ms" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "300ms" }} />
+            {messages.map((msg, idx) => {
+              const isLastBotMsg = msg.role === "bot" && idx === lastBotIdx
+              const showTypewriter = isLastBotMsg && !typing
+              const isLatestTyping = isLastBotMsg && typing
+
+              return (
+                <div key={idx} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : ""}`}>
+                  {msg.role === "bot" && <BotAvatar />}
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line relative group ${
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                        : "bg-muted text-foreground rounded-bl-sm border border-border/50"
+                    }`}
+                  >
+                    {showTypewriter ? (
+                      <TypeWriter
+                        text={msg.text}
+                        speed={18}
+                        onDone={() => setBotDone(true)}
+                      />
+                    ) : isLatestTyping ? (
+                      <div className="flex items-center gap-1 py-1">
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "0ms" }} />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "150ms" }} />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    ) : (
+                      msg.text
+                    )}
+                    {msg.role === "bot" && botDone && idx === lastBotIdx && (
+                      <button
+                        onClick={() => handleListen(msg.text, idx)}
+                        className="absolute -bottom-5 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-muted border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground"
+                        title={speaking && msgEndRef.current === idx ? "Stop" : "Listen"}
+                      >
+                        {speaking && msgEndRef.current === idx ? (
+                          <VolumeX className="h-3 w-3" />
+                        ) : (
+                          <Volume2 className="h-3 w-3" />
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
-              </div>
-            )}
+              )
+            })}
             <div ref={bottomRef} />
           </div>
 
