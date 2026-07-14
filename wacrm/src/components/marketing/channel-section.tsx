@@ -1,5 +1,4 @@
 import { MessageSquare, ShoppingBag, LayoutDashboard, Zap } from "lucide-react"
-import { SectionBadge } from "./section-badge"
 import { ScrollReveal } from "./scroll-reveal"
 
 const channels = [
@@ -15,9 +14,6 @@ export function ChannelSection() {
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
         <ScrollReveal delay={100} direction="up" distance={20}>
           <div className="mx-auto max-w-3xl text-center">
-            <SectionBadge>
-              <MessageSquare className="h-3 w-3" /> WhatsApp Native
-            </SectionBadge>
             <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl tracking-tight">
               Everything your business needs, built for WhatsApp.
             </h2>

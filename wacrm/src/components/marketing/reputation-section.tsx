@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Star, MessageSquare, QrCode, BarChart3, ArrowRight, ThumbsUp, ThumbsDown, ExternalLink } from "lucide-react"
 import Link from "next/link"
-import { SectionBadge } from "./section-badge"
 
 const STEPS = ["CHECK-IN", "REVIEW", "GATE", "GROW"]
 const REVIEW_TAGS = ["Google Review", "Private Feedback", "QR Check-in", "Analytics"]
@@ -94,7 +93,6 @@ export function ReputationSection() {
 
           {/* Right content */}
           <div>
-            <SectionBadge><Star className="h-3 w-3" /> Google Review Feedback</SectionBadge>
             <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl">
               Collect Google reviews, manage reputation, and turn feedback into growth
             </h2>
