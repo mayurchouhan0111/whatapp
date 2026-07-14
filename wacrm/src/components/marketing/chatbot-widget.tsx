@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { MessageCircle, X, Volume2, VolumeX } from "lucide-react"
+import { MessageCircle, X } from "lucide-react"
 
 interface Message {
   role: "bot" | "user"
@@ -244,22 +244,12 @@ export function ChatbotWidget() {
       "closing")
   }
 
-  const speakers: [string, string][] = [
-    ["Great choice", "Here is the simple version"],
-    ["Bahut badhiya", "Chalo simple language mein samajhte hain"],
-    ["Here is how Vbuild CRM can help", "Aapke business ke liye Vbuild CRM"],
-  ]
-
-  const specialIdx = (() => {
+  const lastBotIdx = (() => {
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === "bot") return i
     }
     return -1
   })()
-
-  const isSpecialMsg = specialIdx >= 0 && messages[specialIdx] && (
-    speakers.some(([en, hi]) => messages[specialIdx].text.startsWith(en) || messages[specialIdx].text.startsWith(hi))
-  )
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -283,7 +273,7 @@ export function ChatbotWidget() {
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[400px] min-h-[300px]">
             {messages.map((msg, idx) => {
-              const isLastBot = msg.role === "bot" && idx === specialIdx
+              const isLastBot = msg.role === "bot" && idx === lastBotIdx
               const showTw = isLastBot && !typing
               const showThinking = isLastBot && typing
 
@@ -347,11 +337,18 @@ export function ChatbotWidget() {
         <button
           onClick={() => {
             if (!open) {
+              const greeting = "Hey there! I am Vbuild\'s assistant. I can explain what we do in simple English or Hinglish, whatever works for you!"
+              setMessages([{ role: "bot", text: greeting }])
+              setStep("choose_lang")
               setOpen(true)
-              const greeting = "Hey there. I am Vbuild\'s assistant. I can explain what we do in simple English or Hinglish, whatever works for you."
               speak(greeting, 0)
             } else {
               setOpen(false)
+              setMessages([])
+              setStep("greeting")
+              setLang(null)
+              setTyping(false)
+              setBotDone(false)
               setSpeakingIdx(null)
               try { window.speechSynthesis?.cancel() } catch {}
             }
