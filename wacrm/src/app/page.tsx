@@ -2,6 +2,8 @@ import { Header } from "@/components/marketing/header"
 import { HeroSection } from "@/components/marketing/hero-section"
 import { TrustBar } from "@/components/marketing/trust-bar"
 import { ChannelSection } from "@/components/marketing/channel-section"
+import { FeaturesSection } from "@/components/marketing/features-section"
+
 import { AISection } from "@/components/marketing/ai-section"
 
 import { ReputationSection } from "@/components/marketing/reputation-section"
@@ -23,6 +25,7 @@ export default function LandingPage() {
         <HeroSection />
         <TrustBar />
         <ChannelSection />
+        <FeaturesSection />
 
         <AISection />
         <ReputationSection />
