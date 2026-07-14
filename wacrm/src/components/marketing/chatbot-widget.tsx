@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { MessageCircle, X, Send, Sparkles } from "lucide-react"
+import { MessageCircle, X, Volume2, VolumeX, Sparkles } from "lucide-react"
 
 interface Message {
   role: "bot" | "user"
@@ -23,12 +23,12 @@ type Step =
   | "closing"
 
 const BUSINESS_OPTIONS = [
-  { value: "ecommerce", label: "🛍️  E-commerce / Retail", emoji: "🛍️" },
-  { value: "service", label: "💼  Service Business", emoji: "💼" },
-  { value: "realestate", label: "🏠  Real Estate", emoji: "🏠" },
-  { value: "education", label: "📚  Education / Coaching", emoji: "📚" },
-  { value: "healthcare", label: "🏥  Healthcare", emoji: "🏥" },
-  { value: "other", label: "🤔  Something else", emoji: "🤔" },
+  { value: "ecommerce", label: "🛍️  E-commerce / Retail" },
+  { value: "service", label: "💼  Service Business" },
+  { value: "realestate", label: "🏠  Real Estate" },
+  { value: "education", label: "📚  Education / Coaching" },
+  { value: "healthcare", label: "🏥  Healthcare" },
+  { value: "other", label: "🤔  Something else" },
 ]
 
 const RESULTS: Record<string, { title: string; points: string[]; stat: string }> = {
@@ -99,6 +99,32 @@ const RESULTS: Record<string, { title: string; points: string[]; stat: string }>
   },
 }
 
+function cleanTextForSpeech(text: string) {
+  return text
+    .replace(/•/g, "")
+    .replace(/\n{2,}/g, ". ")
+    .replace(/\n/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+function speakText(text: string, lang: "en" | "hi" | null, onEnd?: () => void) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return
+  window.speechSynthesis.cancel()
+  const utterance = new SpeechSynthesisUtterance(cleanTextForSpeech(text))
+  utterance.lang = lang === "hi" ? "hi-IN" : "en-IN"
+  utterance.rate = 0.9
+  utterance.pitch = 1.1
+  if (onEnd) utterance.onend = onEnd
+  window.speechSynthesis.speak(utterance)
+}
+
+function stopSpeech() {
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.cancel()
+  }
+}
+
 function TypeWriter({ text, speed = 30, onDone }: { text: string; speed?: number; onDone?: () => void }) {
   const [displayed, setDisplayed] = useState("")
   const indexRef = useRef(0)
@@ -121,6 +147,18 @@ function TypeWriter({ text, speed = 30, onDone }: { text: string; speed?: number
   return <span>{displayed}</span>
 }
 
+function BotAvatar() {
+  return (
+    <div className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 via-primary to-violet-500 shadow-sm ring-1 ring-white/20">
+      <span className="text-[10px] font-bold text-white">V</span>
+      <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 ring-1 ring-white" />
+      </span>
+    </div>
+  )
+}
+
 export function ChatbotWidget() {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>("greeting")
@@ -128,8 +166,11 @@ export function ChatbotWidget() {
   const [lang, setLang] = useState<"en" | "hi" | null>(null)
   const [typing, setTyping] = useState(false)
   const [botDone, setBotDone] = useState(false)
+  const [speaking, setSpeaking] = useState(false)
+  const [pulse, setPulse] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const msgEndRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (open && messages.length === 0) {
@@ -147,7 +188,35 @@ export function ChatbotWidget() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, typing])
 
+  useEffect(() => {
+    if (open) return
+    let count = 0
+    const interval = setInterval(() => {
+      count++
+      if (count === 3 || count === 8 || count === 15) {
+        setPulse(true)
+        setTimeout(() => setPulse(false), 2000)
+      }
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [open])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (open || pulse) return
+      const scrollY = window.scrollY
+      if (scrollY > 400 && scrollY % 800 < 50) {
+        setPulse(true)
+        setTimeout(() => setPulse(false), 2500)
+      }
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [open, pulse])
+
   function addBotMessage(text: string, newStep: Step) {
+    stopSpeech()
+    setSpeaking(false)
     setTyping(true)
     setBotDone(false)
     setMessages((prev) => [...prev, { role: "bot", text }])
@@ -167,13 +236,26 @@ export function ChatbotWidget() {
     addBotMessage(text, newStep)
   }
 
+  function handleListen(text: string, idx: number) {
+    if (speaking && msgEndRef.current === idx) {
+      stopSpeech()
+      setSpeaking(false)
+      msgEndRef.current = null
+    } else {
+      stopSpeech()
+      setSpeaking(true)
+      msgEndRef.current = idx
+      speakText(text, lang, () => {
+        setSpeaking(false)
+        msgEndRef.current = null
+      })
+    }
+  }
+
   function handleLang(selected: "en" | "hi") {
     setLang(selected)
     if (selected === "en") {
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", text: "English" },
-      ])
+      setMessages((prev) => [...prev, { role: "user", text: "English" }])
       botSay(
         `Great choice! Here's the simple version of what Vbuild CRM does for you:
 
@@ -190,10 +272,7 @@ And the best part? Everything works together in one place. No more switching bet
         "ask_business",
       )
     } else {
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", text: "Hinglish" },
-      ])
+      setMessages((prev) => [...prev, { role: "user", text: "Hinglish" }])
       botSay(
         `Bahut badhiya! 🎉 Chalo simple language mein samajhte hain:
 
@@ -251,22 +330,27 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
     )
   }
 
+  const lastBotIdx = (() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "bot") return i
+    }
+    return -1
+  })()
+
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {open && (
         <div className="mb-4 flex w-[360px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/10 dark:shadow-black/40 animate-in slide-in-from-bottom-6 fade-in duration-300">
-          <div className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
+          <div className="flex items-center justify-between bg-gradient-to-r from-primary via-primary to-violet-600 px-4 py-3 text-primary-foreground">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
-                <Sparkles className="h-4 w-4" />
-              </div>
+              <BotAvatar />
               <div>
                 <p className="text-sm font-semibold">Vbuild Assistant</p>
-                <p className="text-[10px] opacity-80">Online — I speak English & Hinglish</p>
+                <p className="text-[10px] opacity-80">Online — I speak English & Hinglish 🎙️</p>
               </div>
             </div>
             <button
-              onClick={() => setOpen(false)}
+              onClick={() => { setOpen(false); stopSpeech(); setSpeaking(false) }}
               className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/20 transition-colors"
             >
               <X className="h-4 w-4" />
@@ -275,15 +359,16 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[400px] min-h-[300px]">
             {messages.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div key={idx} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : ""}`}>
+                {msg.role === "bot" && <BotAvatar />}
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line ${
+                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line relative group ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-sm"
                       : "bg-muted text-foreground rounded-bl-sm border border-border/50"
                   }`}
                 >
-                  {msg.role === "bot" && idx === messages.length - 1 ? (
+                  {msg.role === "bot" && idx === messages.length - 1 && !typing ? (
                     <TypeWriter
                       text={msg.text}
                       speed={18}
@@ -295,11 +380,25 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
                   ) : (
                     msg.text
                   )}
+                  {msg.role === "bot" && botDone && idx === lastBotIdx && (
+                    <button
+                      onClick={() => handleListen(msg.text, idx)}
+                      className="absolute -bottom-5 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-muted border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground"
+                      title={speaking && msgEndRef.current === idx ? "Stop" : "Listen"}
+                    >
+                      {speaking && msgEndRef.current === idx ? (
+                        <VolumeX className="h-3 w-3" />
+                      ) : (
+                        <Volume2 className="h-3 w-3" />
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
             {typing && (
-              <div className="flex justify-start">
+              <div className="flex items-end gap-2">
+                <BotAvatar />
                 <div className="rounded-2xl rounded-bl-sm bg-muted border border-border/50 px-4 py-3">
                   <div className="flex items-center gap-1">
                     <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "0ms" }} />
@@ -316,13 +415,13 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
             <div className="flex gap-2 px-4 pb-4">
               <button
                 onClick={() => handleLang("en")}
-                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md active:scale-[0.98]"
               >
                 🇬🇧 English
               </button>
               <button
                 onClick={() => handleLang("hi")}
-                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md active:scale-[0.98]"
               >
                 🗣️ Hinglish
               </button>
@@ -338,7 +437,7 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
                 <button
                   key={opt.value}
                   onClick={() => handleBusinessSelect(opt.value)}
-                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-left text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-left text-sm font-medium transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md active:scale-[0.98]"
                 >
                   {opt.label}
                 </button>
@@ -350,13 +449,13 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
             <div className="flex gap-2 px-4 pb-4">
               <button
                 onClick={handleStartTrial}
-                className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                className="flex-1 rounded-xl bg-gradient-to-r from-primary to-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98]"
               >
                 🚀 Start Free Trial
               </button>
               <button
                 onClick={handleQuestion}
-                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-muted active:scale-[0.98]"
               >
                 ❓ More Questions
               </button>
@@ -365,20 +464,45 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
         </div>
       )}
 
-      <button
-        onClick={() => setOpen(!open)}
-        className={`flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition-all duration-300 ${
-          open
-            ? "bg-muted-foreground rotate-90 scale-95"
-            : "bg-primary hover:scale-105 hover:shadow-primary/30"
-        }`}
-      >
-        {open ? (
-          <X className="h-6 w-6 text-white" />
-        ) : (
-          <MessageCircle className="h-6 w-6 text-primary-foreground" />
+      <div className="relative">
+        {!open && (
+          <>
+            <span
+              className={`absolute -inset-3 rounded-full bg-primary/20 blur-xl transition-opacity duration-1000 ${
+                pulse ? "opacity-100 scale-110" : "opacity-0"
+              }`}
+            />
+            <span
+              className={`absolute -inset-1.5 rounded-full border-2 border-primary/30 transition-all duration-1000 ${
+                pulse ? "scale-110 opacity-0" : "scale-90 opacity-0"
+              }`}
+              style={pulse ? { animation: "ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite" } : {}}
+            />
+          </>
         )}
-      </button>
+        <button
+          onClick={() => setOpen(!open)}
+          className={`relative flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition-all duration-300 ${
+            open
+              ? "bg-muted-foreground rotate-90 scale-95"
+              : `bg-gradient-to-r from-primary to-violet-600 hover:scale-105 hover:shadow-lg hover:shadow-primary/40 ${pulse ? "scale-110 animate-pulse" : ""}`
+          }`}
+        >
+          {open ? (
+            <X className="h-6 w-6 text-white" />
+          ) : (
+            <div className="relative">
+              <MessageCircle className="h-6 w-6 text-primary-foreground" />
+              {pulse && (
+                <span className="absolute -right-1 -top-1 flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-white" />
+                </span>
+              )}
+            </div>
+          )}
+        </button>
+      </div>
     </div>
   )
 }
