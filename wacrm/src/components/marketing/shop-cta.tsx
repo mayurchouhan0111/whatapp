@@ -29,7 +29,7 @@ export function ShopCTA() {
 
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
             Launch Your WhatsApp Store in Minutes —{" "}
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+            <span className="text-primary">
               Not Weeks
             </span>
           </h2>
@@ -40,14 +40,14 @@ export function ShopCTA() {
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/signup"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#0fe875] border-2 border-gray-900 px-8 text-sm font-bold text-gray-900 shadow-[4px_4px_0px_0px_rgba(17,24,39,1)] transition-all hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none"
+              className="btn-primary h-12"
             >
               Start Free Trial
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/pricing"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border/60 bg-card/50 px-8 text-sm font-medium text-foreground shadow-sm backdrop-blur-sm transition-all hover:bg-accent hover:-translate-y-0.5"
+              className="btn-ghost h-12"
             >
               Compare Plans
             </Link>

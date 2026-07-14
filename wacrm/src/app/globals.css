@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is([data-mode="dark"] *));
 
 @theme inline {
   --color-background: var(--background);
@@ -370,6 +370,72 @@ html[data-theme="rose"] {
 
 /* ── Custom selection ── */
 ::selection { background-color: #25D366; color: white; }
+
+/* ── Heading text balance ── */
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* ── Primary button (WhatsApp green, shadow-box CTA) ── */
+.btn-primary {
+  --btn-bg: #0fe875;
+  --btn-border: #111827;
+  --btn-shadow: #111827;
+  --btn-text: #111827;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  background: var(--btn-bg);
+  border: 2px solid var(--btn-border);
+  font-weight: 700;
+  color: var(--btn-text);
+  box-shadow: 4px 4px 0 0 var(--btn-shadow);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  line-height: 1;
+  text-decoration: none;
+  font-size: 0.875rem;
+  padding: 0.625rem 2rem;
+}
+.btn-primary:hover {
+  translate: 2px 2px;
+  box-shadow: 2px 2px 0 0 var(--btn-shadow);
+}
+.btn-primary:active {
+  translate: 4px 4px;
+  box-shadow: none;
+}
+.btn-primary.price-cta { padding: 0.5rem 2rem; }
+
+/* ── Ghost / secondary button ── */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: white;
+  padding: 0.625rem 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  box-shadow: 0 0 10px rgba(16,185,129,0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  line-height: 1;
+  text-decoration: none;
+}
+.btn-ghost:hover {
+  background: #ecfdf5;
+  translate: 0 -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary, .btn-ghost { transition: none; }
+  .btn-primary:hover, .btn-ghost:hover { translate: 0; }
+}
 
 /* ── Glass card base ── */
 .glass-card {

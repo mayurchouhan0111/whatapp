@@ -167,10 +167,10 @@ export function ShopPricing() {
                 {tier.cta ? (
                   <Link
                     href={tier.href || "/signup"}
-                    className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition-all duration-300 ${
+                    className={`btn-primary price-cta w-full ${
                       tier.highlighted
-                        ? "bg-[#0fe875] border-2 border-gray-900 text-gray-900 shadow-[4px_4px_0px_0px_rgba(17,24,39,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none"
-                        : "border border-border bg-card text-foreground hover:bg-accent hover:-translate-y-0.5"
+                        ? ""
+                        : "!border !border-border !bg-card !text-foreground !shadow-none hover:!bg-accent hover:!translate-y-0"
                     }`}
                   >
                     {tier.cta}
@@ -179,7 +179,7 @@ export function ShopPricing() {
                 ) : (
                   <Link
                     href="/signup"
-                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-bold text-foreground transition-all duration-300 hover:bg-accent hover:-translate-y-0.5"
+                    className="btn-primary price-cta w-full !border !border-border !bg-card !text-foreground !shadow-none hover:!bg-accent hover:!translate-y-0"
                   >
                     Start Free Trial
                     <ArrowRight className="h-4 w-4" />

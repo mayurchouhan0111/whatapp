@@ -83,14 +83,14 @@ export function ShopHero() {
           <div className="mt-8 flex animate-slide-up flex-col items-center justify-center gap-3 sm:flex-row [animation-delay:200ms]">
             <Link
               href="/signup"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#0fe875] border-2 border-gray-900 px-8 text-sm font-bold text-gray-900 shadow-[4px_4px_0px_0px_rgba(17,24,39,1)] transition-all hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none"
+              className="btn-primary h-12"
             >
               Start Free Trial
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/pricing"
-              className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-white shadow-[0_0_10px_rgba(16,185,129,0.2)] px-8 text-sm font-medium text-foreground transition-all hover:bg-emerald-100 hover:-translate-y-0.5"
+              className="btn-ghost h-12"
             >
               See Plans
             </Link>

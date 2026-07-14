@@ -171,7 +171,7 @@ export function ShopFeatures() {
         <div className="mt-12 text-center">
           <Link
             href="/signup"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#0fe875] border-2 border-gray-900 px-8 text-sm font-bold text-gray-900 shadow-[4px_4px_0px_0px_rgba(17,24,39,1)] transition-all hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none"
+            className="btn-primary h-12"
           >
             Start Free Trial
             <span className="ml-1">&rarr;</span>

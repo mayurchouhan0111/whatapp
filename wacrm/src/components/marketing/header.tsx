@@ -61,26 +61,18 @@ export function Header() {
         .nav-lnk:hover::after { width: 100%; }
 
         .cta-btn {
-          position: relative;
-          background: #0fe875;
-          border-radius: 12px;
-          border: 2px solid #111827;
           padding: 8px 22px;
           font-size: 14px;
-          font-weight: 700;
           font-family: var(--font-sans), 'DM Sans', sans-serif;
           letter-spacing: -0.01em;
-          color: #111827;
           box-shadow: 3px 3px 0px 0px #111827;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transform: translate(0);
           display: inline-block;
         }
         .cta-btn:hover {
-          transform: translate(2px, 2px);
           box-shadow: 1px 1px 0px 0px #111827;
         }
         .cta-btn:active {
-          transform: translate(3px, 3px);
           box-shadow: 0px 0px 0px 0px #111827;
         }
 
@@ -182,7 +174,7 @@ export function Header() {
                 <span className="sign-in-btn">Sign in</span>
               </Link>
               <Link href="/signup">
-                <span className="cta-btn">Get Started →</span>
+                <span className="btn-primary cta-btn">Get Started →</span>
               </Link>
             </div>
 
@@ -216,7 +208,7 @@ export function Header() {
                     </button>
                   </Link>
                   <Link href="/signup" onClick={() => setOpen(false)} className="flex-1">
-                    <span className="cta-btn flex items-center justify-center w-full py-2.5 cursor-pointer text-center">
+                    <span className="btn-primary cta-btn flex items-center justify-center w-full py-2.5">
                       Get Started
                     </span>
                   </Link>
