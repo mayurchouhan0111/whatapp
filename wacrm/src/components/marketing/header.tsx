@@ -17,7 +17,7 @@ export function Header() {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30)
-    window.addEventListener("scroll", onScroll)
+    window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
@@ -29,191 +29,154 @@ export function Header() {
           50%  { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
-        @keyframes glow-pulse {
-          0%, 100% { box-shadow: 0 0 16px rgba(16,185,129,0.35), 0 0 36px rgba(16,185,129,0.15); }
-          50%       { box-shadow: 0 0 26px rgba(16,185,129,0.6),  0 0 60px rgba(16,185,129,0.25); }
-        }
         .aurora-line {
           background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6, #ec4899, #10b981);
           background-size: 400% 400%;
           animation: aurora 5s ease infinite;
         }
-        .nav-lnk {
+        .nav-link {
           position: relative;
-          transition: color 0.25s;
-          color: rgba(17,24,39,0.65);
-          font-family: var(--font-sans), 'DM Sans', sans-serif;
+          color: rgba(17,24,39,0.6);
+          font-size: 0.875rem;
           font-weight: 500;
           letter-spacing: -0.01em;
+          transition: color 0.2s;
         }
-        .nav-lnk::after {
+        .nav-link::after {
           content: '';
           position: absolute;
-          bottom: -3px;
-          left: 0;
-          width: 0%;
+          inset: auto 0 0 0;
           height: 2px;
           background: linear-gradient(90deg, #10b981, #3b82f6);
           border-radius: 99px;
-          transition: width 0.35s cubic-bezier(.4,0,.2,1);
+          transform: scaleX(0);
+          transition: transform 0.35s cubic-bezier(.4,0,.2,1);
         }
-        .nav-lnk:hover { color: #111827; }
-        .nav-lnk:hover::after { width: 100%; }
+        .nav-link:hover { color: #111827; }
+        .nav-link:hover::after { transform: scaleX(1); }
 
-        .cta-btn {
-          padding: 8px 22px;
-          font-size: 14px;
-          font-family: var(--font-sans), 'DM Sans', sans-serif;
-          letter-spacing: -0.01em;
-          box-shadow: 3px 3px 0px 0px #111827;
-          transform: translate(0);
-          display: inline-block;
+        .nav-link-mobile {
+          display: block;
+          padding: 0.625rem 1rem;
+          border-radius: 0.75rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: rgba(17,24,39,0.6);
+          transition: all 0.15s;
         }
-        .cta-btn:hover {
-          box-shadow: 1px 1px 0px 0px #111827;
-        }
-        .cta-btn:active {
-          box-shadow: 0px 0px 0px 0px #111827;
-        }
-
-        .logo-link {
-          transition: filter 0.3s ease, transform 0.3s ease;
-          filter: drop-shadow(0 0 6px rgba(16,185,129,0.2));
-        }
-        .logo-link:hover {
-          filter: drop-shadow(0 0 20px rgba(16,185,129,0.5));
-          transform: scale(1.04);
+        .nav-link-mobile:hover {
+          background: rgba(0,0,0,0.04);
+          color: #111827;
         }
 
-        /* Default (not scrolled) — soft rounded rect */
         .glass-bar {
-          background: rgba(255, 255, 255, 0.75);
-          border: 1px solid rgba(0,0,0,0.07);
-          box-shadow:
-            0 4px 24px rgba(0,0,0,0.08),
-            0 1px 0 rgba(255,255,255,0.9) inset;
+          background: rgba(255,255,255,0.72);
+          border: 1px solid rgba(0,0,0,0.06);
+          box-shadow: 0 4px 24px rgba(0,0,0,0.06);
           backdrop-filter: blur(20px) saturate(180%);
           -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border-radius: 16px;
+          border-radius: 14px;
           transition: border-radius 0.5s cubic-bezier(.4,0,.2,1),
                       box-shadow 0.4s ease,
-                      background 0.4s ease;
+                      background 0.4s ease,
+                      padding 0.4s ease;
         }
-
-        /* Scrolled — pill / circular */
         .glass-bar.is-scrolled {
           border-radius: 9999px;
-          background: rgba(255,255,255,0.88);
-          box-shadow:
-            0 8px 32px rgba(0,0,0,0.12),
-            0 1px 0 rgba(255,255,255,1) inset;
-        }
-
-        .sign-in-btn {
-          color: rgba(17,24,39,0.55);
-          font-size: 14px;
-          font-weight: 500;
-          padding: 7px 16px;
-          border-radius: 10px;
-          cursor: pointer;
-          transition: color 0.2s, background 0.2s;
-        }
-        .sign-in-btn:hover {
-          color: #111827;
-          background: rgba(0,0,0,0.05);
+          background: rgba(255,255,255,0.85);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
 
         .mobile-glass {
           background: rgba(255,255,255,0.96);
-          border: 1px solid rgba(0,0,0,0.07);
-          box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+          border: 1px solid rgba(0,0,0,0.06);
+          box-shadow: 0 16px 48px rgba(0,0,0,0.1);
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
-          border-radius: 16px;
+          border-radius: 14px;
         }
       `}</style>
 
-      {/* Aurora top strip */}
+      {/* Aurora strip */}
       <div className="aurora-line fixed inset-x-0 top-0 z-50 h-[2px]" />
 
       <header className="fixed inset-x-0 top-[2px] z-40">
         <div
           className={`mx-auto transition-all duration-500 ${
-            scrolled ? "max-w-5xl px-3 mt-2" : "max-w-7xl px-4 mt-3"
+            scrolled ? "max-w-4xl px-3 mt-2" : "max-w-6xl px-5 mt-3"
           }`}
         >
-          {/* Main bar */}
-          <div className={`glass-bar relative flex items-center justify-between px-3 py-1.5 overflow-hidden ${scrolled ? "is-scrolled" : ""}`}>
+          <div className={`glass-bar flex items-center justify-between px-4 ${scrolled ? "is-scrolled px-5" : ""}`} style={{ paddingTop: "0.625rem", paddingBottom: "0.625rem" }}>
 
             {/* Logo */}
-            <Link href="/" className="relative z-10 flex items-center shrink-0 pl-2">
+            <Link href="/" className="flex items-center shrink-0">
               <img
                 src="/logo.png"
                 alt="Vbuild CRM"
-                className="logo-link object-contain"
-                style={{ height: "56px", width: "auto" }}
+                className="object-contain transition-transform duration-300 hover:scale-105"
+                style={{ height: "40px", width: "auto" }}
               />
             </Link>
 
-            {/* Nav links — centered */}
-            <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+            {/* Nav — centered via flex spread */}
+            <nav className="hidden md:flex items-center gap-9">
               {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="nav-lnk text-sm font-medium"
-                >
+                <Link key={link.href} href={link.href} className="nav-link">
                   {link.label}
                 </Link>
               ))}
             </nav>
 
             {/* Actions */}
-            <div className="hidden md:flex items-center gap-2 relative z-10">
-              <Link href="/login">
-                <span className="sign-in-btn">Sign in</span>
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                href="/login"
+                className="rounded-lg px-3.5 py-2 text-sm font-medium text-gray-500 transition-all hover:bg-black/5 hover:text-gray-900"
+              >
+                Sign in
               </Link>
-              <Link href="/signup">
-                <span className="btn-primary cta-btn">Get Started →</span>
+              <Link href="/signup" className="btn-primary" style={{ padding: "0.5rem 1.25rem", fontSize: "0.8125rem" }}>
+                Get Started
               </Link>
             </div>
 
             {/* Mobile toggle */}
             <button
               onClick={() => setOpen(!open)}
-              className="md:hidden relative z-10 flex h-9 w-9 items-center justify-center rounded-xl text-gray-500 hover:bg-black/5 hover:text-gray-800 transition-all"
+              className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-all hover:bg-black/5 hover:text-gray-800"
+              aria-label={open ? "Close" : "Menu"}
             >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
           </div>
 
-          {/* Mobile dropdown */}
+          {/* Mobile menu */}
           {open && (
             <div className="mobile-glass mt-2 overflow-hidden">
-              <nav className="flex flex-col gap-1 p-3">
+              <div className="p-2">
                 {NAV_LINKS.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setOpen(false)}
-                    className="rounded-xl px-4 py-3 text-sm font-medium text-gray-600 hover:bg-black/5 hover:text-gray-900 transition-colors"
+                    className="nav-link-mobile"
                   >
                     {link.label}
                   </Link>
                 ))}
-                <div className="mt-2 flex gap-2 border-t border-black/6 pt-3">
+                <div className="mt-2 flex gap-2 border-t border-black/5 pt-3 px-1">
                   <Link href="/login" onClick={() => setOpen(false)} className="flex-1">
-                    <button className="w-full rounded-xl border border-black/10 py-2.5 text-sm font-medium text-gray-600 hover:bg-black/5 hover:text-gray-900 transition-colors">
+                    <div className="w-full rounded-xl border border-black/10 py-2.5 text-center text-sm font-medium text-gray-600 transition-colors hover:bg-black/5">
                       Sign in
-                    </button>
+                    </div>
                   </Link>
                   <Link href="/signup" onClick={() => setOpen(false)} className="flex-1">
-                    <span className="btn-primary cta-btn flex items-center justify-center w-full py-2.5">
+                    <div className="btn-primary w-full text-center py-2.5" style={{ fontSize: "0.8125rem" }}>
                       Get Started
-                    </span>
+                    </div>
                   </Link>
                 </div>
-              </nav>
+              </div>
             </div>
           )}
         </div>
