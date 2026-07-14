@@ -94,7 +94,7 @@ const navItems: NavItem[] = [
   { href: "/broadcasts", label: "Broadcasts", icon: Radio, permission: "broadcasts.view" },
   { href: "/automations", label: "Automations", icon: Zap, permission: "automations.view" },
   { href: "/flows", label: "Flows", icon: Workflow, beta: true, permission: "automations.view" },
-  { href: "/reputation", label: "Reputation", icon: Star, permission: "contacts.view" },
+  { href: "/reputation", label: "Reputation", icon: Star, permission: "reputation.view" },
   { href: "/settings?tab=store", label: "Store", icon: ShoppingCart, permission: "store.view" }
 ];
 

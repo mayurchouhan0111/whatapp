@@ -10,12 +10,14 @@ export type LimitType =
   | 'broadcasts_per_month'
   | 'products'
   | 'orders_per_month'
+  | 'review_requests_per_month'
 
 export type FeatureGate =
   | 'flows'
   | 'api_access'
   | 'white_label'
   | 'store'
+  | 'reputation'
 
 export interface LimitCheckResult {
   allowed: boolean
@@ -35,9 +37,11 @@ export interface AccountLimits {
   allow_api_access: boolean
   allow_white_label: boolean
   allow_store: boolean
+  allow_reputation: boolean
   store_expires_at: string | null
   max_products: number
   max_orders_per_month: number
+  max_review_requests: number
 }
 
 const PLAN_DEFAULTS: Record<PlanTier, Omit<AccountLimits, 'plan_tier'>> = {
@@ -51,9 +55,11 @@ const PLAN_DEFAULTS: Record<PlanTier, Omit<AccountLimits, 'plan_tier'>> = {
     allow_api_access: false,
     allow_white_label: false,
     allow_store: false,
+    allow_reputation: false,
     store_expires_at: null,
     max_products: 0,
     max_orders_per_month: 0,
+    max_review_requests: 0,
   },
   starter: {
     max_users: 3,
@@ -65,9 +71,11 @@ const PLAN_DEFAULTS: Record<PlanTier, Omit<AccountLimits, 'plan_tier'>> = {
     allow_api_access: false,
     allow_white_label: false,
     allow_store: true,
+    allow_reputation: true,
     store_expires_at: null,
     max_products: 50,
     max_orders_per_month: 100,
+    max_review_requests: 50,
   },
   growth: {
     max_users: 10,
@@ -79,9 +87,11 @@ const PLAN_DEFAULTS: Record<PlanTier, Omit<AccountLimits, 'plan_tier'>> = {
     allow_api_access: true,
     allow_white_label: false,
     allow_store: true,
+    allow_reputation: true,
     store_expires_at: null,
     max_products: 500,
     max_orders_per_month: 1000,
+    max_review_requests: 500,
   },
   pro: {
     max_users: 25,
@@ -93,9 +103,11 @@ const PLAN_DEFAULTS: Record<PlanTier, Omit<AccountLimits, 'plan_tier'>> = {
     allow_api_access: true,
     allow_white_label: false,
     allow_store: true,
+    allow_reputation: true,
     store_expires_at: null,
     max_products: 2500,
     max_orders_per_month: 5000,
+    max_review_requests: 5000,
   },
   enterprise: {
     max_users: 9_999,
@@ -107,9 +119,11 @@ const PLAN_DEFAULTS: Record<PlanTier, Omit<AccountLimits, 'plan_tier'>> = {
     allow_api_access: true,
     allow_white_label: true,
     allow_store: true,
+    allow_reputation: true,
     store_expires_at: null,
     max_products: 9999,
     max_orders_per_month: 99999,
+    max_review_requests: 999999,
   },
 }
 
@@ -126,7 +140,7 @@ export async function getAccountLimits(accountId: string): Promise<AccountLimits
   const { data, error } = await admin
     .from('accounts')
     .select(
-      'plan_tier, max_users, max_contacts, max_pipelines, max_active_flows, max_broadcasts_per_month, allow_flows, allow_api_access, allow_white_label, allow_store, store_expires_at, max_products, max_orders_per_month',
+      'plan_tier, max_users, max_contacts, max_pipelines, max_active_flows, max_broadcasts_per_month, allow_flows, allow_api_access, allow_white_label, allow_store, store_expires_at, max_products, max_orders_per_month, allow_reputation, max_review_requests',
     )
     .eq('id', accountId)
     .maybeSingle()
@@ -142,9 +156,11 @@ export async function getAccountLimits(accountId: string): Promise<AccountLimits
     allow_api_access: data.allow_api_access,
     allow_white_label: data.allow_white_label,
     allow_store: data.allow_store,
+    allow_reputation: data.allow_reputation,
     store_expires_at: data.store_expires_at,
     max_products: data.max_products,
     max_orders_per_month: data.max_orders_per_month,
+    max_review_requests: data.max_review_requests,
   }
 }
 
@@ -157,6 +173,7 @@ function columnFor(type: LimitType): string {
     case 'broadcasts_per_month': return 'broadcasts'
     case 'products': return 'products'
     case 'orders_per_month': return 'orders'
+    case 'review_requests_per_month': return 'review_requests'
   }
 }
 
@@ -177,6 +194,7 @@ export async function checkPlanLimit(
     broadcasts_per_month: 'max_broadcasts_per_month',
     products: 'max_products',
     orders_per_month: 'max_orders_per_month',
+    review_requests_per_month: 'max_review_requests',
   } as const satisfies Record<LimitType, keyof AccountLimits>
 
   const maxLimit = limits[limitKey[type]] as number
@@ -248,6 +266,17 @@ export async function checkPlanLimit(
       current = count ?? 0
       break
     }
+    case 'review_requests_per_month': {
+      const now = new Date()
+      const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+      const { count } = await admin
+        .from('review_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('account_id', accountId)
+        .gte('created_at', firstOfMonth)
+      current = count ?? 0
+      break
+    }
   }
 
   const allowed = current < maxLimit
@@ -273,6 +302,7 @@ export async function checkFeatureGate(
     api_access: 'allow_api_access',
     white_label: 'allow_white_label',
     store: 'allow_store',
+    reputation: 'allow_reputation',
   } as const satisfies Record<FeatureGate, keyof AccountLimits>
 
   if (feature === 'store') {

@@ -27,6 +27,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
     '/automations': 'automations.view',
     '/flows': 'automations.view',
     '/shop': 'store.view',
+    '/reputation': 'reputation.view',
   };
 
   // Check if the current route requires a permission the user doesn't have

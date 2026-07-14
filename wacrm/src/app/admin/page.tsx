@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/flows/admin-client'
-import { Building2, Users, Radio, CreditCard, Activity, Contact } from 'lucide-react'
+import { Building2, Users, Radio, CreditCard, Activity, Contact, Star, StarHalf } from 'lucide-react'
 
 async function getDashboardStats() {
   const admin = supabaseAdmin()
@@ -9,11 +9,15 @@ async function getDashboardStats() {
     { count: totalProfiles },
     { count: totalMessages },
     { count: totalContacts },
+    { count: totalReviewRequests },
+    { count: totalRatings },
   ] = await Promise.all([
     admin.from('accounts').select('*', { count: 'exact', head: true }),
     admin.from('profiles').select('*', { count: 'exact', head: true }),
     admin.from('messages').select('*', { count: 'exact', head: true }),
     admin.from('contacts').select('*', { count: 'exact', head: true }),
+    admin.from('review_requests').select('*', { count: 'exact', head: true }),
+    admin.from('review_requests').select('*', { count: 'exact', head: true }).not('rating', 'is', null),
   ])
 
   const { count: paidAccounts } = await admin
@@ -27,6 +31,8 @@ async function getDashboardStats() {
     totalProfiles: totalProfiles ?? 0,
     totalMessages: totalMessages ?? 0,
     totalContacts: totalContacts ?? 0,
+    totalReviewRequests: totalReviewRequests ?? 0,
+    totalRatings: totalRatings ?? 0,
     paidAccounts: paidAccounts ?? 0,
   }
 }
@@ -70,6 +76,20 @@ export default async function AdminDashboardPage() {
       gradient: 'from-rose-500/20 to-rose-500/5',
       iconColor: 'text-rose-500',
     },
+    {
+      label: 'Review Requests',
+      value: stats.totalReviewRequests.toLocaleString(),
+      icon: Star,
+      gradient: 'from-amber-500/20 to-amber-500/5',
+      iconColor: 'text-amber-500',
+    },
+    {
+      label: 'Ratings Collected',
+      value: stats.totalRatings.toLocaleString(),
+      icon: StarHalf,
+      gradient: 'from-yellow-500/20 to-yellow-500/5',
+      iconColor: 'text-yellow-500',
+    },
   ]
 
   return (
@@ -81,7 +101,7 @@ export default async function AdminDashboardPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {cards.map((card) => {
           const Icon = card.icon
           return (

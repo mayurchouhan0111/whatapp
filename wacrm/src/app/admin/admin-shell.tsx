@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, LayoutDashboard, Building2, LogOut, IndianRupee, QrCode } from 'lucide-react'
+import { Menu, X, LayoutDashboard, Building2, LogOut, IndianRupee, QrCode, Star } from 'lucide-react'
 
 const NAV = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/accounts', label: 'Accounts', icon: Building2 },
+  { href: '/admin/reputation', label: 'Reputation', icon: Star },
   { href: '/admin/payments', label: 'Payments', icon: IndianRupee },
   { href: '/admin/payments/settings', label: 'UPI Settings', icon: QrCode },
 ]

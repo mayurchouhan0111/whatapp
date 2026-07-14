@@ -4,6 +4,7 @@ import { TrustBar } from "@/components/marketing/trust-bar"
 import { ChannelSection } from "@/components/marketing/channel-section"
 import { AISection } from "@/components/marketing/ai-section"
 
+import { ReputationSection } from "@/components/marketing/reputation-section"
 import { MarketingSection } from "@/components/marketing/marketing-section"
 import { SalesSection } from "@/components/marketing/sales-section"
 import { SupportSection } from "@/components/marketing/support-section"
@@ -24,6 +25,7 @@ export default function LandingPage() {
         <ChannelSection />
 
         <AISection />
+        <ReputationSection />
         <MarketingSection />
         <SalesSection />
         <SupportSection />
