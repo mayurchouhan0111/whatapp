@@ -16,6 +16,7 @@ import { TestimonialsSection } from "@/components/marketing/testimonials-section
 import { PricingSection } from "@/components/marketing/pricing-section"
 import { CTASection } from "@/components/marketing/cta-section"
 import { Footer } from "@/components/marketing/footer"
+import { ChatbotWidget } from "@/components/marketing/chatbot-widget"
 
 export default function LandingPage() {
   return (
@@ -39,6 +40,7 @@ export default function LandingPage() {
         <CTASection />
       </main>
       <Footer />
+      <ChatbotWidget />
     </>
   )
 }
