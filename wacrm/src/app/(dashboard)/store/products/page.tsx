@@ -315,6 +315,9 @@ export default function ProductsPage() {
           <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-1.5 h-4 w-4" /> Import CSV
           </Button>
+          <button onClick={downloadSampleCsv} className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 whitespace-nowrap">
+            Download Sample CSV
+          </button>
           <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleCsvUpload} />
           <Button size="sm" onClick={openAddModal}>
             <Plus className="mr-1.5 h-4 w-4" /> Add Product
@@ -513,37 +516,69 @@ export default function ProductsPage() {
 
       {/* CSV Import Modal */}
       <Dialog open={importOpen} onOpenChange={setImportOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Import Products</DialogTitle>
             <DialogDescription>
               {csvProducts.length} valid product(s) found. {maxProducts - products.length} slot(s) remaining.
             </DialogDescription>
           </DialogHeader>
-          <div className="max-h-60 overflow-y-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Name</th>
-                  <th className="px-3 py-2 text-right font-medium text-muted-foreground">Price</th>
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Category</th>
-                </tr>
-              </thead>
-              <tbody>
-                {csvProducts.slice(0, 10).map((p, i) => (
-                  <tr key={i} className="border-b border-border last:border-b-0">
-                    <td className="px-3 py-2">{p.name}</td>
-                    <td className="px-3 py-2 text-right">₹{p.sale_price}</td>
-                    <td className="px-3 py-2">{p.category}</td>
+
+          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+            <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs space-y-2">
+              <p className="font-semibold text-foreground">CSV Format Requirements</p>
+              <div className="space-y-1.5 text-muted-foreground">
+                <p>Your CSV must include these <span className="font-medium text-foreground">6 columns</span> in the first row:</p>
+                <div className="overflow-x-auto rounded border border-border bg-background p-2 font-mono text-[11px] text-foreground select-all">
+                  name,regular_price,sale_price,category,description,image_url
+                </div>
+              </div>
+              <div className="space-y-1 text-muted-foreground">
+                <p className="font-medium text-foreground">Rules:</p>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  <li><span className="font-medium text-foreground">name</span> — Required. Product title.</li>
+                  <li><span className="font-medium text-foreground">regular_price</span> — Required. Must be a number (e.g. 599).</li>
+                  <li><span className="font-medium text-foreground">sale_price</span> — Required. Must be a number &le; regular_price.</li>
+                  <li><span className="font-medium text-foreground">category</span> — Optional. Defaults to &ldquo;General&rdquo; if blank.</li>
+                  <li><span className="font-medium text-foreground">description</span> — Optional.</li>
+                  <li><span className="font-medium text-foreground">image_url</span> — Optional. Full URL to product image.</li>
+                  <li>Wrap values containing commas in double quotes (<span className="font-mono text-foreground">&ldquo;...&rdquo;</span>).</li>
+                </ul>
+              </div>
+              <div className="pt-1">
+                <p className="font-medium text-foreground mb-1">Example row:</p>
+                <div className="overflow-x-auto rounded border border-border bg-background p-2 font-mono text-[11px] text-foreground select-all">
+                  &ldquo;Chocolate Fudge Cake&rdquo;,600,499,Cakes,&ldquo;Rich double chocolate cake&rdquo;,https://example.com/cake.jpg
+                </div>
+              </div>
+            </div>
+
+            <div className="max-h-48 overflow-y-auto rounded-lg border border-border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/50">
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Name</th>
+                    <th className="px-3 py-2 text-right font-medium text-muted-foreground">Price</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Category</th>
                   </tr>
-                ))}
-                {csvProducts.length > 10 && (
-                  <tr><td colSpan={3} className="px-3 py-2 text-center text-xs text-muted-foreground">...and {csvProducts.length - 10} more</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {csvProducts.slice(0, 10).map((p, i) => (
+                    <tr key={i} className="border-b border-border last:border-b-0">
+                      <td className="px-3 py-2">{p.name}</td>
+                      <td className="px-3 py-2 text-right">₹{p.sale_price}</td>
+                      <td className="px-3 py-2">{p.category}</td>
+                    </tr>
+                  ))}
+                  {csvProducts.length > 10 && (
+                    <tr><td colSpan={3} className="px-3 py-2 text-center text-xs text-muted-foreground">...and {csvProducts.length - 10} more</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="flex items-center justify-between">
+
+          <div className="flex items-center justify-between pt-3 border-t border-border">
             <Button variant="link" size="sm" onClick={downloadSampleCsv} className="text-xs">
               <Download className="mr-1 h-3 w-3" /> Download Sample CSV
             </Button>
