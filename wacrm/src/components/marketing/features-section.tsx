@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { MessageSquare, Target, Radio, Zap, Users, Workflow, ShoppingBag, TrendingUp, BarChart3, Bell } from "lucide-react"
 import Link from "next/link"
 import * as THREE from "three"
+import { SectionKicker } from "./section-kicker"
 
 
 // Client-side hook to avoid SSR canvas initialization on mobile
@@ -736,6 +737,7 @@ export function FeaturesSection() {
 
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
+          <SectionKicker>Features</SectionKicker>
           <h2 
             className="text-balance text-3xl font-bold text-zinc-900 dark:text-white sm:text-4xl tracking-tight"
             style={{ textShadow: "0 0 40px rgba(37, 211, 102, 0.04)" }}

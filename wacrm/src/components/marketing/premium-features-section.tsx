@@ -1,6 +1,6 @@
 "use client"
 
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 import Link from "next/link"
 
 // Feature definitions – using existing data where possible
@@ -30,7 +30,7 @@ export function PremiumFeaturesSection() {
     <section className="border-t border-gray-100 bg-white py-24">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mx-auto max-w-2xl text-center mb-12">
-          <SectionBadge><span className="h-3 w-3 inline-block bg-emerald-500 rounded-full" /> Features</SectionBadge>
+          <SectionKicker>Features</SectionKicker>
           <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">Run Your Entire WhatsApp Store<br />From One Dashboard</h2>
           <p className="mt-4 text-lg text-gray-600">Create your storefront, manage orders, track revenue, and automate customer updates without writing a single line of code.</p>
         </div>

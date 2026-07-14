@@ -1,6 +1,6 @@
 import { Star, Quote } from "lucide-react"
 import Link from "next/link"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 
 const testimonials = [
   {
@@ -46,7 +46,7 @@ export function TestimonialsSection() {
     <section className="border-b border-gray-100">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <SectionBadge><Quote className="h-3 w-3" /> Testimonials</SectionBadge>
+          <SectionKicker>Testimonials</SectionKicker>
           <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl">
             Trusted by People Who Sell Smarter
           </h2>

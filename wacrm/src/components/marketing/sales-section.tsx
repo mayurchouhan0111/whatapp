@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { BarChart3, Bot, ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 import { ScrollReveal } from "./scroll-reveal"
 
 const STEPS = ["ENGAGE", "QUALIFY", "ASSIGN", "WIN"]
@@ -102,9 +102,7 @@ export function SalesSection() {
           {/* Right content */}
           <div>
             <ScrollReveal delay={100} direction="up" distance={20}>
-              <SectionBadge>
-                <BarChart3 className="h-3 w-3" /> Wati for Sales
-              </SectionBadge>
+              <SectionKicker>Sales</SectionKicker>
               <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl tracking-tight">
                 Accelerate pipeline, increase conversions, and shorten sales cycles — all on chat
               </h2>

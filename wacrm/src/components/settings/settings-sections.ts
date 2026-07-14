@@ -9,7 +9,6 @@ import {
   Tags,
   User,
   UsersRound,
-  Store,
   Star,
   type LucideIcon,
 } from 'lucide-react';
@@ -33,7 +32,6 @@ export const SETTINGS_SECTIONS = [
   'deals',
   'members',
   'roles',
-  'store',
   'reputation',
   'api',
 ] as const;
@@ -61,7 +59,6 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   deals: { id: 'deals', label: 'Deals & currency', icon: Coins, group: 'workspace' },
   members: { id: 'members', label: 'Team members', icon: UsersRound, group: 'workspace' },
   roles: { id: 'roles', label: 'Roles & permissions', icon: Shield, group: 'workspace' },
-  store: { id: 'store', label: 'Online store', icon: Store, group: 'workspace', permission: 'store.view' },
   reputation: { id: 'reputation', label: 'Reputation', icon: Star, group: 'workspace', permission: 'reputation.view' },
   api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace' },
 };

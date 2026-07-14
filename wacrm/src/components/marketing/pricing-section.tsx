@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { CheckCircle, ArrowRight, Sparkles } from "lucide-react"
 import { useState } from "react"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 import { ScrollReveal } from "./scroll-reveal"
 
 const TIERS = [
@@ -100,9 +100,7 @@ export function PricingSection() {
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
           <ScrollReveal delay={100} direction="up" distance={20}>
-            <SectionBadge>
-              <Sparkles className="h-3 w-3" /> Pricing
-            </SectionBadge>
+            <SectionKicker>Pricing</SectionKicker>
             <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl tracking-tight">
               Simple, Transparent Pricing
             </h2>

@@ -27,6 +27,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
     '/automations': 'automations.view',
     '/flows': 'automations.view',
     '/shop': 'store.view',
+    '/store': 'store.view',
     '/reputation': 'reputation.view',
   };
 

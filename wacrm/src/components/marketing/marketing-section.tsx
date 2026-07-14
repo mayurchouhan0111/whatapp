@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { TrendingUp, MessageSquare, ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 import { ScrollReveal } from "./scroll-reveal"
 
 const TABS = ["AD", "CHAT", "ENGAGE", "CONVERT"]
@@ -18,9 +18,7 @@ export function MarketingSection() {
           {/* Left content */}
           <div>
             <ScrollReveal delay={100} direction="up" distance={20}>
-              <SectionBadge>
-                <TrendingUp className="h-3 w-3" /> Wati for Marketing
-              </SectionBadge>
+              <SectionKicker>Marketing</SectionKicker>
               <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl tracking-tight">
                 Acquire, engage, and qualify leads with personalized campaigns at scale
               </h2>

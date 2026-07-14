@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Store, ClipboardList, BarChart3, ShoppingBag, Package, TrendingUp, CheckCircle, Zap } from "lucide-react"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 
 const tabs = [
   {
@@ -147,7 +147,7 @@ export function ShopShowcase() {
     <section className="border-b border-border/40 bg-card/10">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <SectionBadge><BarChart3 className="h-3 w-3" /> Product</SectionBadge>
+          <SectionKicker>Product</SectionKicker>
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
             See the Store in Action
           </h2>

@@ -1,4 +1,4 @@
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 import { Link2 } from "lucide-react"
 
 const INTEGRATIONS = [
@@ -15,7 +15,7 @@ export function IntegrationSection() {
     <section className="border-b border-gray-100 bg-gray-50/30">
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-3xl text-center">
-          <SectionBadge><Link2 className="h-3 w-3" /> Integrations</SectionBadge>
+          <SectionKicker>Integrations</SectionKicker>
           <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl">
             Connect Vbuild CRM with your team&apos;s existing stack
           </h2>

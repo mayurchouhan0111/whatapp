@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { HeadphonesIcon, ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 import { ScrollReveal } from "./scroll-reveal"
 
 const STEPS = ["INQUIRY", "RESPOND", "ESCALATE", "RESOLVE"]
@@ -19,9 +19,7 @@ export function SupportSection() {
           {/* Left content */}
           <div>
             <ScrollReveal delay={100} direction="up" distance={20}>
-              <SectionBadge>
-                <HeadphonesIcon className="h-3 w-3" /> Wati for Support
-              </SectionBadge>
+              <SectionKicker>Support</SectionKicker>
               <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl tracking-tight">
                 Delight customers and handle questions at scale — Work in perfect harmony with Vbuild AI
               </h2>

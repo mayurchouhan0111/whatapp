@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { ShoppingBag, Zap, CheckCircle, ArrowRight, Sparkles, Store, Gift } from "lucide-react"
 import { useState } from "react"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 
 const TIERS = [
   {
@@ -77,7 +77,7 @@ export function ShopPricing() {
     <section className="border-b border-border/40" id="shop-pricing">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <SectionBadge><Store className="h-3 w-3" /> WhatsApp Store Pricing</SectionBadge>
+          <SectionKicker>WhatsApp Store Pricing</SectionKicker>
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
             Start Selling on WhatsApp Today
           </h2>

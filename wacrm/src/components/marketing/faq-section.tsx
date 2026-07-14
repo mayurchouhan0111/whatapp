@@ -1,5 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 import { HelpCircle } from "lucide-react"
 
 const FAQS = [
@@ -38,7 +38,7 @@ export function FAQSection() {
     <section className="border-b border-border/40">
       <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <SectionBadge><HelpCircle className="h-3 w-3" /> FAQ</SectionBadge>
+          <SectionKicker>FAQ</SectionKicker>
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
             Frequently asked questions
           </h2>

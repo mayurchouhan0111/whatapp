@@ -1,5 +1,5 @@
 import { CheckCircle, Shield, Zap, BarChart3, Users, Sparkles, MessagesSquare } from "lucide-react"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 
 const reasons = [
   { icon: MessagesSquare, text: "Official WhatsApp Business API — not unofficial hacks" },
@@ -17,7 +17,7 @@ export function WhySection() {
         <div className="grid items-center gap-16 lg:grid-cols-2">
           {/* Left: feature list */}
           <div>
-            <SectionBadge><Sparkles className="h-3 w-3" /> Why Vbuild</SectionBadge>
+            <SectionKicker>Why Vbuild</SectionKicker>
             <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
               Why choose Vbuild CRM?
             </h2>

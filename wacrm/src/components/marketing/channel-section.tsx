@@ -1,5 +1,6 @@
 import { MessageSquare, ShoppingBag, LayoutDashboard, Zap } from "lucide-react"
 import { ScrollReveal } from "./scroll-reveal"
+import { SectionKicker } from "./section-kicker"
 
 const channels = [
   { icon: MessageSquare, label: "Shared Inbox", color: "text-emerald-500", bg: "bg-emerald-50" },
@@ -14,6 +15,7 @@ export function ChannelSection() {
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
         <ScrollReveal delay={100} direction="up" distance={20}>
           <div className="mx-auto max-w-3xl text-center">
+            <SectionKicker>Channel</SectionKicker>
             <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl tracking-tight">
               Everything your business needs, built for WhatsApp.
             </h2>

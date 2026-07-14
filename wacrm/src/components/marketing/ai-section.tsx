@@ -1,6 +1,6 @@
 import { Zap, Workflow, ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 import { ScrollReveal } from "./scroll-reveal"
 
 export function AISection() {
@@ -9,9 +9,7 @@ export function AISection() {
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
         <ScrollReveal delay={100} direction="up" distance={20}>
           <div className="mx-auto max-w-3xl text-center">
-            <SectionBadge>
-              <Zap className="h-3 w-3" /> Smart Automations
-            </SectionBadge>
+            <SectionKicker>Smart Automations</SectionKicker>
             <h2 className="text-balance text-3xl font-bold text-gray-900 sm:text-4xl tracking-tight">
               Put your WhatsApp sales on autopilot
             </h2>

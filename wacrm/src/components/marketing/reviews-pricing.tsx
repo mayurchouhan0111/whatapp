@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Star, Zap, CheckCircle, ArrowRight, Sparkles, MessageSquare, Gift } from "lucide-react"
 import { useState } from "react"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 
 const TIERS = [
   {
@@ -73,7 +73,7 @@ export function ReviewsPricing() {
     <section className="border-b border-border/40" id="reviews-pricing">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <SectionBadge><MessageSquare className="h-3 w-3" /> Review Collection Pricing</SectionBadge>
+          <SectionKicker>Review Collection Pricing</SectionKicker>
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
             Start Collecting Google Reviews Today
           </h2>

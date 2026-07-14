@@ -1,5 +1,5 @@
 import { BarChart3, Bell, Target, TrendingUp, ArrowRight, Zap, Users, MessageSquare } from "lucide-react"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 
 const BENEFITS = [
   {
@@ -109,7 +109,7 @@ export function BenefitsSection() {
     <section className="border-b border-border/40 bg-card/10">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <SectionBadge><Zap className="h-3 w-3" /> Benefits</SectionBadge>
+          <SectionKicker>Benefits</SectionKicker>
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
             How Vbuild Helps You
           </h2>

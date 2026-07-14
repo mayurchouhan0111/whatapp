@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowRight } from "lucide-react"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 import { steps } from "./premium-workflow-steps"
 
 
@@ -16,7 +16,7 @@ export function PremiumWorkflowSection() {
       </div>
       <div className="mx-auto max-w-7xl px-4">
         <div className="mx-auto max-w-2xl text-center mb-12">
-          <SectionBadge><ArrowRight className="h-3 w-3" /> Order Journey</SectionBadge>
+          <SectionKicker>Order Journey</SectionKicker>
           <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">From Storefront to Delivery in Seconds</h2>
           <p className="mt-4 text-lg text-gray-600">Customers browse, order through WhatsApp, and every order appears instantly inside your CRM.</p>
         </div>

@@ -18,7 +18,6 @@ import { DealsSettings } from '@/components/settings/deals-settings';
 import { MembersTab } from '@/components/settings/members-tab';
 import { RolesTab } from '@/components/settings/roles-tab';
 import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
-import { StoreSettings } from '@/components/settings/store-settings';
 import { ReputationSettings } from '@/components/settings/reputation-settings';
 import {
   resolveSection,
@@ -67,7 +66,6 @@ export default function SettingsPage() {
     deals: <DealsSettings />,
     members: <MembersTab />,
     roles: <RolesTab />,
-    store: <StoreSettings />,
     reputation: <ReputationSettings />,
     api: <ApiKeysSettings />,
   };

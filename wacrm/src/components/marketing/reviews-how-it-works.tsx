@@ -1,7 +1,7 @@
 "use client"
 
 import { QrCode, Star, MessageSquare, ArrowRight } from "lucide-react"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 
 const steps = [
   {
@@ -35,7 +35,7 @@ export function ReviewsHowItWorks() {
     <section className="border-b border-border/40 bg-card/10">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <SectionBadge><Star className="h-3 w-3" /> How It Works</SectionBadge>
+          <SectionKicker>How It Works</SectionKicker>
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
             Three Simple Steps to More Reviews
           </h2>

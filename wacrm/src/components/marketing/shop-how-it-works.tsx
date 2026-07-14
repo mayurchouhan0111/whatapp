@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ShoppingBag, ShoppingCart, ClipboardList, CreditCard, Send, PackageCheck, ArrowRight, Smartphone } from "lucide-react"
 import Link from "next/link"
-import { SectionBadge } from "./section-badge"
+import { SectionKicker } from "./section-kicker"
 
 const steps = [
   {
@@ -165,7 +165,7 @@ export function ShopHowItWorks() {
     <section className="border-b border-border/40">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <SectionBadge><Smartphone className="h-3 w-3" /> How It Works</SectionBadge>
+          <SectionKicker>How It Works</SectionKicker>
           <h2 className="text-balance text-3xl font-bold text-foreground sm:text-4xl">
             From Browse to Delivery — All in Under 30 Seconds
           </h2>
