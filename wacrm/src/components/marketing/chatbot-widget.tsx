@@ -1,26 +1,14 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { MessageCircle, X, Volume2, VolumeX, Sparkles } from "lucide-react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { MessageCircle, X, Volume2, VolumeX } from "lucide-react"
 
 interface Message {
   role: "bot" | "user"
   text: string
 }
 
-type Step =
-  | "greeting"
-  | "choose_lang"
-  | "explain_en"
-  | "explain_hi"
-  | "ask_business"
-  | "result_ecommerce"
-  | "result_service"
-  | "result_realestate"
-  | "result_education"
-  | "result_healthcare"
-  | "result_other"
-  | "closing"
+type Step = "greeting" | "choose_lang" | "ask_business" | "closing"
 
 const BUSINESS_OPTIONS = [
   { value: "ecommerce", label: "🛍️  E-commerce / Retail" },
@@ -31,9 +19,8 @@ const BUSINESS_OPTIONS = [
   { value: "other", label: "🤔  Something else" },
 ]
 
-const RESULTS: Record<string, { title: string; points: string[]; stat: string }> = {
+const RESULTS: Record<string, { points: string[]; stat: string }> = {
   ecommerce: {
-    title: "E-commerce ke liye Vbuild CRM",
     points: [
       "WhatsApp Storefront — customers directly browse karein aur order karein, website ki zaroorat nahi",
       "Auto order confirmation aur delivery updates — WhatsApp template messages se",
@@ -43,7 +30,6 @@ const RESULTS: Record<string, { title: string; points: string[]; stat: string }>
     stat: "E-commerce businesses typically see 3X more ROI and 30% shorter sales cycles.",
   },
   service: {
-    title: "Service Business ke liye Vbuild CRM",
     points: [
       "Automated appointment reminders — no-shows 40% tak kam ho jaate hain",
       "Service ke baad auto feedback aur Google Review collect karein",
@@ -54,7 +40,6 @@ const RESULTS: Record<string, { title: string; points: string[]; stat: string }>
     stat: "Service businesses typically see 20% revenue growth in the first 3 months.",
   },
   realestate: {
-    title: "Real Estate ke liye Vbuild CRM",
     points: [
       "Automated follow-ups — ab 'sorry, call back karna bhool gaye' nahi hoga",
       "Property catalogs directly WhatsApp par bhejein",
@@ -65,7 +50,6 @@ const RESULTS: Record<string, { title: string; points: string[]; stat: string }>
     stat: "Real estate agents report 40% more leads converted with automated follow-ups.",
   },
   education: {
-    title: "Education / Coaching ke liye Vbuild CRM",
     points: [
       "Batch-wise broadcast — saare students ko ek saath update bhejein",
       "Fees collection aur payment reminders WhatsApp par",
@@ -76,7 +60,6 @@ const RESULTS: Record<string, { title: string; points: string[]; stat: string }>
     stat: "Coaching centers typically see 50% more enrollments with automated WhatsApp follow-ups.",
   },
   healthcare: {
-    title: "Healthcare ke liye Vbuild CRM",
     points: [
       "Appointment reminders — no-shows mein bhari kami",
       "Reports aur prescriptions directly WhatsApp par bhejein",
@@ -87,7 +70,6 @@ const RESULTS: Record<string, { title: string; points: string[]; stat: string }>
     stat: "Clinics typically see 35% fewer no-shows with WhatsApp reminders.",
   },
   other: {
-    title: "Aapke business ke liye Vbuild CRM",
     points: [
       "Vbuild works for ANY business that talks to customers on WhatsApp",
       "Shared inbox, sales pipeline, broadcasts, storefront, automations, Google reviews — sab ek mein",
@@ -99,75 +81,8 @@ const RESULTS: Record<string, { title: string; points: string[]; stat: string }>
   },
 }
 
-function cleanTextForSpeech(text: string) {
-  return text
-    .replace(/[•🛍️💼🏠📚🏥🤔👋🎉💡🚀😊🌟]/g, "")
-    .replace(/\n{2,}/g, ". ")
-    .replace(/\n/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-}
-
-function speakText(text: string, lang: "en" | "hi" | null, onEnd?: () => void) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-    console.warn("SpeechSynthesis not available")
-    return
-  }
-  try {
-    window.speechSynthesis.cancel()
-    const clean = cleanTextForSpeech(text)
-    if (!clean) return
-
-    const utterance = new SpeechSynthesisUtterance(clean)
-    const langCode = lang === "hi" ? "hi-IN" : "en-IN"
-    utterance.lang = langCode
-    utterance.rate = 0.85
-    utterance.pitch = 1.0
-    utterance.volume = 1
-
-    const voices = window.speechSynthesis.getVoices()
-    const match = voices.find((v) => v.lang.startsWith(lang === "hi" ? "hi" : "en") && v.localService)
-    if (match) utterance.voice = match
-
-    if (onEnd) utterance.onend = onEnd
-    utterance.onerror = (e) => {
-      console.warn("Speech error:", e)
-      onEnd?.()
-    }
-
-    setTimeout(() => window.speechSynthesis.speak(utterance), 50)
-  } catch (err) {
-    console.error("Speech failed:", err)
-    onEnd?.()
-  }
-}
-
-function stopSpeech() {
-  if (typeof window !== "undefined" && "speechSynthesis" in window) {
-    window.speechSynthesis.cancel()
-  }
-}
-
-function TypeWriter({ text, speed = 30, onDone }: { text: string; speed?: number; onDone?: () => void }) {
-  const [displayed, setDisplayed] = useState("")
-  const indexRef = useRef(0)
-
-  useEffect(() => {
-    indexRef.current = 0
-    setDisplayed("")
-    const interval = setInterval(() => {
-      if (indexRef.current < text.length) {
-        setDisplayed(text.slice(0, indexRef.current + 1))
-        indexRef.current++
-      } else {
-        clearInterval(interval)
-        onDone?.()
-      }
-    }, speed)
-    return () => clearInterval(interval)
-  }, [text, speed, onDone])
-
-  return <span>{displayed}</span>
+function stripEmoji(t: string) {
+  return t.replace(/[^\p{L}\p{N}\p{P}\p{Z}$]/gu, "").trim()
 }
 
 function BotAvatar() {
@@ -182,6 +97,28 @@ function BotAvatar() {
   )
 }
 
+function TypeWriter({ text, speed = 30, onDone }: { text: string; speed?: number; onDone?: () => void }) {
+  const [displayed, setDisplayed] = useState("")
+  const idx = useRef(0)
+
+  useEffect(() => {
+    idx.current = 0
+    setDisplayed("")
+    const interval = setInterval(() => {
+      if (idx.current < text.length) {
+        setDisplayed(text.slice(0, idx.current + 1))
+        idx.current++
+      } else {
+        clearInterval(interval)
+        onDone?.()
+      }
+    }, speed)
+    return () => clearInterval(interval)
+  }, [text, speed, onDone])
+
+  return <span>{displayed}</span>
+}
+
 export function ChatbotWidget() {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>("greeting")
@@ -189,176 +126,104 @@ export function ChatbotWidget() {
   const [lang, setLang] = useState<"en" | "hi" | null>(null)
   const [typing, setTyping] = useState(false)
   const [botDone, setBotDone] = useState(false)
-  const [speaking, setSpeaking] = useState(false)
+  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null)
   const [pulse, setPulse] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const msgEndRef = useRef<number | null>(null)
+  const thinkingTimer = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (open && messages.length === 0) {
-      setMessages([
-        {
-          role: "bot",
-          text: "Hey there! 👋 I'm Vbuild's assistant. I can explain what we do in simple English or Hinglish — whatever works for you!",
-        },
-      ])
+      setMessages([{ role: "bot", text: "Hey there! 👋 I'm Vbuild's assistant. I can explain what we do in simple English or Hinglish — whatever works for you!" }])
       setStep("choose_lang")
     }
   }, [open])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages, typing])
+  }, [messages, botDone, typing])
 
+  // Pulse timer for floating button
   useEffect(() => {
     if (open) return
     let count = 0
-    const interval = setInterval(() => {
-      count++
-      if (count === 3 || count === 8 || count === 15) {
-        setPulse(true)
-        setTimeout(() => setPulse(false), 2000)
-      }
-    }, 5000)
+    const interval = setInterval(() => { count++; if ([3, 8, 15].includes(count)) { setPulse(true); setTimeout(() => setPulse(false), 2000) } }, 5000)
     return () => clearInterval(interval)
   }, [open])
 
+  // Scroll-based pulse
   useEffect(() => {
-    const handleScroll = () => {
-      if (open || pulse) return
-      const scrollY = window.scrollY
-      if (scrollY > 400 && scrollY % 800 < 50) {
-        setPulse(true)
-        setTimeout(() => setPulse(false), 2500)
-      }
-    }
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
+    const fn = () => { if (!open && !pulse && window.scrollY > 400 && window.scrollY % 800 < 50) { setPulse(true); setTimeout(() => setPulse(false), 2500) } }
+    window.addEventListener("scroll", fn, { passive: true })
+    return () => window.removeEventListener("scroll", fn)
   }, [open, pulse])
 
-  function addBotMessage(text: string, newStep: Step) {
-    stopSpeech()
-    setSpeaking(false)
+  function botRespond(text: string, next: Step) {
+    if (thinkingTimer.current) clearTimeout(thinkingTimer.current)
     setTyping(true)
     setBotDone(false)
     setMessages((prev) => [...prev, { role: "bot", text }])
-    setStep(newStep)
-
-    const estimatedTime = Math.max(1500, text.length * 25)
-    timeoutRef.current = setTimeout(() => {
+    setStep(next)
+    const delay = Math.max(1200, text.length * 20)
+    thinkingTimer.current = setTimeout(() => {
       setTyping(false)
-      setBotDone(true)
-    }, estimatedTime)
+    }, delay)
   }
 
-  function botSay(text: string, newStep: Step) {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    setTyping(false)
-    setBotDone(false)
-    addBotMessage(text, newStep)
-  }
+  const speak = useCallback((text: string, msgIdx: number) => {
+    if (typeof window === "undefined") return
+    try {
+      const synth = window.speechSynthesis
+      if (!synth) { console.warn("no speechSynthesis"); return }
 
-  function handleListen(text: string, idx: number) {
-    if (speaking && msgEndRef.current === idx) {
-      stopSpeech()
-      setSpeaking(false)
-      msgEndRef.current = null
-    } else {
-      stopSpeech()
-      setSpeaking(true)
-      msgEndRef.current = idx
-      speakText(text, lang, () => {
-        setSpeaking(false)
-        msgEndRef.current = null
-      })
-    }
-  }
+      if (speakingIdx === msgIdx) { synth.cancel(); setSpeakingIdx(null); return }
+
+      synth.cancel()
+      const clean = stripEmoji(text)
+      if (!clean) return
+
+      const u = new SpeechSynthesisUtterance(clean)
+      u.lang = lang === "hi" ? "hi-IN" : "en-IN"
+      u.rate = 0.85
+      u.volume = 1
+      u.onend = () => setSpeakingIdx(null)
+      u.onerror = () => setSpeakingIdx(null)
+
+      setSpeakingIdx(msgIdx)
+      synth.speak(u)
+    } catch (e) { console.warn("speak failed", e); setSpeakingIdx(null) }
+  }, [lang, speakingIdx])
 
   function handleLang(selected: "en" | "hi") {
     setLang(selected)
+    setMessages((prev) => [...prev, { role: "user", text: selected === "en" ? "English" : "Hinglish" }])
     if (selected === "en") {
-      setMessages((prev) => [...prev, { role: "user", text: "English" }])
-      botSay(
-        `Great choice! Here's the simple version of what Vbuild CRM does for you:
-
-Vbuild CRM is a complete business platform that runs inside WhatsApp. Think of it as your WhatsApp control center — you can:
-
-• Manage all customer chats as a team (shared inbox)
-• Track sales deals from start to finish (pipeline)
-• Send bulk updates and offers (broadcasts)
-• Run your own online store (storefront)
-• Collect Google Reviews automatically
-• Automate follow-ups and workflows without coding
-
-And the best part? Everything works together in one place. No more switching between 5 different apps.`,
-        "ask_business",
-      )
+      botRespond("Great choice! Here's the simple version of what Vbuild CRM does for you:\n\nVbuild CRM is a complete business platform that runs inside WhatsApp. Think of it as your WhatsApp control center:\n\n• Manage all customer chats as a team (shared inbox)\n• Track sales deals from start to finish (pipeline)\n• Send bulk updates and offers (broadcasts)\n• Run your own online store (storefront)\n• Collect Google Reviews automatically\n• Automate follow-ups and workflows without coding\n\nThe best part? Everything works together in one place. No more switching between 5 different apps.", "ask_business")
     } else {
-      setMessages((prev) => [...prev, { role: "user", text: "Hinglish" }])
-      botSay(
-        `Bahut badhiya! 🎉 Chalo simple language mein samajhte hain:
-
-Vbuild CRM aapko WhatsApp par apna poora business chalane mein help karta hai. Ek dum simple — aap WhatsApp par hi ye sab kar sakte hain:
-
-• Saare customer chats ko team ke saath manage karein (shared inbox)
-• Sales deals ko track karein (pipeline)
-• Bulk messages aur offers bhejein (broadcasts)
-• Apna online store chalaayein (storefront)
-• Google Reviews automatically collect karein
-• Follow-ups aur workflows automate karein bina coding ke
-
-Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein switch karne ki zaroorat nahi.`,
-        "ask_business",
-      )
+      botRespond("Bahut badhiya! Chalo simple language mein samajhte hain:\n\nVbuild CRM aapko WhatsApp par apna poora business chalane mein help karta hai. Aap WhatsApp par hi ye sab kar sakte hain:\n\n• Saare customer chats ko team ke saath manage karein\n• Sales deals ko track karein\n• Bulk messages aur offers bhejein\n• Apna online store chalaayein\n• Google Reviews automatically collect karein\n• Follow-ups aur workflows automate karein bina coding ke\n\nSabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein switch karne ki zaroorat nahi.", "ask_business")
     }
   }
 
-  function handleBusinessSelect(value: string) {
+  function handleBiz(value: string) {
     const opt = BUSINESS_OPTIONS.find((o) => o.value === value)
     setMessages((prev) => [...prev, { role: "user", text: opt?.label || value }])
-
-    const result = RESULTS[value]
-    if (!result) return
-
-    const resultText = [
-      lang === "en" ? `Awesome! Here's how Vbuild CRM can help you generate profit:` : `${result.title}:`,
-      "",
-      ...result.points.map((p) => `• ${p}`),
-      "",
-      lang === "en" ? `💡 ${result.stat}` : `💡 ${result.stat}`,
-    ].join("\n")
-
-    botSay(resultText, "closing")
+    const r = RESULTS[value]
+    if (!r) return
+    const t = (lang === "en" ? "Here's how Vbuild CRM can help you generate profit:\n\n" : "Aapke business ke liye Vbuild CRM:\n\n") + r.points.map((p) => "• " + p).join("\n") + "\n\n" + r.stat
+    botRespond(t, "closing")
   }
 
   function handleStartTrial() {
     window.open("/signup", "_blank")
     setMessages((prev) => [...prev, { role: "user", text: "Start free trial" }])
-    botSay(
-      lang === "en"
-        ? "Amazing! Head over to vbuildcrm.com/signup to start your free trial. No credit card needed. If you have any questions, just come back and ask — I'm always here! 🚀"
-        : "Shaandaar! 🚀 Aap vbuildcrm.com/signup par jaake free trial start kar sakte hain. Credit card ki zaroorat nahi. Koi sawaal ho toh wapas aa ke poochhiye — mein hamesha yahaan hoon! 😊",
-      "closing",
-    )
+    botRespond(lang === "en" ? "Amazing! Head over to vbuildcrm.com/signup to start your free trial. No credit card needed. If you have any questions, just come back and ask!" : "Shaandaar! Aap vbuildcrm.com/signup par jaake free trial start kar sakte hain. Credit card ki zaroorat nahi. Koi sawaal ho toh wapas aa ke poochhiye!", "closing")
   }
 
   function handleQuestion() {
     setMessages((prev) => [...prev, { role: "user", text: "I have more questions" }])
-    botSay(
-      lang === "en"
-        ? "Sure! You can reach our team at sales@vbuildcrm.com or start a free trial to explore the platform yourself. What would you like to know more about?"
-        : "Bilkul! Aap humein sales@vbuildcrm.com par email kar sakte hain ya free trial start karke platform khud explore kar sakte hain. Aap kya aur jaanna chahenge?",
-      "closing",
-    )
+    botRespond(lang === "en" ? "You can email us at sales@vbuildcrm.com or start a free trial to explore the platform yourself!" : "Aap humein sales@vbuildcrm.com par email kar sakte hain ya free trial start karke platform explore kar sakte hain!", "closing")
   }
 
-  const lastBotIdx = (() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === "bot") return i
-    }
-    return -1
-  })()
+  const lastBotIdx = (() => { for (let i = messages.length - 1; i >= 0; i--) { if (messages[i].role === "bot") return i } return -1 })()
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -369,40 +234,27 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
               <BotAvatar />
               <div>
                 <p className="text-sm font-semibold">Vbuild Assistant</p>
-                <p className="text-[10px] opacity-80">Online — I speak English & Hinglish 🎙️</p>
+                <p className="text-[10px] opacity-80">Online — I speak English & Hinglish</p>
               </div>
             </div>
-            <button
-              onClick={() => { setOpen(false); stopSpeech(); setSpeaking(false) }}
-              className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/20 transition-colors"
-            >
+            <button onClick={() => { setOpen(false); setSpeakingIdx(null); try { window.speechSynthesis?.cancel() } catch {} }} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/20 transition-colors">
               <X className="h-4 w-4" />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[400px] min-h-[300px]">
             {messages.map((msg, idx) => {
-              const isLastBotMsg = msg.role === "bot" && idx === lastBotIdx
-              const showTypewriter = isLastBotMsg && !typing
-              const isLatestTyping = isLastBotMsg && typing
+              const isLastBot = msg.role === "bot" && idx === lastBotIdx
+              const showTw = isLastBot && !typing
+              const showThinking = isLastBot && typing
 
               return (
                 <div key={idx} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : ""}`}>
                   {msg.role === "bot" && <BotAvatar />}
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line relative group ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-br-sm"
-                        : "bg-muted text-foreground rounded-bl-sm border border-border/50"
-                    }`}
-                  >
-                    {showTypewriter ? (
-                      <TypeWriter
-                        text={msg.text}
-                        speed={18}
-                        onDone={() => setBotDone(true)}
-                      />
-                    ) : isLatestTyping ? (
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line relative ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted text-foreground rounded-bl-sm border border-border/50"}`}>
+                    {showTw ? (
+                      <TypeWriter text={msg.text} speed={18} onDone={() => setBotDone(true)} />
+                    ) : showThinking ? (
                       <div className="flex items-center gap-1 py-1">
                         <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "0ms" }} />
                         <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "150ms" }} />
@@ -411,74 +263,50 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
                     ) : (
                       msg.text
                     )}
-                    {msg.role === "bot" && botDone && idx === lastBotIdx && (
-                      <button
-                        onClick={() => handleListen(msg.text, idx)}
-                        className="absolute -bottom-5 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-muted border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground"
-                        title={speaking && msgEndRef.current === idx ? "Stop" : "Listen"}
-                      >
-                        {speaking && msgEndRef.current === idx ? (
-                          <VolumeX className="h-3 w-3" />
-                        ) : (
-                          <Volume2 className="h-3 w-3" />
-                        )}
-                      </button>
-                    )}
                   </div>
                 </div>
               )
             })}
+
+            {/* Speak button — always visible below the last bot message */}
+            {lastBotIdx >= 0 && !typing && botDone && (
+              <div className="flex justify-start pl-9">
+                <button
+                  onClick={() => speak(messages[lastBotIdx].text, lastBotIdx)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary active:scale-95"
+                >
+                  {speakingIdx === lastBotIdx ? (
+                    <><VolumeX className="h-3 w-3" /> Stop</>
+                  ) : (
+                    <><Volume2 className="h-3 w-3" /> Listen ({lang === "hi" ? "हिंदी" : "English"})</>
+                  )}
+                </button>
+              </div>
+            )}
+
             <div ref={bottomRef} />
           </div>
 
           {step === "choose_lang" && botDone && (
             <div className="flex gap-2 px-4 pb-4">
-              <button
-                onClick={() => handleLang("en")}
-                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md active:scale-[0.98]"
-              >
-                🇬🇧 English
-              </button>
-              <button
-                onClick={() => handleLang("hi")}
-                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md active:scale-[0.98]"
-              >
-                🗣️ Hinglish
-              </button>
+              <button onClick={() => handleLang("en")} className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md active:scale-[0.98]">🇬🇧 English</button>
+              <button onClick={() => handleLang("hi")} className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md active:scale-[0.98]">🗣️ Hinglish</button>
             </div>
           )}
 
           {step === "ask_business" && botDone && (
             <div className="flex flex-col gap-1.5 px-4 pb-4">
-              <p className="text-xs text-muted-foreground px-1">
-                {lang === "en" ? "What kind of business do you have?" : "Aapka business kis type ka hai?"}
-              </p>
-              {BUSINESS_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => handleBusinessSelect(opt.value)}
-                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-left text-sm font-medium transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md active:scale-[0.98]"
-                >
-                  {opt.label}
-                </button>
+              <p className="text-xs text-muted-foreground px-1">{lang === "en" ? "What kind of business do you have?" : "Aapka business kis type ka hai?"}</p>
+              {BUSINESS_OPTIONS.map((o) => (
+                <button key={o.value} onClick={() => handleBiz(o.value)} className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-left text-sm font-medium transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md active:scale-[0.98]">{o.label}</button>
               ))}
             </div>
           )}
 
           {step === "closing" && botDone && (
             <div className="flex gap-2 px-4 pb-4">
-              <button
-                onClick={handleStartTrial}
-                className="flex-1 rounded-xl bg-gradient-to-r from-primary to-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98]"
-              >
-                🚀 Start Free Trial
-              </button>
-              <button
-                onClick={handleQuestion}
-                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-muted active:scale-[0.98]"
-              >
-                ❓ More Questions
-              </button>
+              <button onClick={handleStartTrial} className="flex-1 rounded-xl bg-gradient-to-r from-primary to-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98]">🚀 Start Free Trial</button>
+              <button onClick={handleQuestion} className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-muted active:scale-[0.98]">❓ More Questions</button>
             </div>
           )}
         </div>
@@ -487,30 +315,12 @@ Aur sabse acchi baat? Sab kuch ek hi jagah kaam karta hai. 5 alag apps mein swit
       <div className="relative">
         {!open && (
           <>
-            <span
-              className={`absolute -inset-3 rounded-full bg-primary/20 blur-xl transition-opacity duration-1000 ${
-                pulse ? "opacity-100 scale-110" : "opacity-0"
-              }`}
-            />
-            <span
-              className={`absolute -inset-1.5 rounded-full border-2 border-primary/30 transition-all duration-1000 ${
-                pulse ? "scale-110 opacity-0" : "scale-90 opacity-0"
-              }`}
-              style={pulse ? { animation: "ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite" } : {}}
-            />
+            <span className={`absolute -inset-3 rounded-full bg-primary/20 blur-xl transition-opacity duration-1000 ${pulse ? "opacity-100 scale-110" : "opacity-0"}`} />
+            <span className={`absolute -inset-1.5 rounded-full border-2 border-primary/30 transition-all duration-1000 ${pulse ? "scale-110 opacity-0" : "scale-90 opacity-0"}`} style={pulse ? { animation: "ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite" } : {}} />
           </>
         )}
-        <button
-          onClick={() => setOpen(!open)}
-          className={`relative flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition-all duration-300 ${
-            open
-              ? "bg-muted-foreground rotate-90 scale-95"
-              : `bg-gradient-to-r from-primary to-violet-600 hover:scale-105 hover:shadow-lg hover:shadow-primary/40 ${pulse ? "scale-110 animate-pulse" : ""}`
-          }`}
-        >
-          {open ? (
-            <X className="h-6 w-6 text-white" />
-          ) : (
+        <button onClick={() => setOpen(!open)} className={`relative flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition-all duration-300 ${open ? "bg-muted-foreground rotate-90 scale-95" : `bg-gradient-to-r from-primary to-violet-600 hover:scale-105 hover:shadow-lg hover:shadow-primary/40 ${pulse ? "scale-110 animate-pulse" : ""}`}`}>
+          {open ? <X className="h-6 w-6 text-white" /> : (
             <div className="relative">
               <MessageCircle className="h-6 w-6 text-primary-foreground" />
               {pulse && (
