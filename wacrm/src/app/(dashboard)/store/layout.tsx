@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Package, ListOrdered, Grid3X3, Users, CreditCard, Settings } from "lucide-react"
+import { LayoutDashboard, Package, ListOrdered, Grid3X3, Users, CreditCard, Settings, Eye } from "lucide-react"
 
 const tabs = [
   { href: "/store", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -12,6 +12,7 @@ const tabs = [
   { href: "/store/categories", label: "Categories", icon: Grid3X3 },
   { href: "/store/customers", label: "Customers", icon: Users },
   { href: "/store/payments", label: "Payments", icon: CreditCard },
+  { href: "/store/recognition", label: "AI Recognition", icon: Eye },
   { href: "/store/settings", label: "Store Settings", icon: Settings },
 ]
 
