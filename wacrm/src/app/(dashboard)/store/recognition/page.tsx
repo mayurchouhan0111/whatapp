@@ -1025,15 +1025,34 @@ export default function AIRecognitionPage() {
 
   // HTML5 Webcam Stream managers
   async function startEntranceWebcam() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast.error("Webcam API is blocked by browser security. Ensure you are using HTTPS or localhost.")
+      return
+    }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } })
+      let stream: MediaStream
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 } } })
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      }
       entranceStreamRef.current = stream
       if (entranceVideoRef.current) {
         entranceVideoRef.current.srcObject = stream
       }
       setIsEntranceWebcam(true)
-    } catch {
-      toast.error("Webcam blocked or not available. Using dynamic camera simulation.")
+      toast.success("Entrance Webcam activated!")
+    } catch (err: any) {
+      console.error("Entrance Webcam Error:", err)
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        toast.error("Webcam access denied. Please click the lock/camera icon in your address bar and choose 'Allow'.")
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        toast.error("No webcam device detected on your system. Please plug in a camera.")
+      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+        toast.error("Webcam is already in use by another application (e.g. Zoom, Teams, OBS). Close them and try again.")
+      } else {
+        toast.error(`Webcam error: ${err.message || "Failed to start camera feed"}`)
+      }
     }
   }
 
@@ -1046,15 +1065,34 @@ export default function AIRecognitionPage() {
   }
 
   async function startBillingWebcam() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast.error("Webcam API is blocked by browser security. Ensure you are using HTTPS or localhost.")
+      return
+    }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } })
+      let stream: MediaStream
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 } } })
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      }
       billingStreamRef.current = stream
       if (billingVideoRef.current) {
         billingVideoRef.current.srcObject = stream
       }
       setIsBillingWebcam(true)
-    } catch {
-      toast.error("Webcam blocked or not available. Using dynamic camera simulation.")
+      toast.success("Billing Counter Webcam activated!")
+    } catch (err: any) {
+      console.error("Billing Webcam Error:", err)
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        toast.error("Webcam access denied. Please click the lock/camera icon in your address bar and choose 'Allow'.")
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        toast.error("No webcam device detected on your system. Please plug in a camera.")
+      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+        toast.error("Webcam is already in use by another application (e.g. Zoom, Teams, OBS). Close them and try again.")
+      } else {
+        toast.error(`Webcam error: ${err.message || "Failed to start camera feed"}`)
+      }
     }
   }
 
