@@ -14,21 +14,7 @@ ALTER TABLE reputation_settings
   ADD COLUMN IF NOT EXISTS enable_ai_chips BOOLEAN DEFAULT TRUE,
   ADD COLUMN IF NOT EXISTS rewards_config JSONB DEFAULT '[]'::jsonb;
 
--- Extend review_requests with V2 columns
-ALTER TABLE review_requests
-  ADD COLUMN IF NOT EXISTS staff_id UUID REFERENCES staff_members(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS table_number TEXT,
-  ADD COLUMN IF NOT EXISTS source_type TEXT DEFAULT 'qr_web' CHECK (source_type IN ('qr_web', 'qr_whatsapp', 'direct_link')),
-  ADD COLUMN IF NOT EXISTS ai_generated_text TEXT,
-  ADD COLUMN IF NOT EXISTS voice_transcript TEXT,
-  ADD COLUMN IF NOT EXISTS sentiment_score REAL CHECK (sentiment_score BETWEEN -1 AND 1),
-  ADD COLUMN IF NOT EXISTS tags_selected TEXT[] DEFAULT '{}',
-  ADD COLUMN IF NOT EXISTS recovery_action_requested TEXT CHECK (recovery_action_requested IN ('refund', 'replace', 'manager_call', 'coupon')),
-  ADD COLUMN IF NOT EXISTS spin_reward_claimed TEXT,
-  ADD COLUMN IF NOT EXISTS recovery_resolved_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS recovery_status TEXT DEFAULT 'pending' CHECK (recovery_status IN ('pending', 'manager_contacted', 'resolved'));
-
--- Create staff_members table
+-- Create staff_members table (must exist before review_requests FK references it)
 CREATE TABLE IF NOT EXISTS staff_members (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -57,6 +43,20 @@ CREATE POLICY staff_members_select ON staff_members FOR SELECT USING (has_permis
 CREATE POLICY staff_members_insert ON staff_members FOR INSERT WITH CHECK (has_permission(account_id, 'contacts.edit'));
 CREATE POLICY staff_members_update ON staff_members FOR UPDATE USING (has_permission(account_id, 'contacts.edit'));
 CREATE POLICY staff_members_delete ON staff_members FOR DELETE USING (has_permission(account_id, 'contacts.delete'));
+
+-- Extend review_requests with V2 columns
+ALTER TABLE review_requests
+  ADD COLUMN IF NOT EXISTS staff_id UUID REFERENCES staff_members(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS table_number TEXT,
+  ADD COLUMN IF NOT EXISTS source_type TEXT DEFAULT 'qr_web' CHECK (source_type IN ('qr_web', 'qr_whatsapp', 'direct_link')),
+  ADD COLUMN IF NOT EXISTS ai_generated_text TEXT,
+  ADD COLUMN IF NOT EXISTS voice_transcript TEXT,
+  ADD COLUMN IF NOT EXISTS sentiment_score REAL CHECK (sentiment_score BETWEEN -1 AND 1),
+  ADD COLUMN IF NOT EXISTS tags_selected TEXT[] DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS recovery_action_requested TEXT CHECK (recovery_action_requested IN ('refund', 'replace', 'manager_call', 'coupon')),
+  ADD COLUMN IF NOT EXISTS spin_reward_claimed TEXT,
+  ADD COLUMN IF NOT EXISTS recovery_resolved_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS recovery_status TEXT DEFAULT 'pending' CHECK (recovery_status IN ('pending', 'manager_contacted', 'resolved'));
 
 -- Create customer_loyalty_passes table
 CREATE TABLE IF NOT EXISTS customer_loyalty_passes (
