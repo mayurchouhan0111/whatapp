@@ -9,11 +9,11 @@ import type { AccountDetail, SaasModule } from './page'
 const PLAN_TIERS: PlanTier[] = ['free', 'starter', 'growth', 'pro', 'enterprise']
 
 const MODULE_KEYS_PER_TIER: Record<PlanTier, string[]> = {
-  free: [],
-  starter: ['crm', 'inbox', 'marketing', 'automation'],
-  growth: ['crm', 'inbox', 'marketing', 'automation'],
-  pro: ['crm', 'inbox', 'marketing', 'automation', 'store'],
-  enterprise: ['crm', 'inbox', 'marketing', 'automation', 'store'],
+  free: ['reputation'],
+  starter: ['crm', 'inbox', 'marketing', 'automation', 'reputation'],
+  growth: ['crm', 'inbox', 'marketing', 'automation', 'reputation'],
+  pro: ['crm', 'inbox', 'marketing', 'automation', 'store', 'reputation'],
+  enterprise: ['crm', 'inbox', 'marketing', 'automation', 'store', 'reputation'],
 }
 
 export function AccountForm({
