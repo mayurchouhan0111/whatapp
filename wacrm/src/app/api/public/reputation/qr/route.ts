@@ -23,7 +23,24 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Business account not found.' }, { status: 404 })
     }
 
-    return NextResponse.json({ data: { name: account.name } })
+    const { data: settings } = await db
+      .from('reputation_settings')
+      .select('owner_photo_url, owner_name, welcome_message, branding_color, logo_url')
+      .eq('account_id', accountId)
+      .maybeSingle()
+
+    return NextResponse.json({
+      data: {
+        name: account.name,
+        v2: {
+          ownerPhotoUrl: settings?.owner_photo_url || null,
+          ownerName: settings?.owner_name || null,
+          welcomeMessage: settings?.welcome_message || null,
+          brandingColor: settings?.branding_color || '#f59e0b',
+          logoUrl: settings?.logo_url || null,
+        },
+      },
+    })
   } catch (error) {
     console.error('[public/reputation/qr/GET] error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
@@ -34,7 +51,7 @@ export async function POST(request: Request) {
   try {
     const db = supabaseAdmin()
     const body = await request.json()
-    const { name, phone, accountId } = body
+    const { name, phone, accountId, staffId, tableNumber } = body
 
     if (!name || !phone || !accountId) {
       return NextResponse.json(
@@ -51,7 +68,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Verify account exists
     const { data: account, error: accErr } = await db
       .from('accounts')
       .select('id, name, owner_user_id')
@@ -62,7 +78,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Business account not found.' }, { status: 404 })
     }
 
-    // Check if the contact already exists under this account
     let contact: any = null
     try {
       contact = await findExistingContact(db, accountId, sanitizedPhone)
@@ -70,10 +85,8 @@ export async function POST(request: Request) {
       console.error('[public/reputation/qr] contact lookup failed:', contactErr.message)
     }
 
-    // Use the original phone (with +) for storage to stay consistent with the rest of the app
     const phoneForStorage = phone.startsWith('+') ? phone : `+${sanitizedPhone}`
 
-    // Create contact if they don't exist yet
     if (!contact) {
       const { data: newContact, error: createError } = await db
         .from('contacts')
@@ -89,22 +102,29 @@ export async function POST(request: Request) {
       if (createError) {
         console.error('[public/reputation/qr] create contact failed:', createError)
         if (isUniqueViolation(createError)) {
-          // If we lost a race or there was a unique constraint collision on phone_normalized,
-          // try to resolve the existing contact.
           contact = await findExistingContact(db, accountId, sanitizedPhone)
         }
-        
+
         if (!contact) {
-          return NextResponse.json({ error: `Failed to register customer contact: ${createError.message}` }, { status: 500 })
+          return NextResponse.json(
+            { error: `Failed to register customer contact: ${createError.message}` },
+            { status: 500 }
+          )
         }
       } else if (newContact) {
         contact = newContact
       } else {
-        return NextResponse.json({ error: 'Contact created but no data returned.' }, { status: 500 })
+        return NextResponse.json(
+          { error: 'Contact created but no data returned.' },
+          { status: 500 }
+        )
       }
     } else {
-      // If contact exists, update name if empty or generic
-      if (!contact.name || contact.name.toLowerCase() === 'customer' || contact.name.toLowerCase() === 'there') {
+      if (
+        !contact.name ||
+        contact.name.toLowerCase() === 'customer' ||
+        contact.name.toLowerCase() === 'there'
+      ) {
         await db
           .from('contacts')
           .update({ name: name.trim() })
@@ -112,15 +132,20 @@ export async function POST(request: Request) {
       }
     }
 
-    // Create a review request session
+    const insertData: any = {
+      account_id: accountId,
+      contact_id: contact.id,
+      status: 'opened',
+      opened_at: new Date().toISOString(),
+      source_type: 'qr_web',
+    }
+
+    if (staffId) insertData.staff_id = staffId
+    if (tableNumber) insertData.table_number = tableNumber
+
     const { data: reviewRequest, error: reqError } = await db
       .from('review_requests')
-      .insert({
-        account_id: accountId,
-        contact_id: contact.id,
-        status: 'opened',
-        opened_at: new Date().toISOString(),
-      })
+      .insert(insertData)
       .select()
       .single()
 

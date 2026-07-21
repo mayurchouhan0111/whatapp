@@ -36,7 +36,6 @@ export async function GET(request: Request) {
       )
     }
 
-    // Fetch review requests with contact details
     const { data: requests, error: requestsError } = await supabase
       .from('review_requests')
       .select('*, contact:contacts(*)')
@@ -92,7 +91,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Verify contact
     const { data: contact, error: contactErr } = await supabase
       .from('contacts')
       .select('*')
@@ -107,7 +105,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Verify reputation settings are configured
     const { data: settings, error: settingsError } = await supabase
       .from('reputation_settings')
       .select('*')
@@ -121,7 +118,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Resolve or create WhatsApp conversation
     let { data: conversation } = await supabase
       .from('conversations')
       .select('id')
@@ -152,7 +148,6 @@ export async function POST(request: Request) {
       conversation = newConv
     }
 
-    // Insert review request log (generates ID for URL)
     const { data: reviewRequest, error: insertError } = await supabase
       .from('review_requests')
       .insert({
@@ -168,13 +163,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to log review request.' }, { status: 500 })
     }
 
-    // Format WhatsApp message text
     const host = request.headers.get('host') || 'localhost:3000'
     const protocol = request.headers.get('x-forwarded-proto') || 'http'
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`
     const reviewLink = `${siteUrl}/r/${reviewRequest.id}`
 
-    // Fetch account business name
     const { data: account } = await supabase
       .from('accounts')
       .select('name')
@@ -183,14 +176,13 @@ export async function POST(request: Request) {
 
     const businessName = account?.name || 'our business'
     const contactName = contact.name || 'there'
-    
+
     let messageText = settings.sms_template || 'Hi {{contact_name}}, thank you for choosing {{business_name}}! We would appreciate it if you could take 30 seconds to review your experience: {{review_link}}'
     messageText = messageText
       .replace(/\{\{contact_name\}\}/g, contactName)
       .replace(/\{\{business_name\}\}/g, businessName)
       .replace(/\{\{review_link\}\}/g, reviewLink)
 
-    // Load and decrypt WhatsApp integration settings
     const { data: whatsappConfig, error: configError } = await supabase
       .from('whatsapp_config')
       .select('*')
@@ -198,7 +190,6 @@ export async function POST(request: Request) {
       .single()
 
     if (configError || !whatsappConfig) {
-      // Clean up logged request as we couldn't send the message
       await supabase.from('review_requests').delete().eq('id', reviewRequest.id)
       return NextResponse.json(
         { error: 'WhatsApp not configured for this account. Please connect your phone number first.' },
@@ -216,7 +207,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Send via Meta Cloud API with trunk/retry variant fallback
     const attemptSend = async (phone: string): Promise<string> => {
       const res = await sendTextMessage({
         phoneNumberId: whatsappConfig.phone_number_id,
@@ -254,7 +244,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Save autocorrected phone back to contact if it was format-corrected
     if (workingPhone !== sanitizedPhone) {
       await supabase
         .from('contacts')
@@ -262,7 +251,6 @@ export async function POST(request: Request) {
         .eq('id', contact.id)
     }
 
-    // Log the outgoing review request message inside messages table
     const { error: msgInsertError } = await supabase.from('messages').insert({
       conversation_id: conversation.id,
       sender_type: 'bot',
@@ -276,7 +264,6 @@ export async function POST(request: Request) {
       console.error('[reputation/requests/POST] failed to insert message in conversation history:', msgInsertError.message)
     }
 
-    // Update conversation metadata
     await supabase
       .from('conversations')
       .update({

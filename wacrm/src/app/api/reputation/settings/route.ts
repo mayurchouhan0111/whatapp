@@ -74,7 +74,40 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { google_review_url, gate_reviews, review_threshold, sms_template } = body
+    const {
+      google_review_url,
+      gate_reviews,
+      review_threshold,
+      sms_template,
+      owner_photo_url,
+      owner_name,
+      welcome_message,
+      branding_color,
+      logo_url,
+      enable_spin_wheel,
+      enable_voice_review,
+      enable_ai_chips,
+      rewards_config,
+    } = body
+
+    const updateData: Record<string, unknown> = {
+      account_id: accountId,
+      updated_at: new Date().toISOString(),
+    }
+
+    if (google_review_url !== undefined) updateData.google_review_url = google_review_url
+    if (gate_reviews !== undefined) updateData.gate_reviews = gate_reviews
+    if (review_threshold !== undefined) updateData.review_threshold = review_threshold
+    if (sms_template !== undefined) updateData.sms_template = sms_template || null
+    if (owner_photo_url !== undefined) updateData.owner_photo_url = owner_photo_url || null
+    if (owner_name !== undefined) updateData.owner_name = owner_name || null
+    if (welcome_message !== undefined) updateData.welcome_message = welcome_message || null
+    if (branding_color !== undefined) updateData.branding_color = branding_color
+    if (logo_url !== undefined) updateData.logo_url = logo_url || null
+    if (enable_spin_wheel !== undefined) updateData.enable_spin_wheel = enable_spin_wheel
+    if (enable_voice_review !== undefined) updateData.enable_voice_review = enable_voice_review
+    if (enable_ai_chips !== undefined) updateData.enable_ai_chips = enable_ai_chips
+    if (rewards_config !== undefined) updateData.rewards_config = rewards_config
 
     if (!google_review_url) {
       return NextResponse.json(
@@ -85,17 +118,7 @@ export async function POST(request: Request) {
 
     const { data: settings, error: upsertError } = await supabase
       .from('reputation_settings')
-      .upsert(
-        {
-          account_id: accountId,
-          google_review_url,
-          gate_reviews: gate_reviews !== false,
-          review_threshold: typeof review_threshold === 'number' ? review_threshold : 4,
-          sms_template: sms_template || undefined,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'account_id' }
-      )
+      .upsert(updateData, { onConflict: 'account_id' })
       .select()
       .single()
 
