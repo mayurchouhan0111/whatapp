@@ -4,6 +4,11 @@
 -- saas_account_modules table has entries so has_permission works.
 -- ============================================================
 
+-- Ensure columns exist (safe even if 042 was already run)
+ALTER TABLE accounts
+  ADD COLUMN IF NOT EXISTS allow_reputation         BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS max_review_requests       INTEGER NOT NULL DEFAULT 0;
+
 -- Enable reputation for free accounts too (not just paid tiers)
 UPDATE accounts
 SET
