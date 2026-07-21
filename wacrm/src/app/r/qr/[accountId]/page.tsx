@@ -179,7 +179,7 @@ function QRContent({ accountId }: { accountId: string }) {
                       Quick Check-in Available
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      Your table and staff info are pre-linked. Just enter your details and you're set!
+                      Your table and staff info are pre-linked. Just enter your details and you&rsquo;re set!
                     </p>
                   </div>
                 </div>
