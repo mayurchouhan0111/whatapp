@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/flows/admin-client'
-import { Star, Users, Activity, BarChart3, ExternalLink } from 'lucide-react'
+import { Star, Users, Activity, ExternalLink, Mail, MousePointerClick } from 'lucide-react'
 import Link from 'next/link'
 
 async function getReputationStats() {
@@ -40,104 +40,112 @@ async function getReputationStats() {
   }
 }
 
+const STATUS_STYLES: Record<string, string> = {
+  sent: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+  opened: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+  clicked: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+  rated: 'bg-green-500/10 text-green-400 border-green-500/30',
+  failed: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+}
+
 export default async function AdminReputationPage() {
   const stats = await getReputationStats()
 
+  const rate = stats.totalReviewRequests > 0
+    ? Math.round((stats.totalRated / stats.totalReviewRequests) * 100)
+    : 0
+  const clickRate = stats.totalReviewRequests > 0
+    ? Math.round((stats.totalClicked / stats.totalReviewRequests) * 100)
+    : 0
+
+  const kpiCards = [
+    {
+      label: 'Total Requests', value: stats.totalReviewRequests, icon: Mail,
+      color: 'text-amber-400', bg: 'bg-amber-500/10',
+    },
+    {
+      label: 'Ratings Submitted', value: stats.totalRated, icon: Star,
+      color: 'text-yellow-400', bg: 'bg-yellow-500/10',
+      sub: `${rate}% rate`,
+    },
+    {
+      label: 'Google Clicks', value: stats.totalClicked, icon: MousePointerClick,
+      color: 'text-emerald-400', bg: 'bg-emerald-500/10',
+      sub: `${clickRate}% click rate`,
+    },
+    {
+      label: 'Active Accounts', value: stats.accounts.length, icon: Users,
+      color: 'text-blue-400', bg: 'bg-blue-500/10',
+    },
+  ]
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-fade-in">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Reputation Module</h2>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Reputation</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Platform-wide Google Review Feedback analytics and account overview.
+          Google Review Feedback analytics across all accounts.
         </p>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:shadow-md">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-amber-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
-          <div className="relative z-10">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background/50 backdrop-blur-sm border border-border text-amber-500">
-              <BarChart3 className="h-6 w-6" />
+        {kpiCards.map((card) => {
+          const Icon = card.icon
+          return (
+            <div key={card.label} className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${card.bg} ${card.color}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold tracking-tight text-foreground">{card.value}</p>
+              <p className="mt-0.5 text-xs font-medium text-muted-foreground">
+                {card.label}
+                {card.sub && <span className="ml-1.5 text-emerald-400">{card.sub}</span>}
+              </p>
             </div>
-            <p className="mt-4 text-3xl font-bold tracking-tight text-foreground">{stats.totalReviewRequests}</p>
-            <p className="mt-1 text-sm font-medium text-muted-foreground">Total Review Requests</p>
-          </div>
-        </div>
-
-        <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:shadow-md">
-          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
-          <div className="relative z-10">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background/50 backdrop-blur-sm border border-border text-yellow-500">
-              <Star className="h-6 w-6" />
-            </div>
-            <p className="mt-4 text-3xl font-bold tracking-tight text-foreground">{stats.totalRated}</p>
-            <p className="mt-1 text-sm font-medium text-muted-foreground">Ratings Submitted</p>
-          </div>
-        </div>
-
-        <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:shadow-md">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
-          <div className="relative z-10">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background/50 backdrop-blur-sm border border-border text-emerald-500">
-              <ExternalLink className="h-6 w-6" />
-            </div>
-            <p className="mt-4 text-3xl font-bold tracking-tight text-foreground">{stats.totalClicked}</p>
-            <p className="mt-1 text-sm font-medium text-muted-foreground">Google Review Clicks</p>
-          </div>
-        </div>
-
-        <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:shadow-md">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
-          <div className="relative z-10">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background/50 backdrop-blur-sm border border-border text-blue-500">
-              <Users className="h-6 w-6" />
-            </div>
-            <p className="mt-4 text-3xl font-bold tracking-tight text-foreground">{stats.accounts.length}</p>
-            <p className="mt-1 text-sm font-medium text-muted-foreground">Accounts with Reputation</p>
-          </div>
-        </div>
+          )
+        })}
       </div>
 
-      {/* Accounts with reputation enabled */}
-      <div className="rounded-2xl border border-border bg-card overflow-hidden">
-        <div className="border-b border-border bg-muted/30 px-6 py-4">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="border-b border-border bg-muted/20 px-6 py-4">
           <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-muted-foreground" />
+            <Users className="h-5 w-5 text-muted-foreground" />
             <h3 className="text-base font-semibold text-foreground">Accounts with Reputation Active</h3>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted/20">
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Account</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Max Requests</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
+              <tr className="border-b border-border bg-muted/10">
+                <th className="px-6 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Account</th>
+                <th className="px-6 py-3.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Max Requests</th>
+                <th className="px-6 py-3.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {stats.accounts.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-sm text-muted-foreground">
-                    No accounts have the reputation module enabled yet.
+                  <td colSpan={3} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                    No accounts with the reputation module enabled.
                   </td>
                 </tr>
               ) : (
                 stats.accounts.map((acc) => (
-                  <tr key={acc.id} className="hover:bg-muted/20 transition-colors">
+                  <tr key={acc.id} className="hover:bg-muted/10 transition-colors">
                     <td className="px-6 py-4">
                       <Link href={`/admin/accounts/${acc.id}`} className="font-medium text-foreground hover:text-primary transition-colors">
                         {acc.name || 'Unnamed Account'}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 text-muted-foreground">{acc.max_review_requests?.toLocaleString() || '—'}</td>
+                    <td className="px-6 py-4 text-right text-muted-foreground">{acc.max_review_requests?.toLocaleString() || '—'}</td>
                     <td className="px-6 py-4 text-right">
                       <Link
                         href={`/admin/accounts/${acc.id}`}
                         className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                       >
-                        View Account <ExternalLink className="h-3 w-3" />
+                        View <ExternalLink className="h-3 w-3" />
                       </Link>
                     </td>
                   </tr>
@@ -148,9 +156,8 @@ export default async function AdminReputationPage() {
         </div>
       </div>
 
-      {/* Recent activity */}
-      <div className="rounded-2xl border border-border bg-card overflow-hidden">
-        <div className="border-b border-border bg-muted/30 px-6 py-4">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="border-b border-border bg-muted/20 px-6 py-4">
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-muted-foreground" />
             <h3 className="text-base font-semibold text-foreground">Recent Review Activity</h3>
@@ -159,39 +166,40 @@ export default async function AdminReputationPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted/20">
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Request ID</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rating</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
+              <tr className="border-b border-border bg-muted/10">
+                <th className="px-6 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Request</th>
+                <th className="px-6 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rating</th>
+                <th className="px-6 py-3.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {stats.recentRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={4} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     No review requests yet.
                   </td>
                 </tr>
               ) : (
                 stats.recentRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-6 py-4 font-mono text-xs text-foreground">{req.id.slice(0, 8)}…</td>
+                  <tr key={req.id} className="hover:bg-muted/10 transition-colors">
+                    <td className="px-6 py-4 font-mono text-xs text-foreground">#{req.id.slice(0, 8)}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                        req.status === 'sent' ? 'bg-blue-500/10 text-blue-500' :
-                        req.status === 'opened' ? 'bg-amber-500/10 text-amber-500' :
-                        req.status === 'clicked' ? 'bg-emerald-500/10 text-emerald-500' :
-                        req.status === 'rated' ? 'bg-green-500/10 text-green-500' :
-                        req.status === 'failed' ? 'bg-rose-500/10 text-rose-500' :
-                        'bg-gray-500/10 text-gray-500'
-                      }`}>
+                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${STATUS_STYLES[req.status] || 'bg-gray-500/10 text-gray-400 border-gray-500/30'}`}>
+                        <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                          req.status === 'sent' ? 'bg-blue-400' :
+                          req.status === 'opened' ? 'bg-amber-400' :
+                          req.status === 'clicked' ? 'bg-emerald-400' :
+                          req.status === 'rated' ? 'bg-green-400' :
+                          req.status === 'failed' ? 'bg-rose-400' :
+                          'bg-gray-400'
+                        }`} />
                         {req.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4">{req.rating ? `${req.rating}★` : '—'}</td>
+                    <td className="px-6 py-4">{req.rating ? <span className="text-yellow-400">{req.rating} ★</span> : '—'}</td>
                     <td className="px-6 py-4 text-right text-xs text-muted-foreground">
-                      {new Date(req.created_at).toLocaleDateString()}
+                      {new Date(req.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                   </tr>
                 ))

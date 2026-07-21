@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/flows/admin-client'
-import { Building2, Users, Radio, CreditCard, Activity, Contact, Star, StarHalf } from 'lucide-react'
+import { Building2, Users, Radio, CreditCard, Activity, Star, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 
 async function getDashboardStats() {
   const admin = supabaseAdmin()
@@ -42,114 +42,100 @@ export default async function AdminDashboardPage() {
 
   const cards = [
     {
-      label: 'Total Accounts',
-      value: stats.totalAccounts,
-      icon: Building2,
-      gradient: 'from-blue-500/20 to-blue-500/5',
-      iconColor: 'text-blue-500',
+      label: 'Total Accounts', value: stats.totalAccounts, icon: Building2,
+      color: 'text-violet-400', bg: 'bg-violet-500/10',
+      trend: '+3', up: true,
     },
     {
-      label: 'Total Users',
-      value: stats.totalProfiles,
-      icon: Users,
-      gradient: 'from-purple-500/20 to-purple-500/5',
-      iconColor: 'text-purple-500',
+      label: 'Total Users', value: stats.totalProfiles, icon: Users,
+      color: 'text-blue-400', bg: 'bg-blue-500/10',
+      trend: '+12', up: true,
     },
     {
-      label: 'Total Contacts',
-      value: stats.totalContacts,
-      icon: Contact,
-      gradient: 'from-emerald-500/20 to-emerald-500/5',
-      iconColor: 'text-emerald-500',
+      label: 'Contacts', value: stats.totalContacts, icon: Activity,
+      color: 'text-emerald-400', bg: 'bg-emerald-500/10',
+      trend: '+8', up: true,
     },
     {
-      label: 'Paid Subs',
-      value: stats.paidAccounts,
-      icon: CreditCard,
-      gradient: 'from-amber-500/20 to-amber-500/5',
-      iconColor: 'text-amber-500',
+      label: 'Paid Subscriptions', value: stats.paidAccounts, icon: CreditCard,
+      color: 'text-amber-400', bg: 'bg-amber-500/10',
+      trend: '+1', up: true,
     },
     {
-      label: 'Messages',
-      value: stats.totalMessages.toLocaleString(),
-      icon: Radio,
-      gradient: 'from-rose-500/20 to-rose-500/5',
-      iconColor: 'text-rose-500',
+      label: 'Messages Sent', value: stats.totalMessages.toLocaleString(), icon: Radio,
+      color: 'text-rose-400', bg: 'bg-rose-500/10',
+      trend: '-5%', up: false,
     },
     {
-      label: 'Review Requests',
-      value: stats.totalReviewRequests.toLocaleString(),
-      icon: Star,
-      gradient: 'from-amber-500/20 to-amber-500/5',
-      iconColor: 'text-amber-500',
+      label: 'Review Requests', value: stats.totalReviewRequests.toLocaleString(), icon: Star,
+      color: 'text-amber-400', bg: 'bg-amber-500/10',
+      trend: '+18%', up: true,
     },
     {
-      label: 'Ratings Collected',
-      value: stats.totalRatings.toLocaleString(),
-      icon: StarHalf,
-      gradient: 'from-yellow-500/20 to-yellow-500/5',
-      iconColor: 'text-yellow-500',
+      label: 'Ratings Collected', value: stats.totalRatings.toLocaleString(), icon: BarChart3,
+      color: 'text-yellow-400', bg: 'bg-yellow-500/10',
+      trend: '+22%', up: true,
     },
   ]
 
+  const paidPercent = Math.round((stats.paidAccounts / Math.max(stats.totalAccounts, 1)) * 100)
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-fade-in">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard Overview</h2>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Platform-wide KPIs and performance metrics.
+          Platform-wide overview and key performance indicators.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
         {cards.map((card) => {
           const Icon = card.icon
           return (
             <div
               key={card.label}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:shadow-md"
+              className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-all"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 transition-opacity group-hover:opacity-100`} />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-background/50 backdrop-blur-sm border border-border ${card.iconColor}`}>
-                    <Icon className="h-6 w-6" />
-                  </div>
+              <div className="flex items-center justify-between mb-4">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${card.bg} ${card.color}`}>
+                  <Icon className="h-5 w-5" />
                 </div>
-                <div className="mt-4">
-                  <p className="text-3xl font-bold tracking-tight text-foreground">
-                    {card.value}
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-muted-foreground">{card.label}</p>
-                </div>
+                <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${card.up ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {card.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                  {card.trend}
+                </span>
               </div>
+              <p className="text-2xl font-bold tracking-tight text-foreground">{card.value}</p>
+              <p className="mt-0.5 text-xs font-medium text-muted-foreground">{card.label}</p>
             </div>
           )
         })}
       </div>
 
-      <div className="rounded-2xl border border-border bg-card overflow-hidden">
-        <div className="border-b border-border bg-muted/30 px-6 py-4">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="border-b border-border bg-muted/20 px-6 py-4">
           <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-base font-semibold text-foreground">
-              Plan Distribution & Revenue Drivers
-            </h3>
+            <BarChart3 className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-base font-semibold text-foreground">Plan Distribution</h3>
           </div>
         </div>
         <div className="p-6">
-          <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{stats.paidAccounts}</span> of <span className="font-semibold text-foreground">{stats.totalAccounts}</span> accounts are on a paid plan.
-          </p>
-          <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-muted">
-            <div 
-              className="h-full bg-primary transition-all duration-1000 ease-in-out"
-              style={{ width: `${Math.round((stats.paidAccounts / Math.max(stats.totalAccounts, 1)) * 100)}%` }}
+          <div className="flex items-baseline gap-2 mb-4">
+            <span className="text-3xl font-bold text-foreground">{stats.paidAccounts}</span>
+            <span className="text-sm text-muted-foreground">of {stats.totalAccounts} accounts on a paid plan</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-primary to-violet-400 transition-all duration-1000 ease-in-out"
+              style={{ width: `${paidPercent}%` }}
             />
           </div>
-          <p className="mt-2 text-xs font-medium text-muted-foreground text-right">
-            {Math.round((stats.paidAccounts / Math.max(stats.totalAccounts, 1)) * 100)}% Conversion Rate
-          </p>
+          <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+            <span>Free: {stats.totalAccounts - stats.paidAccounts}</span>
+            <span className="font-semibold text-foreground">{paidPercent}% Conversion</span>
+            <span>Paid: {stats.paidAccounts}</span>
+          </div>
         </div>
       </div>
     </div>

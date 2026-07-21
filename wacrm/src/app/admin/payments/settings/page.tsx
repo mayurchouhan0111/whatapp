@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Save, Upload } from 'lucide-react'
+import Image from 'next/image'
+import { Save, Upload, QrCode, Trash2 } from 'lucide-react'
 
 export default function UpiSettingsPage() {
   const [upiId, setUpiId] = useState('')
@@ -9,6 +10,7 @@ export default function UpiSettingsPage() {
   const [qrImageUrl, setQrImageUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success')
   const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
@@ -41,7 +43,8 @@ export default function UpiSettingsPage() {
       const data = await res.json()
       setQrImageUrl(data.url)
     } else {
-      alert('Upload failed')
+      setMessage('Upload failed')
+      setMessageType('error')
     }
     setUploading(false)
   }
@@ -55,61 +58,78 @@ export default function UpiSettingsPage() {
       body: JSON.stringify({ upi_id: upiId, account_name: accountName, qr_image_url: qrImageUrl }),
     })
     if (res.ok) {
-      setMessage('Settings saved successfully!')
+      setMessage('Settings saved successfully')
+      setMessageType('success')
     } else {
-      setMessage('Failed to save settings.')
+      setMessage('Failed to save settings')
+      setMessageType('error')
     }
     setSaving(false)
   }
 
   return (
-    <div className="max-w-2xl space-y-6 px-1">
+    <div className="max-w-2xl space-y-6 animate-fade-in">
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">UPI Payment Settings</h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">UPI Settings</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Configure the UPI details shown on the subscription checkout page.
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-4 sm:p-8 shadow-sm space-y-6">
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-foreground">UPI ID</label>
-          <input
-            type="text"
-            value={upiId}
-            onChange={(e) => setUpiId(e.target.value)}
-            placeholder="example@paytm"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-          />
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="border-b border-border bg-muted/20 px-6 py-4">
+          <div className="flex items-center gap-2">
+            <QrCode className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-base font-semibold text-foreground">Payment Details</h3>
+          </div>
         </div>
+        <div className="p-6 space-y-5">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">UPI ID</label>
+            <input
+              type="text"
+              value={upiId}
+              onChange={(e) => setUpiId(e.target.value)}
+              placeholder="example@paytm"
+              className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+          </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-foreground">Account Name</label>
-          <input
-            type="text"
-            value={accountName}
-            onChange={(e) => setAccountName(e.target.value)}
-            placeholder="Vbuild CRM Pvt Ltd"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-          />
-        </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Account Name</label>
+            <input
+              type="text"
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
+              placeholder="Vbuild CRM Pvt Ltd"
+              className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+          </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-foreground">UPI QR Code</label>
-          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-            {qrImageUrl && (
-              <div className="shrink-0 w-full sm:w-auto flex justify-center sm:justify-start">
-                <img
-                  src={qrImageUrl}
-                  alt="UPI QR Code"
-                  className="w-32 h-32 sm:w-40 sm:h-40 object-contain rounded-xl border border-border"
-                />
-              </div>
-            )}
-            <div className="flex-1 w-full">
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-background px-4 py-6 sm:py-8 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors">
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-foreground">UPI QR Code</label>
+            <div className="flex flex-col sm:flex-row items-start gap-5">
+              {qrImageUrl ? (
+                <div className="relative shrink-0">
+                  <Image
+                    src={qrImageUrl}
+                    alt="UPI QR Code"
+                    width={144}
+                    height={144}
+                    className="w-36 h-36 object-contain rounded-xl border border-border"
+                  />
+                  <button
+                    onClick={() => setQrImageUrl('')}
+                    className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+                    title="Remove QR code"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : null}
+              <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-background px-5 py-8 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors ${qrImageUrl ? 'flex-1' : 'w-full'}`}>
                 <Upload className="h-5 w-5" />
-                {uploading ? 'Uploading...' : 'Upload QR Code Image'}
+                <span>{uploading ? 'Uploading...' : 'Upload QR Code'}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -117,29 +137,21 @@ export default function UpiSettingsPage() {
                   className="sr-only"
                 />
               </label>
-              {qrImageUrl && (
-                <button
-                  onClick={() => setQrImageUrl('')}
-                  className="mt-2 text-xs text-red-400 hover:text-red-300"
-                >
-                  Remove QR code
-                </button>
-              )}
             </div>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-border flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="border-t border-border px-6 py-4 flex items-center gap-4">
           <button
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
             <Save className="h-4 w-4" />
             {saving ? 'Saving...' : 'Save Settings'}
           </button>
           {message && (
-            <p className={`text-sm ${message.includes('success') ? 'text-emerald-400' : 'text-red-400'}`}>
+            <p className={`text-sm ${messageType === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>
               {message}
             </p>
           )}

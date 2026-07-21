@@ -59,7 +59,7 @@ async function getAccount(id: string): Promise<AccountDetail | null> {
     .eq('account_id', id)
     .eq('is_active', true)
 
-  account.active_module_ids = (activeModules || []).map((m: any) => m.module_id)
+  account.active_module_ids = (activeModules || []).map((m: { module_id: string }) => m.module_id)
 
   const { data: limitUsage } = await admin
     .from('saas_account_limit_usage')
@@ -87,7 +87,7 @@ async function updateAccount(formData: FormData) {
 
   const admin = supabaseAdmin()
 
-  const defaults = getPlanDefaults(planTier) as any
+  const defaults = getPlanDefaults(planTier)
 
   const maxUsers = parseInt(formData.get('max_users') as string, 10) || defaults.max_users
   const maxContacts = parseInt(formData.get('max_contacts') as string, 10) || defaults.max_contacts

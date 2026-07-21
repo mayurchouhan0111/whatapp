@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { getPlanDefaults, type PlanTier } from '@/lib/billing/limits'
-import { ShieldAlert, Cpu, Palette, Check, AlertCircle, ArrowLeft } from 'lucide-react'
+import { ShieldAlert, Cpu, Palette, Check, ArrowLeft, Users, Contact, GitBranch, Radio, Send, Store, Package, BarChart3 } from 'lucide-react'
 import Link from 'next/link'
 import type { AccountDetail, SaasModule } from './page'
 
@@ -15,6 +15,19 @@ const MODULE_KEYS_PER_TIER: Record<PlanTier, string[]> = {
   pro: ['crm', 'inbox', 'marketing', 'automation', 'store', 'reputation'],
   enterprise: ['crm', 'inbox', 'marketing', 'automation', 'store', 'reputation'],
 }
+
+const LIMIT_CONFIG = [
+  { key: 'max_contacts', label: 'Contacts', icon: Contact, usageKey: 'used_contacts' as const },
+  { key: 'max_users', label: 'Team Users', icon: Users, usageKey: null },
+  { key: 'max_pipelines', label: 'Pipelines', icon: GitBranch, usageKey: null },
+  { key: 'max_active_flows', label: 'Active Flows', icon: Radio, usageKey: null },
+  { key: 'max_broadcasts_per_month', label: 'Monthly Broadcasts', icon: Send, usageKey: null },
+]
+
+const STORE_LIMITS = [
+  { key: 'max_products', label: 'Max Products', icon: Package },
+  { key: 'max_orders_per_month', label: 'Orders / Month', icon: BarChart3 },
+]
 
 export function AccountForm({
   account,
@@ -30,256 +43,269 @@ export function AccountForm({
   const [planTier, setPlanTier] = useState<PlanTier>(account.plan_tier)
   const defaults = getPlanDefaults(planTier)
 
-  const activeModuleIds = new Set(account.active_module_ids)
   const defaultModuleKeys = MODULE_KEYS_PER_TIER[planTier]
-  const moduleIdByKey = Object.fromEntries(allModules.map((m) => [m.key, m.id]))
 
   const moduleIsActive = useCallback(
     (mod: SaasModule) => {
-      if (planTier === account.plan_tier) return activeModuleIds.has(mod.id)
+      const activeIds = new Set(account.active_module_ids)
+      if (planTier === account.plan_tier) return activeIds.has(mod.id)
       return defaultModuleKeys.includes(mod.key)
     },
-    [planTier, account.plan_tier, activeModuleIds, defaultModuleKeys]
+    [planTier, account.plan_tier, account.active_module_ids, defaultModuleKeys]
   )
 
   const handlePlanChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setPlanTier(e.target.value as PlanTier)
   }
 
+  const currentVal = (key: string): number => {
+    const accountRecord = account as unknown as Record<string, number>
+    const defaultsRecord = defaults as unknown as Record<string, number>
+    if (planTier === account.plan_tier) return accountRecord[key] ?? defaultsRecord[key] ?? 0
+    return defaultsRecord[key] ?? 0
+  }
+
   return (
-    <div className="space-y-6 max-w-5xl animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 mb-8">
+    <div className="space-y-8 max-w-5xl animate-fade-in">
+      <div className="flex items-center gap-4">
         <Link
           href="/admin/accounts"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">{account.name}</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Managed by <span className="font-medium text-foreground">{account.owner_email}</span> &middot; Created{' '}
-            {new Date(account.created_at).toLocaleDateString()}
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{account.name}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Managed by <span className="font-medium text-foreground">{account.owner_email}</span>
+            <span className="mx-1.5">&middot;</span>
+            Created {new Date(account.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
           </p>
         </div>
       </div>
 
       {updated && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 flex items-center gap-3">
-          <Check className="h-5 w-5 text-emerald-500" />
-          <p className="text-sm font-medium text-emerald-200">
-            Account settings and permissions updated successfully.
-          </p>
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3.5 flex items-center gap-3">
+          <Check className="h-5 w-5 text-emerald-400" />
+          <p className="text-sm font-medium text-emerald-200">Account settings updated successfully.</p>
         </div>
       )}
 
-      <form action={updateAccount} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <form action={updateAccount} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <input type="hidden" name="account_id" value={account.id} />
         <input type="hidden" name="all_module_ids" value={allModules.map((m) => m.id).join(',')} />
 
-        {/* Feature Permissions */}
         <div className="lg:col-span-12">
-          <div className="rounded-2xl border border-border bg-card shadow-sm p-8">
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                <ShieldAlert className="h-6 w-6 text-primary" />
-                Page & Feature Permissions
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Modules auto-select based on the plan tier. You can override below.
-              </p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {allModules.map((mod) => {
-                const checked = moduleIsActive(mod)
-                return (
-                  <label
-                    key={mod.id}
-                    className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary"
-                  >
-                    <input
-                      type="checkbox"
-                      name={`module_${mod.id}`}
-                      defaultChecked={checked}
-                      className="sr-only"
-                    />
-                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Cpu className="h-6 w-6" />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-foreground">{mod.name}</span>
-                      <span className="text-xs text-muted-foreground">{mod.description || 'Enterprise Module'}</span>
-                    </div>
-                    <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
-                      <Check />
-                    </div>
-                  </label>
-                )
-              })}
-
-              <label className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary">
-                <input
-                  type="checkbox"
-                  name="allow_api_access"
-                  defaultChecked={planTier === account.plan_tier ? account.allow_api_access : defaults.allow_api_access}
-                  className="sr-only"
-                />
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
-                  <Cpu className="h-6 w-6" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-foreground">API Access</span>
-                  <span className="text-xs text-muted-foreground">Enables programmatic access.</span>
-                </div>
-                <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
-                  <Check />
-                </div>
-              </label>
-
-              <label className="relative flex cursor-pointer flex-col rounded-xl border border-border bg-background p-6 hover:bg-muted/30 hover:border-primary/50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5 [&:has(:checked)]:ring-1 [&:has(:checked)]:ring-primary">
-                <input
-                  type="checkbox"
-                  name="allow_white_label"
-                  defaultChecked={planTier === account.plan_tier ? account.allow_white_label : defaults.allow_white_label}
-                  className="sr-only"
-                />
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
-                  <Palette className="h-6 w-6" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-foreground">White-label</span>
-                  <span className="text-xs text-muted-foreground">Removes branding.</span>
-                </div>
-                <div className="absolute right-4 top-4 opacity-0 transition-opacity [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-primary [.relative:has(:checked)_&]:opacity-100">
-                  <Check />
-                </div>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Usage Limits */}
-        <div className="lg:col-span-12">
-          <div className="rounded-2xl border border-border bg-card shadow-sm p-8">
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold tracking-tight text-foreground">
-                Usage Limits & Quotas
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Changing the tier auto-fills limits. You can override any value below.
-              </p>
-            </div>
-
-            <div className="mb-8 rounded-xl border border-primary/20 bg-primary/5 p-4 flex gap-4 items-start">
-              <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-              <div>
-                <label htmlFor="plan_tier" className="block text-sm font-semibold text-foreground mb-1">
-                  Base Plan Tier
-                </label>
-                <select
-                  id="plan_tier"
-                  name="plan_tier"
-                  value={planTier}
-                  onChange={handlePlanChange}
-                  className="flex h-10 w-full md:w-64 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-                >
-                  {PLAN_TIERS.map((tier) => (
-                    <option key={tier} value={tier}>
-                      {tier.charAt(0).toUpperCase() + tier.slice(1)} Tier
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-muted-foreground mt-2">
-                  All fields auto-fill to {planTier.charAt(0).toUpperCase() + planTier.slice(1)} defaults. Adjust individually if needed.
-                </p>
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="border-b border-border bg-muted/20 px-6 py-4">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5 text-primary" />
+                <h3 className="text-base font-semibold text-foreground">Feature Permissions</h3>
               </div>
             </div>
+            <div className="p-6">
+              <p className="text-sm text-muted-foreground mb-5">
+                Modules auto-select based on plan tier. Toggle individually to override.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {allModules.map((mod) => {
+                  const checked = moduleIsActive(mod)
+                  return (
+                    <label
+                      key={mod.id}
+                      className="relative flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background p-4 hover:bg-muted/30 hover:border-primary/40 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary"
+                    >
+                      <input
+                        type="checkbox"
+                        name={`module_${mod.id}`}
+                        defaultChecked={checked}
+                        className="sr-only"
+                      />
+                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${checked ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                        <Cpu className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-medium text-foreground">{mod.name}</span>
+                          {checked && <Check className="h-4 w-4 shrink-0 text-primary" />}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{mod.description || 'Module'}</p>
+                      </div>
+                    </label>
+                  )
+                })}
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {(
-                [
-                  ['max_contacts', 'Max Contacts', account.used_contacts.toLocaleString(), defaults.max_contacts, 1],
-                  ['max_users', 'Max Team Users', null, defaults.max_users, 1],
-                  ['max_pipelines', 'Max Pipelines', null, defaults.max_pipelines, 1],
-                  ['max_active_flows', 'Active Flows Limit', null, defaults.max_active_flows, 0],
-                  ['max_broadcasts_per_month', 'Monthly Broadcast Limit', null, defaults.max_broadcasts_per_month, 1],
-                ] as const
-              ).map(([name, label, usage, defaultVal, min]) => (
-                <div key={name} className={`space-y-2 ${name === 'max_broadcasts_per_month' ? 'lg:col-span-2' : ''} ${name === 'max_active_flows' ? '' : ''}`}>
-                  <label htmlFor={name} className="text-sm font-semibold text-foreground flex items-center justify-between">
-                    {label}
-                    {usage && <span className="text-xs font-normal text-muted-foreground">Used: {usage}</span>}
-                    <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">
-                      Default: {(typeof defaultVal === 'number' ? defaultVal.toLocaleString() : defaultVal)}
-                    </span>
-                  </label>
+                <label className="relative flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background p-4 hover:bg-muted/30 hover:border-primary/40 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary">
                   <input
-                    id={name}
-                    name={name}
-                    type="number"
-                    min={min}
-                    defaultValue={
-                      planTier === account.plan_tier
-                        ? (account as any)[name]
-                        : defaultVal
-                    }
-                    key={`${planTier}-${name}`}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                    type="checkbox"
+                    name="allow_api_access"
+                    defaultChecked={planTier === account.plan_tier ? account.allow_api_access : defaults.allow_api_access}
+                    className="sr-only"
                   />
-                </div>
-              ))}
-            </div>
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+                    <Cpu className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-foreground">API Access</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">Enables programmatic access</p>
+                  </div>
+                </label>
 
-            <hr className="my-8 border-border" />
-
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-foreground">Storefront Limits</h4>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {(
-                [
-                  ['max_products', 'Max Products', defaults.max_products ?? 0, 0],
-                  ['max_orders_per_month', 'Orders / Month', defaults.max_orders_per_month ?? 0, 0],
-                ] as const
-              ).map(([name, label, defaultVal, min]) => (
-                <div key={name} className="space-y-2">
-                  <label htmlFor={name} className="text-sm font-semibold text-foreground flex items-center justify-between">
-                    {label}
-                    <span className="text-[10px] font-normal px-2 py-0.5 bg-muted rounded text-muted-foreground">
-                      Default: {(typeof defaultVal === 'number' ? defaultVal.toLocaleString() : defaultVal)}
-                    </span>
-                  </label>
+                <label className="relative flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background p-4 hover:bg-muted/30 hover:border-primary/40 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary">
                   <input
-                    id={name}
-                    name={name}
-                    type="number"
-                    min={min}
-                    defaultValue={
-                      planTier === account.plan_tier
-                        ? (account as any)[name] ?? defaultVal
-                        : defaultVal
-                    }
-                    key={`${planTier}-${name}`}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                    type="checkbox"
+                    name="allow_white_label"
+                    defaultChecked={planTier === account.plan_tier ? account.allow_white_label : defaults.allow_white_label}
+                    className="sr-only"
                   />
-                </div>
-              ))}
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
+                    <Palette className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-foreground">White-label</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">Removes Vbuild branding</p>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-12 flex justify-end gap-4 mb-20">
+        <div className="lg:col-span-12">
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="border-b border-border bg-muted/20 px-6 py-4">
+              <div className="flex items-center gap-2">
+                <Store className="h-5 w-5 text-muted-foreground" />
+                <h3 className="text-base font-semibold text-foreground">Usage Limits & Quotas</h3>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <div className="flex-1">
+                  <label htmlFor="plan_tier" className="block text-sm font-medium text-foreground mb-1.5">
+                    Base Plan Tier
+                  </label>
+                  <select
+                    id="plan_tier"
+                    name="plan_tier"
+                    value={planTier}
+                    onChange={handlePlanChange}
+                    className="flex h-10 w-full sm:w-56 rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    {PLAN_TIERS.map((tier) => (
+                      <option key={tier} value={tier}>
+                        {tier.charAt(0).toUpperCase() + tier.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Fields auto-fill to {planTier.charAt(0).toUpperCase() + planTier.slice(1)} defaults. Override below.
+                </p>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                {LIMIT_CONFIG.map(({ key, label, icon: Icon, usageKey }) => {
+                  const val = currentVal(key)
+                  const defaultsRecord = defaults as unknown as Record<string, number>
+                  const accountRecord = account as unknown as Record<string, number>
+                  const defaultVal = defaultsRecord[key] ?? 0
+                  const usage = usageKey ? accountRecord[usageKey] ?? 0 : null
+
+                  return (
+                    <div key={key} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label htmlFor={key} className="text-sm font-medium text-foreground flex items-center gap-2">
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                          {label}
+                        </label>
+                        {usage !== null && (
+                          <span className="text-xs text-muted-foreground">{usage.toLocaleString()} used</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <input
+                          id={key}
+                          name={key}
+                          type="number"
+                          min={1}
+                          defaultValue={val}
+                          key={`${planTier}-${key}`}
+                          className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        />
+                        <span className="shrink-0 text-[10px] font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
+                          Default: {typeof defaultVal === 'number' ? defaultVal.toLocaleString() : defaultVal}
+                        </span>
+                      </div>
+                      {usage !== null && val > 0 && (
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              usage / val > 0.8 ? 'bg-rose-500' : usage / val > 0.5 ? 'bg-amber-500' : 'bg-emerald-500'
+                            }`}
+                            style={{ width: `${Math.min(100, Math.round((usage / val) * 100))}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              <hr className="my-6 border-border" />
+
+              <h4 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Store className="h-4 w-4 text-muted-foreground" />
+                Storefront Limits
+              </h4>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                {STORE_LIMITS.map(({ key, label, icon: Icon }) => {
+                  const val = currentVal(key)
+                  const defaultsRecord = defaults as unknown as Record<string, number>
+                  const defaultVal = defaultsRecord[key] ?? 0
+                  return (
+                    <div key={key} className="space-y-2">
+                      <label htmlFor={key} className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                        {label}
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          id={key}
+                          name={key}
+                          type="number"
+                          min={0}
+                          defaultValue={val}
+                          key={`${planTier}-${key}`}
+                          className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        />
+                        <span className="shrink-0 text-[10px] font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
+                          Default: {typeof defaultVal === 'number' ? defaultVal.toLocaleString() : defaultVal}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-12 flex justify-end gap-3 pb-8">
           <Link
             href="/admin/accounts"
-            className="inline-flex h-12 items-center justify-center rounded-xl border border-input bg-background px-6 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-input bg-background px-5 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
           >
             Cancel
           </Link>
           <button
             type="submit"
-            className="inline-flex h-12 items-center justify-center rounded-xl bg-primary px-8 text-sm font-bold text-primary-foreground hover:bg-primary/90 shadow-md transition-all hover:shadow-lg active:scale-95"
+            className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
           >
             Save Account Settings
           </button>
