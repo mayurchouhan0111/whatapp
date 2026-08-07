@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vbuild CRM — Interactive Product Showcase & Live Demo</title>
+  <meta name="description" content="Experience Vbuild CRM in action. Shared WhatsApp inbox, automated lead qualification, visual sales pipelines, and broadcast campaigns." />
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --card-bg: rgba(17, 24, 39, 0.7);
+      --card-border: rgba(31, 41, 55, 0.8);
+      --accent-emerald: #10b981;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.35);
+      --accent-cyan: #06b6d4;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Subtle Animated Ambient Glow Background */
+    .glow-blob-1 {
+      position: fixed;
+      top: -100px;
+      left: 20%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+      border-radius: 50%;
+      z-index: -1;
+      filter: blur(60px);
+      animation: floatGlow 12s infinite alternate ease-in-out;
+    }
+
+    .glow-blob-2 {
+      position: fixed;
+      bottom: -100px;
+      right: 10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+      border-radius: 50%;
+      z-index: -1;
+      filter: blur(80px);
+      animation: floatGlow 15s infinite alternate-reverse ease-in-out;
+    }
+
+    @keyframes floatGlow {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 30px) scale(1.1); }
+    }
+
+    /* Header Navbar */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 5%;
+      backdrop-filter: blur(16px);
+      background: rgba(3, 7, 18, 0.75);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan));
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #000;
+      text-transform: uppercase;
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 0.65rem 1.4rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-secondary {
+      background: rgba(31, 41, 55, 0.6);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+    .btn-secondary:hover {
+      background: rgba(55, 65, 81, 0.8);
+      border-color: var(--accent-emerald);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      box-shadow: 0 4px 20px var(--accent-emerald-glow);
+      border: none;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 5rem 5% 3rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border-radius: 50px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, #34d399, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 750px;
+      margin: 0 auto 2.5rem;
+    }
+
+    /* Showcase Tabs & Frame */
+    .showcase-section {
+      max-width: 1300px;
+      margin: 0 auto 6rem;
+      padding: 0 5%;
+    }
+
+    .tab-navigation {
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .tab-btn {
+      padding: 0.7rem 1.25rem;
+      border-radius: 12px;
+      background: rgba(17, 24, 39, 0.6);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .tab-btn.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--accent-emerald);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+    }
+
+    /* Screen Preview Window */
+    .screen-window {
+      background: #0d1117;
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(16, 185, 129, 0.1);
+      position: relative;
+    }
+
+    .window-header {
+      background: #161b22;
+      padding: 0.8rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .window-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .screen-image-container {
+      width: 100%;
+      min-height: 600px;
+      position: relative;
+      background: #030712;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .screen-image-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Interactive Live Simulator Layout */
+    .interactive-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 2.5rem;
+      max-width: 1300px;
+      margin: 0 auto 6rem;
+      padding: 0 5%;
+    }
+
+    .features-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent-emerald);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--accent-emerald);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.2rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Phone Simulator Widget */
+    .phone-simulator {
+      background: #0f172a;
+      border: 8px solid #334155;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(16, 185, 129, 0.2);
+      display: flex;
+      flex-direction: column;
+      height: 620px;
+    }
+
+    .phone-header {
+      background: #075e54;
+      color: #fff;
+      padding: 1.25rem 1rem 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .phone-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #128c7e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .phone-chat-body {
+      flex: 1;
+      background: #0b141a;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .chat-bubble {
+      max-width: 85%;
+      padding: 0.65rem 0.9rem;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      line-height: 1.4;
+      position: relative;
+    }
+
+    .chat-inbound {
+      background: #202c33;
+      color: #e9edef;
+      align-self: flex-start;
+      border-top-left-radius: 2px;
+    }
+
+    .chat-outbound {
+      background: #005c4b;
+      color: #e9edef;
+      align-self: flex-end;
+      border-top-right-radius: 2px;
+    }
+
+    .chat-time {
+      font-size: 0.65rem;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    .phone-footer {
+      padding: 0.75rem;
+      background: #202c33;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .phone-input {
+      flex: 1;
+      background: #2a3942;
+      border: none;
+      color: #fff;
+      padding: 0.6rem 1rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      outline: none;
+    }
+
+    .phone-send-btn {
+      background: #00a884;
+      border: none;
+      color: #fff;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Footer CTA */
+    footer {
+      text-align: center;
+      padding: 5rem 5% 3rem;
+      border-top: 1px solid var(--card-border);
+      background: rgba(3, 7, 18, 0.9);
+    }
+
+    footer h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    footer p {
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow Effects -->
+  <div class="glow-blob-1"></div>
+  <div class="glow-blob-2"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="/" class="logo">
+      <i data-lucide="message-square-code" style="color: #10b981;"></i>
+      Vbuild CRM
+      <span class="logo-badge">Live Demo</span>
+    </a>
+    <div class="nav-actions">
+      <a href="https://vbuild-automation.netlify.app/login" class="btn btn-secondary">
+        <i data-lucide="log-in" style="width: 16px;"></i> Log In
+      </a>
+      <a href="https://vbuild-automation.netlify.app/signup" class="btn btn-primary">
+        <i data-lucide="sparkles" style="width: 16px;"></i> Get Started
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-tag">
+      <i data-lucide="zap" style="width: 16px;"></i> Interactive Product Showcase
+    </div>
+    <h1>The WhatsApp Revenue Engine Built for <span>Rapid Sales Growth</span></h1>
+    <p>Explore the complete live user journey from lead discovery, team inbox collaboration, kanban sales pipelines, to 24/7 automated chatbot workflows.</p>
+  </section>
+
+  <!-- Interactive Screen Showcase Carousel -->
+  <section class="showcase-section">
+    <div class="tab-navigation">
+      <button class="tab-btn active" onclick="switchTab(this, '07_dashboard.png', 'Dashboard Analytics')">
+        <i data-lucide="layout-dashboard" style="width: 16px;"></i> Dashboard
+      </button>
+      <button class="tab-btn" onclick="switchTab(this, '08_inbox.png', 'Shared Team WhatsApp Inbox')">
+        <i data-lucide="message-square" style="width: 16px;"></i> Shared Inbox
+      </button>
+      <button class="tab-btn" onclick="switchTab(this, '09_contacts.png', 'Contact Database & Tags')">
+        <i data-lucide="users" style="width: 16px;"></i> Contacts
+      </button>
+      <button class="tab-btn" onclick="switchTab(this, '10_sales_pipelines.png', 'Kanban Sales Pipelines')">
+        <i data-lucide="kanban" style="width: 16px;"></i> Sales Pipeline
+      </button>
+      <button class="tab-btn" onclick="switchTab(this, '11_broadcasts.png', 'Mass Campaign Broadcasts')">
+        <i data-lucide="send" style="width: 16px;"></i> Broadcasts
+      </button>
+      <button class="tab-btn" onclick="switchTab(this, '12_automations.png', 'No-Code Automation Engine')">
+        <i data-lucide="bot" style="width: 16px;"></i> Automations
+      </button>
+      <button class="tab-btn" onclick="switchTab(this, '13_visual_flows.png', 'Visual Chatbot Builder')">
+        <i data-lucide="git-fork" style="width: 16px;"></i> Visual Flows
+      </button>
+      <button class="tab-btn" onclick="switchTab(this, '15_settings.png', 'Meta API & Settings')">
+        <i data-lucide="settings" style="width: 16px;"></i> Meta Config
+      </button>
+    </div>
+
+    <!-- Screen Preview Window -->
+    <div class="screen-window">
+      <div class="window-header">
+        <div class="window-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <div class="window-title" id="screenTitle">Dashboard Analytics — Vbuild CRM</div>
+        <div style="font-size: 0.75rem; color: #10b981; font-weight: 600;">● Live Preview</div>
+      </div>
+      <div class="screen-image-container">
+        <img id="mainScreenImage" src="/crm_screenshots/07_dashboard.png" alt="CRM Screen Showcase" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature Grid + Interactive Phone Simulator -->
+  <section class="interactive-grid">
+    <div class="features-list">
+      <div class="feature-card">
+        <div class="feature-icon"><i data-lucide="messages-square"></i></div>
+        <h3>Shared Team WhatsApp Inbox</h3>
+        <p>Multiple sales agents can respond to customer chats simultaneously using one single official WhatsApp Business number.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"><i data-lucide="bot"></i></div>
+        <h3>24/7 AI Qualification Flow</h3>
+        <p>Qualify student, real-estate, and medical leads instantly with visual interactive chatbot questions before routing to reps.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"><i data-lucide="kanban"></i></div>
+        <h3>Visual Sales Pipelines</h3>
+        <p>Drag-and-drop deals across customized sales stages to make sure no prospect drops through the cracks.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"><i data-lucide="send"></i></div>
+        <h3>Targeted WhatsApp Broadcasts</h3>
+        <p>Send personalized promotional campaigns with high open rates safely using Meta Cloud API.</p>
+      </div>
+    </div>
+
+    <!-- Interactive Live WhatsApp Simulator -->
+    <div class="phone-simulator">
+      <div class="phone-header">
+        <div class="phone-avatar">V</div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.9rem;">Vbuild Assistant</div>
+          <div style="font-size: 0.68rem; color: #25d366;">online</div>
+        </div>
+      </div>
+
+      <div class="phone-chat-body" id="simChatBody">
+        <div class="chat-bubble chat-inbound">
+          👋 Hi! Welcome to Vbuild CRM! Type <b>"DEMO"</b> or tap below to test our instant automated WhatsApp bot live!
+          <div class="chat-time">19:45</div>
+        </div>
+      </div>
+
+      <div class="phone-footer">
+        <input type="text" id="simInput" class="phone-input" placeholder="Type DEMO..." onkeypress="handleKeyPress(event)" />
+        <button class="phone-send-btn" onclick="sendSimMessage()"><i data-lucide="send" style="width: 14px;"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action Footer -->
+  <footer>
+    <h2>Ready to Transform Your WhatsApp Sales?</h2>
+    <p>Join businesses using Vbuild CRM to automate lead qualification, unify team communications, and close 3x more deals.</p>
+    <div style="display: flex; justify-content: center; gap: 1rem;">
+      <a href="https://vbuild-automation.netlify.app/signup" class="btn btn-primary" style="padding: 0.9rem 2.2rem; font-size: 1rem;">
+        <i data-lucide="rocket"></i> Start Free Setup Today
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Tab Switching Logic
+    function switchTab(btn, imageName, titleText) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const img = document.getElementById('mainScreenImage');
+      img.style.opacity = '0.3';
+      
+      setTimeout(() => {
+        img.src = `/crm_screenshots/${imageName}`;
+        img.style.opacity = '1';
+        document.getElementById('screenTitle').innerText = `${titleText} — Vbuild CRM`;
+      }, 150);
+    }
+
+    // Phone Simulator Logic
+    function sendSimMessage() {
+      const input = document.getElementById('simInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chatBody = document.getElementById('simChatBody');
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // Append Outbound User Message
+      const userBubble = document.createElement('div');
+      userBubble.className = 'chat-bubble chat-outbound';
+      userBubble.innerHTML = `${text}<div class="chat-time">${timeStr}</div>`;
+      chatBody.appendChild(userBubble);
+
+      input.value = '';
+      chatBody.scrollTop = chatBody.scrollHeight;
+
+      // Simulated CRM Bot Auto-Response
+      setTimeout(() => {
+        const botBubble = document.createElement('div');
+        botBubble.className = 'chat-bubble chat-inbound';
+        
+        const lower = text.toLowerCase();
+        if (lower.includes('demo')) {
+          botBubble.innerHTML = `🚀 <b>Vbuild CRM Live Demo Bot</b><br/><br/>✓ 10-Second Lead Response<br/>✓ Shared Team Inbox<br/>✓ Visual Sales Pipeline<br/><br/>Click here to explore your live dashboard: <a href="https://vbuild-automation.netlify.app/dashboard" style="color: #34d399;" target="_blank">Open Dashboard</a><div class="chat-time">${timeStr}</div>`;
+        } else {
+          botBubble.innerHTML = `Thanks for your message: "${text}"! Vbuild CRM automatically routes this chat to your assigned sales agent and updates your pipeline stage in real-time. ⚡<div class="chat-time">${timeStr}</div>`;
+        }
+
+        chatBody.appendChild(botBubble);
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }, 800);
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') {
+        sendSimMessage();
+      }
+    }
+  </script>
+</body>
+</html>
