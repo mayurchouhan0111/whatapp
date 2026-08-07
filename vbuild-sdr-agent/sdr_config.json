@@ -1,0 +1,74 @@
+{
+  "product": {
+    "name": "Vbuild CRM",
+    "tagline": "The #1 WhatsApp Growth Platform",
+    "description": "Self-hostable WhatsApp Business CRM — shared inbox, sales pipelines, broadcast campaigns, no-code automations, e-commerce storefront, and Google Review management",
+    "pricing": {
+      "free": "Rs.0/mo (1 user, 500 contacts)",
+      "starter": "Rs.999/mo (3 users, 2.5K contacts)",
+      "growth": "Rs.1,999/mo (10 users, 15K contacts)",
+      "pro": "Rs.3,999/mo (25 users, 50K contacts)",
+      "enterprise": "Custom"
+    },
+    "target_audience": ["Indian businesses", "SMBs using WhatsApp for sales", "E-commerce brands", "Retail stores", "Service businesses", "Real estate agencies", "EdTech companies", "Healthcare clinics", "Salons and spas", "Consultants and freelancers"],
+    "pain_points_solved": [
+      "Managing customer conversations across personal WhatsApp",
+      "Lost leads because messages go to different phones",
+      "No pipeline tracking for WhatsApp deals",
+      "Can't track which campaigns drive sales",
+      "No storefront for WhatsApp ordering",
+      "Paying for 5 separate tools",
+      "No automation without developers"
+    ]
+  },
+  "search": {
+    "keywords": [
+      "whatsapp crm for business",
+      "best whatsapp crm india",
+      "whatsapp business api crm",
+      "whatsapp automation tool",
+      "crm software for small business",
+      "customer support automation tool",
+      "sales automation software",
+      "chatbot for whatsapp business",
+      "whatsapp marketing platform",
+      "crm for whatsapp api",
+      "whatsapp broadcast tool",
+      "business process automation software",
+      "ai automation for business",
+      "whatsapp order management system",
+      "crm for service business"
+    ],
+    "sources": ["google", "reddit", "linkedin"],
+    "reddit_subreddits": [
+      "CRM", "smallbusiness", "Entrepreneur", "SaaS",
+      "sales", "digital_marketing", "indianbusiness",
+      "startups", "ecommerce", "AskMarketing"
+    ],
+    "max_leads_per_run": 50
+  },
+  "scoring": {
+    "weight_has_website": 1,
+    "weight_has_whatsapp_mention": 3,
+    "weight_has_crm_need": 3,
+    "weight_is_indian": 2,
+    "weight_has_budget_signal": 2,
+    "weight_active_search": 4,
+    "weight_social_media_presence": 1,
+    "weight_hiring_crm_role": 3
+  },
+  "outreach": {
+    "email_subject_prefixes": [
+      "Quick question about your WhatsApp setup",
+      "Saw your business — WhatsApp CRM thought",
+      "How do you handle WhatsApp sales?"
+    ],
+    "follow_up_days": [3, 7, 14],
+    "max_outreach_per_day": 20
+  },
+  "storage": {
+    "leads_file": "leads/vbuild_leads.json",
+    "report_file": "leads/daily_report.md",
+    "outreach_file": "leads/outreach_log.json"
+  }
+}

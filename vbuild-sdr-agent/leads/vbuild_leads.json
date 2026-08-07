@@ -1,0 +1,70 @@
+[
+  {
+    "company": "ABC Retail",
+    "domain": "abcretail.in",
+    "intent_score": 8,
+    "notes": "looking for whatsapp crm to manage customer conversations",
+    "keyword_found": "whatsapp crm for business",
+    "source": "google",
+    "pain_points": "scattered conversations, lost leads",
+    "found_date": "2026-07-30",
+    "status": "new",
+    "outreach_status": "pending"
+  },
+  {
+    "company": "XYZ Services",
+    "domain": "xyzservices.com",
+    "intent_score": 7,
+    "notes": "needs crm software for small team",
+    "keyword_found": "crm software for small business",
+    "source": "reddit",
+    "pain_points": "no pipeline tracking",
+    "found_date": "2026-07-30",
+    "status": "new",
+    "outreach_status": "pending"
+  },
+  {
+    "company": "FreshMart India",
+    "domain": "freshmart.in",
+    "intent_score": 9,
+    "notes": "actively searching for whatsapp automation tool for order management",
+    "keyword_found": "whatsapp automation tool",
+    "source": "google",
+    "found_date": "2026-07-30",
+    "status": "new",
+    "outreach_status": "pending"
+  },
+  {
+    "company": "TechSolvers",
+    "domain": "techsolvers.io",
+    "intent_score": 6,
+    "notes": "hiring customer support manager - possible automation need",
+    "keyword_found": "customer support automation tool",
+    "source": "linkedin",
+    "found_date": "2026-07-30",
+    "status": "new",
+    "outreach_status": "pending"
+  },
+  {
+    "company": "GreenLeaf Clinic",
+    "domain": "greenleafclinic.in",
+    "intent_score": 7,
+    "notes": "wants chatbot for whatsapp to handle appointments",
+    "keyword_found": "chatbot for whatsapp business",
+    "source": "google",
+    "found_date": "2026-07-30",
+    "status": "new",
+    "outreach_status": "pending"
+  },
+  {
+    "company": "ShopEasy",
+    "domain": "shopeasy.in",
+    "intent_score": 8,
+    "notes": "e-commerce brand wanting whatsapp ordering system",
+    "keyword_found": "whatsapp order management system",
+    "source": "reddit",
+    "found_date": "2026-07-30",
+    "status": "new",
+    "outreach_status": "pending"
+  }
+]

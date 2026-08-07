@@ -360,11 +360,8 @@ export async function POST(request: Request) {
         .eq('id', contact.id)
     }
 
-    // Insert message into DB — field names MUST match the messages schema
-    // (see supabase/migrations/001_initial_schema.sql):
-    //   conversation_id, sender_type, content_type, content_text,
-    //   media_url, template_name, message_id, status, created_at
-    const { data: messageRecord, error: msgError } = await supabase
+    // Insert message into DB using service role to bypass client RLS rules
+    const { data: messageRecord, error: msgError } = await supabaseAdmin()
       .from('messages')
       .insert({
         conversation_id,
@@ -388,8 +385,8 @@ export async function POST(request: Request) {
       )
     }
 
-    // Update conversation
-    await supabase
+    // Update conversation using service role
+    await supabaseAdmin()
       .from('conversations')
       .update({
         last_message_text: content_text || `[${message_type}]`,

@@ -156,9 +156,16 @@ export function DealForm({
     }
     setSaving(true);
 
+    const parsedVal = parseFloat(value) || 0;
+    if (parsedVal < 0) {
+      toast.error("Deal value cannot be negative");
+      setSaving(false);
+      return;
+    }
+
     const payload = {
       title: title.trim(),
-      value: parseFloat(value) || 0,
+      value: Math.max(0, parsedVal),
       currency,
       contact_id: contactId,
       pipeline_id: pipelineId,

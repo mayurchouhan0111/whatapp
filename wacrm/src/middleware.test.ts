@@ -32,6 +32,18 @@ vi.mock("@supabase/ssr", () => ({
         return { data: { user: mockUser } };
       },
     },
+    from: () => ({
+      select() {
+        return this;
+      },
+      eq() {
+        return this;
+      },
+      single: () =>
+        Promise.resolve({ data: { account_id: "acct-1" }, error: null }),
+      maybeSingle: () =>
+        Promise.resolve({ data: { status: "active" }, error: null }),
+    }),
   }),
 }));
 

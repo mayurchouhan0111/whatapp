@@ -84,6 +84,7 @@ describe("getCurrentAccount", () => {
           error: null,
         },
         accounts: { data: { id: "acct-1", name: "Acme" }, error: null },
+        saas_subscriptions: { data: { status: "active" }, error: null },
       },
     });
     createClient.mockReturnValue(client);
@@ -97,13 +98,20 @@ describe("getCurrentAccount", () => {
       account: { id: "acct-1", name: "Acme" },
     });
 
-    // Two queries: profiles by user_id, then accounts by id. Neither
-    // selects an embedded relationship — the regression guard.
-    expect(calls.map((c) => c.table)).toEqual(["profiles", "accounts"]);
+    // Three queries: profiles by user_id, accounts by id, then the
+    // subscription gate. Neither the profile nor account lookups select
+    // an embedded relationship — the regression guard.
+    expect(calls.map((c) => c.table)).toEqual([
+      "profiles",
+      "accounts",
+      "saas_subscriptions",
+    ]);
     expect(calls[0].columns).not.toMatch(/accounts!/);
     expect(calls[0].eqArgs).toEqual([["user_id", "user-1"]]);
     expect(calls[1].columns).not.toMatch(/accounts!/);
     expect(calls[1].eqArgs).toEqual([["id", "acct-1"]]);
+    expect(calls[2].table).toBe("saas_subscriptions");
+    expect(calls[2].eqArgs).toEqual([["account_id", "acct-1"]]);
   });
 
   it("throws UnauthorizedError when there is no session", async () => {

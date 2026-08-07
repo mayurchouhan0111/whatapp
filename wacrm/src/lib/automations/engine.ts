@@ -221,9 +221,17 @@ interface ExecuteArgs {
   startPosition: number
   logId: string | null
   triggerEvent: string
+  depth?: number
 }
 
 async function executeStepsFrom(args: ExecuteArgs): Promise<void> {
+  const currentDepth = args.depth ?? 0
+  if (currentDepth > 5) {
+    console.warn(`[automations] Max execution depth exceeded (${currentDepth}) for automation ${args.automation.id}. Aborting loop.`)
+    await finalizeLog(args.logId, 'failed', 'Max execution depth exceeded (potential execution loop detected)')
+    return
+  }
+
   const db = supabaseAdmin()
 
   const baseQuery = db
@@ -304,6 +312,7 @@ async function executeStepsFrom(args: ExecuteArgs): Promise<void> {
           branch: taken ? 'yes' : 'no',
           startPosition: 0,
           logId: args.logId,
+          depth: currentDepth + 1,
         })
         continue
       }

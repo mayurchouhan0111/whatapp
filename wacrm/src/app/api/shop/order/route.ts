@@ -126,6 +126,12 @@ export async function POST(request: Request) {
       }
       const price = Number(dbProd.sale_price);
       const qty = Number(item.quantity) || 1;
+
+      // Stock validation: prevent negative inventory race condition
+      if (dbProd.stock_quantity !== null && dbProd.stock_quantity !== undefined && dbProd.stock_quantity < qty) {
+        throw new Error(`Insufficient stock for ${dbProd.name}. Available: ${dbProd.stock_quantity}`);
+      }
+
       totalAmount += price * qty;
 
       return {
@@ -215,6 +221,19 @@ export async function POST(request: Request) {
     if (orderCreateError || !newOrder) {
       console.error('Error creating database order:', orderCreateError);
       return NextResponse.json({ error: 'Failed to record store purchase order.' }, { status: 500 });
+    }
+
+    // Decrement product stock to reflect completed purchase
+    for (const item of validatedItems) {
+      try {
+        const { data: currentProd } = await db.from('products').select('stock_quantity').eq('id', item.product_id).single();
+        if (currentProd && currentProd.stock_quantity !== null && currentProd.stock_quantity !== undefined) {
+          const newStock = Math.max(0, currentProd.stock_quantity - item.quantity);
+          await db.from('products').update({ stock_quantity: newStock, updated_at: new Date().toISOString() }).eq('id', item.product_id);
+        }
+      } catch (stockDecErr) {
+        console.error('Failed to decrement stock for item:', item.product_id, stockDecErr);
+      }
     }
 
     // 11. Send automated WhatsApp confirmation for Cash on Delivery (COD) immediately

@@ -279,8 +279,8 @@ function ConversationItem({
           <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo}</span>
         </div>
         <div className="mt-0.5 flex items-center justify-between gap-2">
-          <p className="truncate text-xs text-muted-foreground">
-            {conversation.last_message_text || "No messages yet"}
+          <p className="truncate text-xs text-muted-foreground" title={conversation.last_message_text ? conversation.last_message_text.replace(/<[^>]*>?/gm, '') : ''}>
+            {conversation.last_message_text ? conversation.last_message_text.replace(/<[^>]*>?/gm, '') : "No messages yet"}
           </p>
           <div className="flex shrink-0 items-center gap-1.5">
             {conversation.unread_count > 0 && (
@@ -293,7 +293,7 @@ function ConversationItem({
                 "h-2 w-2 rounded-full",
                 STATUS_COLORS[conversation.status]
               )}
-              title={conversation.status}
+              title={conversation.status ? conversation.status.replace(/<[^>]*>?/gm, '') : ''}
             />
           </div>
         </div>
