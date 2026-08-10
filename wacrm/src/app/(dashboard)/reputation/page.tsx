@@ -364,8 +364,8 @@ export default function ReputationDashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-center">
-          <a href="/reputation/collect" target="_blank" className={buttonVariants({ variant: 'default', size: 'sm', className: 'flex items-center gap-1.5 font-bold shadow-md bg-amber-500 hover:bg-amber-600 text-white' })}>
-            <Send className="h-4 w-4" /> Waiter Table Terminal
+          <a href={`/r/collect/${accountId}`} target="_blank" rel="noreferrer" className={buttonVariants({ variant: 'default', size: 'sm', className: 'flex items-center gap-1.5 font-bold shadow-md bg-amber-500 hover:bg-amber-600 text-white' })}>
+            <Send className="h-4 w-4" /> Public Waiter Terminal
           </a>
           <Button onClick={loadData} variant="outline" className="flex items-center gap-2">
             <RotateCcw className="h-4 w-4" /> Reload
@@ -549,21 +549,43 @@ export default function ReputationDashboardPage() {
 
         {/* === STAFF & QR ATTRIBUTION === */}
         <TabsContent value="staff" className="space-y-6 outline-none">
-          {/* Table-Side Customer Review Entry Widget */}
-          <Card className="border-primary/30 bg-gradient-to-r from-primary/5 via-background to-amber-500/5 shadow-md">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Send className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="text-base font-bold text-foreground">Table-Side Customer Review Collector</CardTitle>
-                  <CardDescription className="text-xs">
-                    Staff inputs customer phone number at table right after meal to trigger instant WhatsApp review & spin-wheel reward
-                  </CardDescription>
+          {/* Public Waiter Terminal Sharing Box */}
+          <Card className="border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-background to-amber-500/5 shadow-md">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600">
+                    <Send className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-bold text-foreground">Public Waiter Terminal (No Login Required)</CardTitle>
+                    <CardDescription className="text-xs">
+                      Share this public link with waiters on WhatsApp so they can collect customer phone numbers on their phones without logging in.
+                    </CardDescription>
+                  </div>
                 </div>
               </div>
             </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row items-center gap-3 rounded-xl border border-amber-500/30 bg-background/60 p-3">
+                <code className="text-xs font-bold font-mono text-amber-700 dark:text-amber-300 truncate flex-1 w-full sm:w-auto">
+                  {typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}/r/collect/${accountId}` : `/r/collect/${accountId}`}
+                </code>
+                <div className="flex gap-2 shrink-0">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const url = `${window.location.protocol}//${window.location.host}/r/collect/${accountId}`;
+                    navigator.clipboard.writeText(url);
+                    toast.success('Public Waiter link copied!');
+                  }} className="text-xs font-bold gap-1">
+                    <Copy className="h-3.5 w-3.5" /> Copy Link
+                  </Button>
+                  <a href={`/r/collect/${accountId}`} target="_blank" rel="noreferrer" className={buttonVariants({ variant: 'default', size: 'sm', className: 'text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white' })}>
+                    <ExternalLink className="h-3.5 w-3.5 mr-1" /> Open Terminal
+                  </a>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
             <CardContent>
               <form onSubmit={handleCollectCustomerPhone} className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
