@@ -78,6 +78,17 @@ export async function POST(request: Request) {
       )
     }
 
+    // Fetch account details
+    const { data: account, error: accErr } = await db
+      .from('accounts')
+      .select('id, name, owner_user_id')
+      .eq('id', accountId)
+      .maybeSingle()
+
+    if (accErr || !account) {
+      return NextResponse.json({ error: 'Business account not found.' }, { status: 404 })
+    }
+
     const customerName = name?.trim() || 'Valued Customer'
 
     // 1. Upsert Contact
@@ -95,6 +106,7 @@ export async function POST(request: Request) {
         .from('contacts')
         .insert({
           account_id: accountId,
+          user_id: account.owner_user_id,
           name: customerName,
           phone: sanitizedPhone,
         })

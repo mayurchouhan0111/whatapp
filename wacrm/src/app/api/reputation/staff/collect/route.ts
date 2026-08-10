@@ -61,6 +61,12 @@ export async function POST(request: Request) {
 
     const customerName = name?.trim() || 'Valued Customer'
 
+    const { data: account } = await supabase
+      .from('accounts')
+      .select('owner_user_id')
+      .eq('id', accountId)
+      .maybeSingle()
+
     // 1. Upsert or find Contact
     const { data: existingContact } = await supabase
       .from('contacts')
@@ -76,6 +82,7 @@ export async function POST(request: Request) {
         .from('contacts')
         .insert({
           account_id: accountId,
+          user_id: user.id || account?.owner_user_id,
           name: customerName,
           phone: sanitizedPhone,
         })
