@@ -597,8 +597,23 @@ export default function ReputationDashboardPage() {
                   </a>
                 </div>
               </div>
-            </CardContent>
           </Card>
+
+          {/* Table-Side Customer Review Entry Widget */}
+          <Card className="border-primary/30 bg-gradient-to-r from-primary/5 via-background to-amber-500/5 shadow-md">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Send className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-base font-bold text-foreground">Table-Side Customer Review Collector</CardTitle>
+                  <CardDescription className="text-xs">
+                    Staff inputs customer phone number at table right after meal to trigger instant WhatsApp review & spin-wheel reward
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
             <CardContent>
               <form onSubmit={handleCollectCustomerPhone} className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
