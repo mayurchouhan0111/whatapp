@@ -560,26 +560,39 @@ export default function ReputationDashboardPage() {
                   <div>
                     <CardTitle className="text-base font-bold text-foreground">Public Waiter Terminal (No Login Required)</CardTitle>
                     <CardDescription className="text-xs">
-                      Share this public link with waiters on WhatsApp so they can collect customer phone numbers on their phones without logging in.
+                      Share this public link with your waiters on WhatsApp so they can collect customer numbers on their phones without logging in.
                     </CardDescription>
                   </div>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row items-center gap-3 rounded-xl border border-amber-500/30 bg-background/60 p-3">
-                <code className="text-xs font-bold font-mono text-amber-700 dark:text-amber-300 truncate flex-1 w-full sm:w-auto">
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="font-semibold text-muted-foreground">Your Business Account ID:</span>
+                <code className="bg-muted border border-border px-2 py-0.5 rounded font-mono font-bold select-all text-foreground">{accountId}</code>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-3 rounded-xl border border-amber-500/30 bg-background/80 p-3 shadow-inner">
+                <code className="text-xs font-bold font-mono text-amber-700 dark:text-amber-300 truncate flex-1 w-full sm:w-auto select-all">
                   {typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}/r/collect/${accountId}` : `/r/collect/${accountId}`}
                 </code>
-                <div className="flex gap-2 shrink-0">
+                <div className="flex flex-wrap gap-2 shrink-0">
                   <Button variant="outline" size="sm" onClick={() => {
                     const url = `${window.location.protocol}//${window.location.host}/r/collect/${accountId}`;
                     navigator.clipboard.writeText(url);
-                    toast.success('Public Waiter link copied!');
-                  }} className="text-xs font-bold gap-1">
+                    toast.success('Public Waiter Terminal link copied to clipboard!');
+                  }} className="text-xs font-bold gap-1 shadow-sm">
                     <Copy className="h-3.5 w-3.5" /> Copy Link
                   </Button>
-                  <a href={`/r/collect/${accountId}`} target="_blank" rel="noreferrer" className={buttonVariants({ variant: 'default', size: 'sm', className: 'text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white' })}>
+                  <a
+                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hi Waiters! Here is our restaurant table review terminal link. Bookmark this on your phone: ${typeof window !== 'undefined' ? window.location.protocol + '//' + window.location.host : ''}/r/collect/${accountId}`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={buttonVariants({ variant: 'outline', size: 'sm', className: 'text-xs font-bold gap-1 text-emerald-600 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20' })}
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" /> Share on WhatsApp
+                  </a>
+                  <a href={`/r/collect/${accountId}`} target="_blank" rel="noreferrer" className={buttonVariants({ variant: 'default', size: 'sm', className: 'text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm' })}>
                     <ExternalLink className="h-3.5 w-3.5 mr-1" /> Open Terminal
                   </a>
                 </div>
