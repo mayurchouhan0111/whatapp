@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import {
   Star, Send, Eye, MousePointerClick, MessageSquare, QrCode, Printer, Settings2,
-  Search, RotateCcw, ExternalLink, Check, CheckCircle2, Loader2, AlertCircle, User, Table as TableIcon,
+  Search, RotateCcw, ExternalLink, Check, CheckCircle2, AlertCircle, User, Table as TableIcon,
   Gift, Sparkles, Award, Download, Plus, Trash2, Palette, Image, Mic, Zap,
   BrainCircuit, TrendingUp, TrendingDown, Clock, Hash, Copy,
 } from 'lucide-react';
