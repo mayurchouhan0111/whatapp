@@ -4,7 +4,7 @@ import { use, useEffect, useState, useCallback, useRef } from 'react'
 import {
   MessageSquare, CheckCircle2, ChevronRight, AlertCircle,
   Loader2, Mic, MicOff, Copy, ExternalLink, Camera, Gift, Sparkles,
-  User, Award,
+  User, Award, Clock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { REVIEW_TAGS, type ReviewTag, type RewardSlice } from '@/types/reputation'
