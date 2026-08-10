@@ -363,9 +363,14 @@ export default function ReputationDashboardPage() {
             AI-powered customer experience platform — collect reviews, analyze sentiment, manage loyalty.
           </p>
         </div>
-        <Button onClick={loadData} variant="outline" className="flex items-center gap-2 self-start sm:self-center">
-          <RotateCcw className="h-4 w-4" /> Reload
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-center">
+          <a href="/reputation/collect" target="_blank" className={buttonVariants({ variant: 'default', size: 'sm', className: 'flex items-center gap-1.5 font-bold shadow-md bg-amber-500 hover:bg-amber-600 text-white' })}>
+            <Send className="h-4 w-4" /> Waiter Table Terminal
+          </a>
+          <Button onClick={loadData} variant="outline" className="flex items-center gap-2">
+            <RotateCcw className="h-4 w-4" /> Reload
+          </Button>
+        </div>
       </div>
 
       {!settings?.google_review_url && (
