@@ -14,6 +14,7 @@ export interface ReputationSettingsV2 {
   enable_voice_review: boolean;
   enable_ai_chips: boolean;
   rewards_config: RewardSlice[];
+  reward_valid_days?: number;
   created_at: string;
   updated_at: string;
 }
@@ -45,6 +46,8 @@ export interface ReviewRequestV2 {
   recovery_status: 'pending' | 'manager_contacted' | 'resolved' | null;
   recovery_resolved_at: string | null;
   spin_reward_claimed: string | null;
+  discount_code: string | null;
+  reward_expires_at: string | null;
   sent_at: string;
   opened_at: string | null;
   clicked_at: string | null;
@@ -76,6 +79,9 @@ export interface StaffMember {
 
 export interface StaffMemberWithStats extends StaffMember {
   total_scans: number;
+  numbers_collected: number;
+  links_opened: number;
+  reviews_completed: number;
   average_rating: number | null;
   conversion_rate: number;
 }

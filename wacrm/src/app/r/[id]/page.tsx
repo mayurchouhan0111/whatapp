@@ -41,7 +41,7 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
   const [aiText, setAiText] = useState('')
   const [copied, setCopied] = useState(false)
   const [recoveryAction, setRecoveryAction] = useState<string | null>(null)
-  const [spinReward, setSpinReward] = useState<{ label: string; emoji: string; discountCode: string; discountPercent?: number; color: string } | null>(null)
+  const [spinReward, setSpinReward] = useState<{ label: string; emoji: string; discountCode: string; discountPercent?: number; color: string; expiresAt?: string } | null>(null)
   const [isSpinning, setIsSpinning] = useState(false)
   const [spinAngle, setSpinAngle] = useState(0)
   const [loyaltyData] = useState<{ total_visits: number; stamps_count: number } | null>(null)
@@ -67,15 +67,15 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
   }, [id])
 
   const triggerConfetti = useCallback(() => {
-    const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#a78bfa', '#34d399']
-    const pieces = Array.from({ length: 80 }, (_, i) => ({
+    const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#a78bfa', '#34d399', '#fbbf24', '#f59e0b']
+    const pieces = Array.from({ length: 90 }, (_, i) => ({
       id: i, x: Math.random() * 100, y: -10 - Math.random() * 30,
       color: colors[Math.floor(Math.random() * colors.length)],
-      delay: Math.random() * 0.8, size: 4 + Math.random() * 8,
-      rotation: Math.random() * 360, drift: -30 + Math.random() * 60,
+      delay: Math.random() * 0.8, size: 5 + Math.random() * 9,
+      rotation: Math.random() * 360, drift: -35 + Math.random() * 70,
     }))
     setConfetti(pieces)
-    setTimeout(() => setConfetti([]), 3000)
+    setTimeout(() => setConfetti([]), 3500)
   }, [])
 
   const [confetti, setConfetti] = useState<{ id: number; x: number; y: number; color: string; delay: number; size: number; rotation: number; drift: number }[]>([])
@@ -172,18 +172,21 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
   const handleSpinWheel = () => {
     if (isSpinning || !spinReward) return
     setIsSpinning(true)
-    const extraSpins = 5 + Math.floor(Math.random() * 5)
+    const extraSpins = 6 + Math.floor(Math.random() * 4)
     const targetAngle = 360 * extraSpins + Math.random() * 360
     const startAngle = spinAngle
-    const duration = 4000
+    const duration = 4500
     const startTime = performance.now()
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime
       const progress = Math.min(elapsed / duration, 1)
-      const easeOut = 1 - Math.pow(1 - progress, 3)
+      const easeOut = 1 - Math.pow(1 - progress, 4)
       setSpinAngle(startAngle + targetAngle * easeOut)
       if (progress < 1) spinAnimationRef.current = requestAnimationFrame(animate)
-      else setIsSpinning(false)
+      else {
+        setIsSpinning(false)
+        triggerConfetti()
+      }
     }
     spinAnimationRef.current = requestAnimationFrame(animate)
   }
@@ -551,107 +554,162 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
               <div className="p-6 space-y-6 text-center">
                 <div className="flex justify-center">
                   <div className="relative">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 motion-safe:animate-float-slow">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/20 to-amber-600/30 border border-amber-400/40 shadow-[0_0_20px_rgba(245,158,11,0.2)] motion-safe:animate-float-slow">
                       <Gift className="h-8 w-8 text-amber-500" />
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold tracking-tight text-foreground">You Won!</h3>
-                  <p className="text-sm text-muted-foreground">Thanks for your review! Spin the wheel to reveal your reward.</p>
+                <div className="space-y-1">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-[11px] font-bold text-amber-600 border border-amber-500/20 uppercase tracking-wider">
+                    <Sparkles className="h-3 w-3" /> Exclusive Guest Reward
+                  </span>
+                  <h3 className="text-2xl font-extrabold tracking-tight text-foreground">Spin & Win Rewards!</h3>
+                  <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                    Thanks for sharing your review! Tap spin to reveal your special discount coupon for your next visit.
+                  </p>
                 </div>
 
-                {/* Premium spin wheel */}
-                <div className="relative mx-auto h-60 w-60">
-                  {/* Outer glow ring */}
-                  <div className="absolute inset-0 rounded-full opacity-20 motion-safe:animate-pulse-soft"
-                    style={{ boxShadow: `0 0 40px 10px ${bc}40` }} />
-                  <svg viewBox="0 0 200 200" className="h-full w-full drop-shadow-xl">
+                {/* Ultra-Premium 3D Metallic Spin Wheel */}
+                <div className="relative mx-auto h-64 w-64 p-2">
+                  {/* Outer glowing halo */}
+                  <div className="absolute inset-0 rounded-full opacity-40 motion-safe:animate-pulse-soft"
+                    style={{ boxShadow: `0 0 50px 15px ${bc}50, inset 0 0 20px rgba(255,255,255,0.4)` }} />
+
+                  <svg viewBox="0 0 200 200" className="h-full w-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]">
                     <defs>
-                      <filter id="wheel-shadow">
-                        <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.3" />
-                      </filter>
-                      <radialGradient id="center-grad" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="#fff" />
-                        <stop offset="100%" stopColor="#f0f0f0" />
+                      {/* Metallic Gold Bezel Gradient */}
+                      <linearGradient id="gold-bezel" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#ffe259" />
+                        <stop offset="30%" stopColor="#ffa751" />
+                        <stop offset="70%" stopColor="#ffd700" />
+                        <stop offset="100%" stopColor="#b8860b" />
+                      </linearGradient>
+
+                      {/* Glossy Center Hub Gradient */}
+                      <radialGradient id="center-hub-grad" cx="40%" cy="40%" r="60%">
+                        <stop offset="0%" stopColor="#ffffff" />
+                        <stop offset="50%" stopColor="#f3f4f6" />
+                        <stop offset="100%" stopColor="#d1d5db" />
                       </radialGradient>
+
+                      <filter id="wheel-slice-shadow">
+                        <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodOpacity="0.25" />
+                      </filter>
                     </defs>
-                    {data.v2.rewardsConfig.map((slice, i) => {
-                      const totalProb = data.v2.rewardsConfig.reduce((s, r) => s + r.probability, 0)
-                      const sliceAngle = (slice.probability / totalProb) * 360
-                      const offset = data.v2.rewardsConfig.slice(0, i).reduce((s, r) => s + (r.probability / totalProb) * 360, 0)
-                      const midAngle = offset + sliceAngle / 2
-                      const rad = (midAngle * Math.PI) / 180
-                      const r = 82
-                      const cx = 100, cy = 100
-                      const x1 = cx + r * Math.cos((offset * Math.PI) / 180)
-                      const y1 = cy + r * Math.sin((offset * Math.PI) / 180)
-                      const x2 = cx + r * Math.cos(((offset + sliceAngle) * Math.PI) / 180)
-                      const y2 = cy + r * Math.sin(((offset + sliceAngle) * Math.PI) / 180)
-                      const largeArc = sliceAngle > 180 ? 1 : 0
+
+                    {/* Golden Outer Rim */}
+                    <circle cx="100" cy="100" r="97" fill="url(#gold-bezel)" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" />
+                    <circle cx="100" cy="100" r="92" fill="#111827" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+
+                    {/* Glowing LED Bulbs on Perimeter */}
+                    {Array.from({ length: 12 }).map((_, i) => {
+                      const angle = (i * 30 * Math.PI) / 180
+                      const bx = 100 + 94.5 * Math.cos(angle)
+                      const by = 100 + 94.5 * Math.sin(angle)
                       return (
-                        <g key={i} style={{ transform: `rotate(${spinAngle}deg)`, transformOrigin: '100px 100px' }}>
-                          <path d={`M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                            fill={slice.color} stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" filter="url(#wheel-shadow)" />
-                          <text x={cx + 55 * Math.cos(rad)} y={cy + 55 * Math.sin(rad)}
-                            textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="bold">
-                            {slice.emoji}
-                          </text>
-                        </g>
+                        <circle key={i} cx={bx} cy={by} r="2.2"
+                          fill={i % 2 === 0 ? '#fff7ed' : '#fef08a'}
+                          stroke="#d97706" strokeWidth="0.6"
+                          className="motion-safe:animate-pulse"
+                          style={{ animationDelay: `${i * 0.1}s` }} />
                       )
                     })}
-                    {/* Outer ring */}
-                    <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
-                    {/* Tick marks on outer ring */}
-                    {Array.from({ length: 24 }).map((_, i) => (
-                      <line key={i} x1={100 + 85 * Math.cos((i * 15 * Math.PI) / 180)}
-                        y1={100 + 85 * Math.sin((i * 15 * Math.PI) / 180)}
-                        x2={100 + 88 * Math.cos((i * 15 * Math.PI) / 180)}
-                        y2={100 + 88 * Math.sin((i * 15 * Math.PI) / 180)}
-                        stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-                    ))}
-                    {/* Center hub */}
-                    <circle cx="100" cy="100" r="20" fill="url(#center-grad)" stroke="#ddd" strokeWidth="2" />
-                    <circle cx="100" cy="100" r="6" fill="#888" />
-                    {/* Pointer */}
-                    <polygon points="100,2 94,18 106,18" fill={bc} stroke="white" strokeWidth="1.5" />
-                    <circle cx="100" cy="12" r="2" fill="white" />
+
+                    {/* Wheel Slices Group with Spin Rotation */}
+                    <g style={{ transform: `rotate(${spinAngle}deg)`, transformOrigin: '100px 100px', transition: isSpinning ? 'none' : 'transform 0.1s ease-out' }}>
+                      {data.v2.rewardsConfig.map((slice, i) => {
+                        const totalProb = data.v2.rewardsConfig.reduce((s, r) => s + r.probability, 0)
+                        const sliceAngle = (slice.probability / totalProb) * 360
+                        const offset = data.v2.rewardsConfig.slice(0, i).reduce((s, r) => s + (r.probability / totalProb) * 360, 0)
+                        const midAngle = offset + sliceAngle / 2
+                        const rad = (midAngle * Math.PI) / 180
+                        const r = 88
+                        const cx = 100, cy = 100
+                        const x1 = cx + r * Math.cos((offset * Math.PI) / 180)
+                        const y1 = cy + r * Math.sin((offset * Math.PI) / 180)
+                        const x2 = cx + r * Math.cos(((offset + sliceAngle) * Math.PI) / 180)
+                        const y2 = cy + r * Math.sin(((offset + sliceAngle) * Math.PI) / 180)
+                        const largeArc = sliceAngle > 180 ? 1 : 0
+                        return (
+                          <g key={i}>
+                            <path d={`M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`}
+                              fill={slice.color} stroke="rgba(255,255,255,0.4)" strokeWidth="1.2" filter="url(#wheel-slice-shadow)" />
+                            <text x={cx + 58 * Math.cos(rad)} y={cy + 58 * Math.sin(rad)}
+                              textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="12" fontWeight="bold"
+                              style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
+                              {slice.emoji}
+                            </text>
+                          </g>
+                        )
+                      })}
+                    </g>
+
+                    {/* Center Hub */}
+                    <circle cx="100" cy="100" r="22" fill="url(#gold-bezel)" />
+                    <circle cx="100" cy="100" r="18" fill="url(#center-hub-grad)" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
+                    <circle cx="100" cy="100" r="6" fill="#4b5563" />
+
+                    {/* 3D Pointer Arrow */}
+                    <g filter="drop-shadow(0 3px 6px rgba(0,0,0,0.4))">
+                      <polygon points="100,2 92,20 108,20" fill="#dc2626" stroke="#ffffff" strokeWidth="1.5" />
+                      <polygon points="100,5 95,18 100,18" fill="#ef4444" />
+                      <circle cx="100" cy="14" r="2.5" fill="#ffffff" />
+                    </g>
                   </svg>
                 </div>
 
                 <Button onClick={handleSpinWheel} disabled={isSpinning}
-                  className="w-full font-semibold text-white shadow-lg transition-all duration-200 active:scale-[0.97] h-12 text-base"
-                  style={{ backgroundColor: bc, boxShadow: `0 4px 20px ${bc}30` }}>
-                  {isSpinning ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Spinning...</> : <>{spinReward.emoji} Spin the Wheel!</>}
+                  className="w-full font-bold text-white shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] active:scale-[0.97] h-13 text-base rounded-xl"
+                  style={{ backgroundColor: bc, boxShadow: `0 8px 25px ${bc}45` }}>
+                  {isSpinning ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Spinning Wheel...</> : <>{spinReward.emoji} TAP TO SPIN THE WHEEL</>}
                 </Button>
 
+                {/* VIP Coupon Reveal Card with Expiry Date */}
                 {!isSpinning && spinAngle > 0 && (
-                  <div className="space-y-3 animate-scale-in">
-                    <div className="rounded-xl border-2 p-4 bg-gradient-to-br from-muted/20 to-muted/5"
-                      style={{ borderColor: spinReward.color }}>
-                      <p className="text-xs font-semibold text-muted-foreground mb-1 tracking-wide">Your Reward</p>
-                      <p className="text-lg font-bold">{spinReward.emoji} {spinReward.label}</p>
+                  <div className="space-y-4 animate-scale-in pt-2">
+                    <div className="relative overflow-hidden rounded-2xl border-2 border-amber-400/60 bg-gradient-to-br from-amber-500/10 via-background to-amber-500/5 p-5 shadow-2xl backdrop-blur-md text-center">
+                      <div className="absolute top-0 right-0 -mr-6 -mt-6 h-20 w-20 rounded-full bg-amber-400/20 blur-xl pointer-events-none" />
+                      
+                      <div className="flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest text-amber-600 mb-1">
+                        <Award className="h-4 w-4" /> VIP Discount Voucher
+                      </div>
+
+                      <div className="my-2">
+                        <p className="text-2xl font-black tracking-tight text-foreground">{spinReward.emoji} {spinReward.label}</p>
+                        {spinReward.discountPercent && spinReward.discountPercent > 0 && (
+                          <div className="mt-1 inline-block rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-0.5 text-xs font-bold text-emerald-600">
+                            {spinReward.discountPercent}% OFF on Next Visit!
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Promo Code Box */}
                       {spinReward.discountCode && (
-                        <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-1.5 border border-border/50">
-                          <code className="text-sm font-bold tracking-widest">{spinReward.discountCode}</code>
-                          <button onClick={() => copyToClipboard(spinReward.discountCode!)}
-                            className="text-muted-foreground hover:text-foreground transition-colors">
-                            <Copy className="h-3.5 w-3.5" />
-                          </button>
+                        <div className="mt-3 flex items-center justify-between rounded-xl bg-card border-2 border-dashed border-amber-400/50 p-3 shadow-inner">
+                          <div className="text-left">
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Coupon Code</p>
+                            <code className="text-base font-black tracking-widest text-amber-600 font-mono">{spinReward.discountCode}</code>
+                          </div>
+                          <Button variant="secondary" size="sm" onClick={() => copyToClipboard(spinReward.discountCode!)} className="text-xs font-bold gap-1 shadow-sm">
+                            {copied ? <><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Copied!</> : <><Copy className="h-3.5 w-3.5" /> Copy</>}
+                          </Button>
                         </div>
                       )}
-                      {spinReward.discountPercent && spinReward.discountPercent > 0 && (
-                        <p className="text-sm font-semibold mt-1" style={{ color: spinReward.color }}>{spinReward.discountPercent}% OFF your next visit!</p>
-                      )}
+
+                      {/* Valid Expiry Date Badge */}
+                      <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-600 border border-rose-500/20">
+                        <Clock className="h-3.5 w-3.5 shrink-0" />
+                        <span>Valid Until: <strong>{spinReward.expiresAt || '15 Days from today'}</strong></span>
+                      </div>
                     </div>
 
                     <Button onClick={async () => {
                       try { await fetch(`/api/public/reputation/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'click_google', rating: rating || 5 }) }) } catch {}
                       if (data.googleReviewUrl) window.location.href = data.googleReviewUrl
-                    }} variant="outline" className="w-full h-12">
+                    }} variant="default" className="w-full h-12 text-sm font-bold text-white shadow-lg" style={{ backgroundColor: bc }}>
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      Continue to Google Review
+                      Post Review on Google to Claim
                     </Button>
                   </div>
                 )}

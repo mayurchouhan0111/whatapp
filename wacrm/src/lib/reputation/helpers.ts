@@ -87,10 +87,29 @@ export async function upsertLoyaltyPass(
   return data;
 }
 
+export function calculateRewardExpiry(validDays: number = 15): { expiresAtIso: string; formattedDate: string } {
+  const date = new Date();
+  date.setDate(date.getDate() + (validDays || 15));
+  const expiresAtIso = date.toISOString();
+  const formattedDate = date.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  return { expiresAtIso, formattedDate };
+}
+
 export async function getStaffAnalytics(
   db: SupabaseClient,
   accountId: string,
-): Promise<(StaffMember & { total_scans: number; average_rating: number | null; conversion_rate: number })[]> {
+): Promise<(StaffMember & {
+  total_scans: number;
+  numbers_collected: number;
+  links_opened: number;
+  reviews_completed: number;
+  average_rating: number | null;
+  conversion_rate: number;
+})[]> {
   const { data: staff } = await db
     .from('staff_members')
     .select('*')
@@ -107,18 +126,23 @@ export async function getStaffAnalytics(
       .eq('account_id', accountId)
       .eq('staff_id', member.id);
 
-    const totalScans = reviews?.length || 0;
+    const numbersCollected = reviews?.length || 0;
+    const linksOpened = reviews?.filter((r) => ['opened', 'rated', 'clicked'].includes(r.status)).length || 0;
+    const reviewsCompleted = reviews?.filter((r) => ['rated', 'clicked'].includes(r.status)).length || 0;
+    
     const rated = reviews?.filter((r) => r.rating !== null) || [];
     const avgRating =
       rated.length > 0
         ? rated.reduce((sum, r) => sum + (r.rating || 0), 0) / rated.length
         : null;
-    const clicked = reviews?.filter((r) => r.status === 'clicked').length || 0;
-    const conversionRate = totalScans > 0 ? (clicked / totalScans) * 100 : 0;
+    const conversionRate = numbersCollected > 0 ? (reviewsCompleted / numbersCollected) * 100 : 0;
 
     results.push({
       ...member,
-      total_scans: totalScans,
+      total_scans: numbersCollected,
+      numbers_collected: numbersCollected,
+      links_opened: linksOpened,
+      reviews_completed: reviewsCompleted,
       average_rating: avgRating,
       conversion_rate: conversionRate,
     });

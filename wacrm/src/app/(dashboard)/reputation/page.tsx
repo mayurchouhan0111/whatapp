@@ -75,13 +75,21 @@ export default function ReputationDashboardPage() {
   const [enableVoiceReview, setEnableVoiceReview] = useState(true);
   const [enableAiChips, setEnableAiChips] = useState(true);
   const [rewardsConfig, setRewardsConfig] = useState<RewardSlice[]>(DEFAULT_REWARDS);
+  const [rewardValidDays, setRewardValidDays] = useState(15);
   const [autoSendReviewOnCreate, setAutoSendReviewOnCreate] = useState(false);
   const [managerPhone, setManagerPhone] = useState('');
 
-  // Staff management
+  // Staff management & Table customer collection
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffRole, setNewStaffRole] = useState('');
   const [savingStaff, setSavingStaff] = useState(false);
+
+  const [collectPhone, setCollectPhone] = useState('');
+  const [collectName, setCollectName] = useState('');
+  const [collectTable, setCollectTable] = useState('');
+  const [collectStaffId, setCollectStaffId] = useState('');
+  const [collecting, setCollecting] = useState(false);
+  const [lastGeneratedLink, setLastGeneratedLink] = useState('');
 
   // Poster builder
   const [posterHook, setPosterHook] = useState('We Value Your Feedback!');
@@ -118,6 +126,7 @@ export default function ReputationDashboardPage() {
           setEnableVoiceReview(c.enable_voice_review !== false);
           setEnableAiChips(c.enable_ai_chips !== false);
           setRewardsConfig(c.rewards_config || DEFAULT_REWARDS);
+          setRewardValidDays(c.reward_valid_days || 15);
           setAutoSendReviewOnCreate(!!c.auto_send_review_on_create);
           setManagerPhone(c.manager_phone || '');
         }
@@ -162,6 +171,7 @@ export default function ReputationDashboardPage() {
           enable_voice_review: enableVoiceReview,
           enable_ai_chips: enableAiChips,
           rewards_config: rewardsConfig,
+          reward_valid_days: rewardValidDays,
           auto_send_review_on_create: autoSendReviewOnCreate,
           manager_phone: managerPhone.trim() || null,
         }),
@@ -173,6 +183,34 @@ export default function ReputationDashboardPage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong.');
     } finally { setSavingSettings(false); }
+  };
+
+  const handleCollectCustomerPhone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!collectPhone.trim()) { toast.error('Customer phone number is required.'); return; }
+    setCollecting(true);
+    try {
+      const res = await fetch('/api/reputation/staff/collect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: collectPhone.trim(),
+          name: collectName.trim() || undefined,
+          table_number: collectTable.trim() || undefined,
+          staff_id: collectStaffId || undefined,
+        }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Failed to send review request.');
+      toast.success(payload.sentViaWhatsapp ? 'Review link sent via WhatsApp!' : 'Review link generated!');
+      setLastGeneratedLink(payload.reviewLink);
+      setCollectPhone('');
+      setCollectName('');
+      setCollectTable('');
+      loadData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to process request.');
+    } finally { setCollecting(false); }
   };
 
   const handleAddStaff = async () => {
@@ -506,12 +544,60 @@ export default function ReputationDashboardPage() {
 
         {/* === STAFF & QR ATTRIBUTION === */}
         <TabsContent value="staff" className="space-y-6 outline-none">
+          {/* Table-Side Customer Review Entry Widget */}
+          <Card className="border-primary/30 bg-gradient-to-r from-primary/5 via-background to-amber-500/5 shadow-md">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Send className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-base font-bold text-foreground">Table-Side Customer Review Collector</CardTitle>
+                  <CardDescription className="text-xs">
+                    Staff inputs customer phone number at table right after meal to trigger instant WhatsApp review & spin-wheel reward
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCollectCustomerPhone} className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <Input placeholder="Customer Mobile (+91...)" value={collectPhone} onChange={e => setCollectPhone(e.target.value)} required />
+                  <Input placeholder="Customer Name (optional)" value={collectName} onChange={e => setCollectName(e.target.value)} />
+                  <Input placeholder="Table # (e.g. T-12)" value={collectTable} onChange={e => setCollectTable(e.target.value)} />
+                  <select value={collectStaffId} onChange={e => setCollectStaffId(e.target.value)}
+                    className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                    <option value="">Select Staff Member</option>
+                    {staff.map((s: any) => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.role})</option>
+                    ))}
+                  </select>
+                </div>
+                <Button type="submit" disabled={collecting || !collectPhone.trim()} className="w-full sm:w-auto font-bold gap-2 shadow-md">
+                  {collecting ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending...</> : <><Send className="h-4 w-4" /> Send Instant Review Request</>}
+                </Button>
+              </form>
+
+              {lastGeneratedLink && (
+                <div className="mt-4 flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-xs">
+                  <div className="flex items-center gap-2 truncate pr-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span className="font-semibold text-emerald-800 dark:text-emerald-200 truncate">Link: {lastGeneratedLink}</span>
+                  </div>
+                  <Button variant="outline" size="xs" onClick={() => { navigator.clipboard.writeText(lastGeneratedLink); toast.success('Link copied to clipboard!'); }}>
+                    <Copy className="h-3.5 w-3.5 mr-1" /> Copy Link
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-sm font-semibold">Staff Members</CardTitle>
-                  <CardDescription className="text-xs">Manage staff and track their review attribution</CardDescription>
+                  <CardTitle className="text-sm font-semibold">Staff Performance & Review Attribution</CardTitle>
+                  <CardDescription className="text-xs">Manage restaurant staff and track numbers collected, links opened, and conversion rate</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -526,26 +612,30 @@ export default function ReputationDashboardPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
+                    <TableHead>Staff Name</TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead>Scans</TableHead>
+                    <TableHead>Numbers Entered</TableHead>
+                    <TableHead>Links Opened</TableHead>
+                    <TableHead>Completed</TableHead>
                     <TableHead>Avg Rating</TableHead>
                     <TableHead>Conversion</TableHead>
-                    <TableHead>QR Slug</TableHead>
+                    <TableHead>QR Code</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {staff.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground text-sm">No staff members added yet.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={9} className="h-24 text-center text-muted-foreground text-sm">No staff members added yet.</TableCell></TableRow>
                   ) : staff.map((s: any) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">{s.name}</TableCell>
                       <TableCell><span className="text-xs text-muted-foreground">{s.role}</span></TableCell>
-                      <TableCell><Badge variant="secondary">{s.total_scans || 0}</Badge></TableCell>
+                      <TableCell><Badge variant="secondary" className="font-bold">{s.numbers_collected ?? s.total_scans ?? 0}</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className="font-bold text-amber-600 border-amber-500/30 bg-amber-500/10">{s.links_opened ?? 0}</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className="font-bold text-emerald-600 border-emerald-500/30 bg-emerald-500/10">{s.reviews_completed ?? 0}</Badge></TableCell>
                       <TableCell>{s.average_rating ? renderStars(Math.round(s.average_rating)) : '—'}</TableCell>
-                      <TableCell>{(s.conversion_rate || 0).toFixed(1)}%</TableCell>
-                      <TableCell><code className="text-[10px] bg-muted px-1 py-0.5 rounded">{s.qr_slug || '—'}</code></TableCell>
+                      <TableCell><span className="font-bold">{s.conversion_rate ? `${s.conversion_rate.toFixed(1)}%` : '0%'}</span></TableCell>
+                      <TableCell><code className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono">{s.qr_slug || '—'}</code></TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="xs" onClick={() => {
@@ -724,7 +814,7 @@ export default function ReputationDashboardPage() {
                   <Input placeholder="https://search.google.com/local/writereview?placeid=..." value={googleReviewUrl} onChange={e => setGoogleReviewUrl(e.target.value)} required />
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-muted-foreground">Gating Threshold</label>
                     <select value={reviewThreshold} onChange={e => setReviewThreshold(Number(e.target.value))}
@@ -732,6 +822,17 @@ export default function ReputationDashboardPage() {
                       <option value={5}>5 Stars only</option>
                       <option value={4}>4 Stars or higher</option>
                       <option value={3}>3 Stars or higher</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-muted-foreground">Reward Valid Duration</label>
+                    <select value={rewardValidDays} onChange={e => setRewardValidDays(Number(e.target.value))}
+                      className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm outline-none shadow-sm focus-visible:ring-1 focus-visible:ring-ring">
+                      <option value={7}>7 Days (1 Week)</option>
+                      <option value={14}>14 Days (2 Weeks)</option>
+                      <option value={15}>15 Days (Standard)</option>
+                      <option value={30}>30 Days (1 Month)</option>
+                      <option value={60}>60 Days (2 Months)</option>
                     </select>
                   </div>
                   <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">

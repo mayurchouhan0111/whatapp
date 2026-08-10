@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/flows/admin-client'
 import {
   handlePostReviewAutomation,
 } from '@/lib/reputation/automation-handler'
-import { upsertLoyaltyPass, pickReward, generateDiscountCode } from '@/lib/reputation/helpers'
+import { upsertLoyaltyPass, pickReward, generateDiscountCode, calculateRewardExpiry } from '@/lib/reputation/helpers'
 import { DEFAULT_REWARDS } from '@/types/reputation'
 
 export async function GET(
@@ -84,6 +84,7 @@ export async function GET(
           enableVoiceReview: settings?.enable_voice_review !== false,
           enableAiChips: settings?.enable_ai_chips !== false,
           rewardsConfig: settings?.rewards_config || DEFAULT_REWARDS,
+          rewardValidDays: settings?.reward_valid_days || 15,
         },
       },
     })
@@ -125,7 +126,6 @@ export async function PUT(
       voiceTranscript,
       sentimentScore,
       recoveryActionRequested,
-      spinRewardClaimed,
     } = body
 
     if (action === 'click_google') {
@@ -133,6 +133,15 @@ export async function PUT(
       const rewardsConfig = body.rewardsConfig || DEFAULT_REWARDS
       const pickedReward = pickReward(rewardsConfig)
       const discountCode = generateDiscountCode()
+
+      const { data: settings } = await db
+        .from('reputation_settings')
+        .select('reward_valid_days')
+        .eq('account_id', reviewRequest.account_id)
+        .maybeSingle()
+
+      const validDays = settings?.reward_valid_days || 15
+      const { expiresAtIso, formattedDate } = calculateRewardExpiry(validDays)
 
       await db
         .from('review_requests')
@@ -146,6 +155,8 @@ export async function PUT(
           voice_transcript: voiceTranscript || null,
           sentiment_score: sentimentScore || null,
           spin_reward_claimed: pickedReward.label,
+          discount_code: discountCode,
+          reward_expires_at: expiresAtIso,
         })
         .eq('id', id)
 
@@ -169,8 +180,10 @@ export async function PUT(
           label: pickedReward.label,
           emoji: pickedReward.emoji,
           discountCode,
-          discountPercent: pickedReward.discount_percent,
+          discountPercent: pickedReward.discount_percent || 15,
           color: pickedReward.color,
+          expiresAt: formattedDate,
+          expiresAtIso,
         },
       })
     }
