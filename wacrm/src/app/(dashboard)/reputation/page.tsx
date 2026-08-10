@@ -597,6 +597,7 @@ export default function ReputationDashboardPage() {
                   </a>
                 </div>
               </div>
+            </CardContent>
           </Card>
 
           {/* Table-Side Customer Review Entry Widget */}
