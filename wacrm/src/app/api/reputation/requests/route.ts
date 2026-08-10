@@ -82,11 +82,15 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { contact_id } = body
+    const { contact_id, contact_ids } = body
 
-    if (!contact_id) {
+    const targetContactIds: string[] = Array.isArray(contact_ids) && contact_ids.length > 0 
+      ? contact_ids 
+      : (contact_id ? [contact_id] : [])
+
+    if (targetContactIds.length === 0) {
       return NextResponse.json(
-        { error: 'contact_id is required.' },
+        { error: 'contact_id or contact_ids is required.' },
         { status: 400 }
       )
     }

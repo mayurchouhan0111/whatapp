@@ -43,6 +43,8 @@ interface ReputationSettings {
   welcome_message: string | null; branding_color: string; logo_url: string | null;
   enable_spin_wheel: boolean; enable_voice_review: boolean; enable_ai_chips: boolean;
   rewards_config: RewardSlice[];
+  auto_send_review_on_create?: boolean;
+  manager_phone?: string | null;
 }
 
 export default function ReputationDashboardPage() {
@@ -63,7 +65,7 @@ export default function ReputationDashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [qrLink, setQrLink] = useState('');
 
-  // V2 settings
+  // V2 settings & Auto-trigger options
   const [ownerPhotoUrl, setOwnerPhotoUrl] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [welcomeMessage, setWelcomeMessage] = useState('');
@@ -73,6 +75,8 @@ export default function ReputationDashboardPage() {
   const [enableVoiceReview, setEnableVoiceReview] = useState(true);
   const [enableAiChips, setEnableAiChips] = useState(true);
   const [rewardsConfig, setRewardsConfig] = useState<RewardSlice[]>(DEFAULT_REWARDS);
+  const [autoSendReviewOnCreate, setAutoSendReviewOnCreate] = useState(false);
+  const [managerPhone, setManagerPhone] = useState('');
 
   // Staff management
   const [newStaffName, setNewStaffName] = useState('');
@@ -114,6 +118,8 @@ export default function ReputationDashboardPage() {
           setEnableVoiceReview(c.enable_voice_review !== false);
           setEnableAiChips(c.enable_ai_chips !== false);
           setRewardsConfig(c.rewards_config || DEFAULT_REWARDS);
+          setAutoSendReviewOnCreate(!!c.auto_send_review_on_create);
+          setManagerPhone(c.manager_phone || '');
         }
       }
       if (insightsRes.ok) { const p = await insightsRes.json(); setInsights(p.data); }
@@ -156,6 +162,8 @@ export default function ReputationDashboardPage() {
           enable_voice_review: enableVoiceReview,
           enable_ai_chips: enableAiChips,
           rewards_config: rewardsConfig,
+          auto_send_review_on_create: autoSendReviewOnCreate,
+          manager_phone: managerPhone.trim() || null,
         }),
       });
       const payload = await res.json();
@@ -776,6 +784,21 @@ export default function ReputationDashboardPage() {
                     <span className="font-semibold select-all bg-muted px-1 rounded">{'{{contact_name}}'}</span>
                     <span className="font-semibold select-all bg-muted px-1 rounded">{'{{business_name}}'}</span>
                     <span className="font-semibold select-all bg-muted px-1 rounded">{'{{review_link}}'}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-muted-foreground">Manager Phone for Alert</label>
+                    <Input placeholder="+1234567890" value={managerPhone} onChange={e => setManagerPhone(e.target.value)} />
+                    <p className="text-[10px] text-muted-foreground">Instant WhatsApp alert on low ratings (&lt;4 stars)</p>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-amber-500/5 border-amber-500/20">
+                    <div className="space-y-0.5 pr-2">
+                      <label className="text-xs font-semibold text-foreground">Auto-Send on New Contact</label>
+                      <p className="text-[10px] text-muted-foreground">Send review link when contact is created.</p>
+                    </div>
+                    <Switch checked={autoSendReviewOnCreate} onCheckedChange={setAutoSendReviewOnCreate} />
                   </div>
                 </div>
 

@@ -88,6 +88,8 @@ export async function POST(request: Request) {
       enable_voice_review,
       enable_ai_chips,
       rewards_config,
+      auto_send_review_on_create,
+      manager_phone,
     } = body
 
     const updateData: Record<string, unknown> = {
@@ -108,6 +110,8 @@ export async function POST(request: Request) {
     if (enable_voice_review !== undefined) updateData.enable_voice_review = enable_voice_review
     if (enable_ai_chips !== undefined) updateData.enable_ai_chips = enable_ai_chips
     if (rewards_config !== undefined) updateData.rewards_config = rewards_config
+    if (auto_send_review_on_create !== undefined) updateData.auto_send_review_on_create = auto_send_review_on_create
+    if (manager_phone !== undefined) updateData.manager_phone = manager_phone || null
 
     if (!google_review_url) {
       return NextResponse.json(

@@ -96,5 +96,23 @@ export async function handlePostReviewAutomation(event: ReviewEvent) {
     } catch (err) {
       console.error('[automation-handler] failed to send recovery:', err)
     }
+
+    // Alert manager/owner if manager notification phone exists in settings
+    if (settings.manager_phone) {
+      const managerSanitized = sanitizePhoneForMeta(settings.manager_phone)
+      if (isValidE164(managerSanitized)) {
+        const alertMsg = `⚠️ *Low Rating Alert!*\n\nCustomer rating: ${event.rating}/5 ⭐\nPhone: ${event.contactPhone}\nBusiness: ${businessName}\n\nPlease check your Reputation Inbox to follow up!`
+        try {
+          await sendTextMessage({
+            phoneNumberId: whatsappConfig.phone_number_id,
+            accessToken,
+            to: managerSanitized,
+            text: alertMsg,
+          })
+        } catch (mErr) {
+          console.error('[automation-handler] failed to send manager alert:', mErr)
+        }
+      }
+    }
   }
 }

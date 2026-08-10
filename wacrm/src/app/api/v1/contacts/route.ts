@@ -102,6 +102,22 @@ export async function POST(request: Request) {
       }
     }
 
+    // Trigger auto review request if reputation setting allows
+    if (newContact) {
+      try {
+        const { triggerContactReviewRequest } = await import('@/lib/services/review-trigger-service');
+        await triggerContactReviewRequest({
+          accountId: ctx.accountId,
+          contactId: newContact.id,
+          contactName: newContact.name,
+          contactPhone: newContact.phone,
+          sourceType: 'auto_contact_created',
+        });
+      } catch (triggerErr) {
+        console.error('[contacts-v1-api] Review trigger warning:', triggerErr);
+      }
+    }
+
     return ok({
       contact: newContact,
       created: true,
