@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ShieldCheck, Lock } from 'lucide-react'
+import { ShieldCheck, Lock, ArrowRight } from 'lucide-react'
 
 export interface RatingItem {
   rating: number
@@ -11,7 +11,7 @@ export interface RatingItem {
 }
 
 export const EMOJI_RATINGS: RatingItem[] = [
-  { rating: 1, emoji: '😠', label: 'Terrible', color: '#EF4444' },
+  { rating: 1, emoji: '😡', label: 'Terrible', color: '#EF4444' },
   { rating: 2, emoji: '😞', label: 'Poor', color: '#F97316' },
   { rating: 3, emoji: '😊', label: 'Good', color: '#EAB308' },
   { rating: 4, emoji: '😍', label: 'Great', color: '#F59E0B' },
@@ -35,12 +35,12 @@ export function StarRating({
   ownerName = 'Mayur',
   businessName = 'Mayur Experience Platform',
 }: StarRatingProps) {
-  // Default initial active index to 3 (Rating 4: "Great", matching reference image)
   const initialIndex = value ? Math.max(0, Math.min(4, value - 1)) : 3
 
   const [scrollPos, setScrollPos] = useState<number>(initialIndex)
   const [isDragging, setIsDragging] = useState<boolean>(false)
   const [activeRating, setActiveRating] = useState<number>(initialIndex + 1)
+  const [stickerPopKey, setStickerPopKey] = useState<number>(0)
 
   const scrollPosRef = useRef<number>(initialIndex)
   const dragStartRef = useRef<{ x: number; scrollStart: number; time: number }>({
@@ -60,6 +60,7 @@ export function StarRating({
     if (value !== null && value !== activeRating && !isDragging) {
       const targetIdx = value - 1
       setActiveRating(value)
+      setStickerPopKey((k) => k + 1)
       animateToPos(targetIdx)
     }
   }, [value, activeRating, isDragging])
@@ -126,6 +127,7 @@ export function StarRating({
     const nearest = Math.max(1, Math.min(5, Math.round(clampedPos) + 1))
     if (nearest !== activeRating) {
       setActiveRating(nearest)
+      setStickerPopKey((k) => k + 1)
     }
   }
 
@@ -137,31 +139,49 @@ export function StarRating({
     target = Math.max(0, Math.min(4, target))
 
     const newRating = target + 1
+    if (newRating !== activeRating) {
+      setStickerPopKey((k) => k + 1)
+    }
     setActiveRating(newRating)
     animateToPos(target, 280)
 
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
       try { navigator.vibrate(15) } catch {}
     }
+  }
 
-    setTimeout(() => {
-      onChange(newRating)
-    }, 220)
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    const delta = e.deltaX || e.deltaY
+    const step = delta > 0 ? 1 : -1
+    const newIdx = Math.max(0, Math.min(4, Math.round(scrollPosRef.current + step)))
+    const newRating = newIdx + 1
+    if (newRating !== activeRating) {
+      setStickerPopKey((k) => k + 1)
+      setActiveRating(newRating)
+    }
+    animateToPos(newIdx, 260)
   }
 
   const handleSelectEmoji = (index: number) => {
     if (isDragging) return
     const newRating = index + 1
-    setActiveRating(newRating)
+    if (newRating !== activeRating) {
+      setStickerPopKey((k) => k + 1)
+      setActiveRating(newRating)
+    }
     animateToPos(index, 280)
 
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
       try { navigator.vibrate(20) } catch {}
     }
+  }
 
-    setTimeout(() => {
-      onChange(newRating)
-    }, 220)
+  const handleConfirmSelection = () => {
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate(30) } catch {}
+    }
+    onChange(activeRating)
   }
 
   // Calculate arc path coordinates
@@ -169,7 +189,6 @@ export function StarRating({
   const getNodeCoords = (index: number) => {
     const t = index / 4
     const x = 32 + t * (trackWidth - 64)
-    // Quadratic curve equation P0(32, 18), P1(160, 38), P2(288, 18)
     const y = (1 - t) * (1 - t) * 18 + 2 * (1 - t) * t * 38 + t * t * 18
     return { x, y }
   }
@@ -178,23 +197,25 @@ export function StarRating({
   const indX = 32 + pct * (trackWidth - 64)
   const indY = (1 - pct) * (1 - pct) * 18 + 2 * (1 - pct) * pct * 38 + pct * pct * 18
 
+  const activeItem = EMOJI_RATINGS[Math.max(0, Math.min(4, activeRating - 1))]
+
   return (
     <div className="w-full flex flex-col items-center select-none">
-      {/* 5 EMOJIS ARC CAROUSEL */}
+      {/* 5 EMOJIS ARC SCROLL CAROUSEL */}
       <div
         ref={containerRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className="relative w-full max-w-[340px] h-[135px] flex items-center justify-center cursor-grab active:cursor-grabbing my-2 px-1 overflow-visible"
+        onWheel={handleWheel}
+        className="relative w-full max-w-[340px] h-[140px] flex items-center justify-center cursor-grab active:cursor-grabbing my-2 px-1 overflow-visible touch-none"
       >
         {EMOJI_RATINGS.map((item, index) => {
           const offset = index - scrollPos
           const absOffset = Math.abs(offset)
           const isActive = absOffset < 0.45
 
-          // Scale & opacity calculation continuous with distance
           const scale = Math.max(0.70, 1.38 - absOffset * 0.36)
           const opacity = Math.max(0.35, 1.0 - absOffset * 0.28)
           const translateX = offset * 68
@@ -211,29 +232,32 @@ export function StarRating({
                 zIndex: Math.round(100 - absOffset * 20),
               }}
             >
-              {/* Emoji Circle Container */}
+              {/* Telegram Sticker Animated Emoji Circle */}
               <div className="relative flex items-center justify-center">
                 {isActive && (
                   <>
                     {/* Glowing outer halo */}
                     <div
-                      className="absolute -inset-3 rounded-full opacity-60 blur-md pointer-events-none animate-pulse"
-                      style={{ background: `radial-gradient(circle, ${item.color}66 0%, transparent 70%)` }}
+                      className="absolute -inset-3.5 rounded-full opacity-70 blur-md pointer-events-none animate-pulse"
+                      style={{ background: `radial-gradient(circle, ${item.color}77 0%, transparent 70%)` }}
                     />
-                    {/* Tiny sparkle accent */}
-                    <span className="absolute -top-3 -right-2 text-xs">✨</span>
-                    <span className="absolute -bottom-2 -left-2 text-[10px]">✦</span>
+                    {/* Telegram Sticker Sparkle Particles */}
+                    <span className="absolute -top-3.5 -right-2 text-sm animate-bounce" style={{ animationDuration: '1.6s' }}>✨</span>
+                    <span className="absolute -top-2 -left-3 text-xs animate-pulse">🌟</span>
+                    <span className="absolute -bottom-2.5 -right-2 text-[10px]">💫</span>
+                    <span className="absolute -bottom-2 -left-2 text-[11px] animate-bounce" style={{ animationDuration: '2.2s' }}>🎉</span>
                   </>
                 )}
 
                 <div
+                  key={isActive ? `sticker-${item.rating}-${stickerPopKey}` : `inactive-${item.rating}`}
                   className={`flex items-center justify-center rounded-full transition-all duration-300 ${
                     isActive
-                      ? 'w-15 h-15 bg-gradient-to-b from-amber-50 to-white ring-[3.5px] ring-amber-400 shadow-[0_10px_25px_rgba(245,158,11,0.3)]'
+                      ? 'w-16 h-16 bg-gradient-to-b from-amber-50 to-white ring-[4px] ring-amber-400 shadow-[0_12px_28px_rgba(245,158,11,0.35)] tg-sticker-bounce tg-sticker-pop'
                       : 'w-11 h-11 bg-white border border-stone-200/90 shadow-2xs hover:border-amber-300'
                   }`}
                 >
-                  <span className={`transition-transform duration-200 ${isActive ? 'text-3xl scale-110 drop-shadow-xs' : 'text-xl opacity-90'}`}>
+                  <span className={`transition-transform duration-200 ${isActive ? 'text-4xl drop-shadow-md' : 'text-xl opacity-90'}`}>
                     {item.emoji}
                   </span>
                 </div>
@@ -243,7 +267,7 @@ export function StarRating({
               <span
                 className={`mt-2 text-center transition-all duration-200 ${
                   isActive
-                    ? 'text-xs font-black text-[#D97706] scale-110'
+                    ? 'text-xs font-black text-[#D97706] scale-110 drop-shadow-xs'
                     : 'text-[11px] font-medium text-stone-400'
                 }`}
               >
@@ -299,8 +323,25 @@ export function StarRating({
         </svg>
       </div>
 
+      {/* RATING SELECTION CONFIRMATION BUTTON */}
+      <button
+        type="button"
+        onClick={handleConfirmSelection}
+        className="w-full max-w-[340px] mt-3 mb-2 py-3.5 px-6 rounded-2xl font-black text-white text-base shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.96] flex items-center justify-center gap-2.5 cursor-pointer tracking-wide group"
+        style={{
+          background: `linear-gradient(135deg, ${activeItem.color}, ${activeItem.color}E6)`,
+          boxShadow: `0 10px 25px -4px ${activeItem.color}66`,
+        }}
+      >
+        <span>Select &ldquo;{activeItem.label}&rdquo;</span>
+        <span className="text-2xl transition-transform duration-200 group-hover:scale-125 group-hover:rotate-12">
+          {activeItem.emoji}
+        </span>
+        <ArrowRight className="h-4.5 w-4.5 transition-transform duration-200 group-hover:translate-x-1" />
+      </button>
+
       {/* SECURITY / TRUST CONFIRMATION BADGE */}
-      <div className="w-full max-w-[340px] mt-6 mb-4 rounded-2xl bg-white border border-stone-100 p-4 flex items-center gap-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+      <div className="w-full max-w-[340px] mt-3 mb-4 rounded-2xl bg-white border border-stone-100 p-4 flex items-center gap-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 shrink-0">
           <ShieldCheck className="h-5.5 w-5.5" />
         </div>
@@ -311,12 +352,34 @@ export function StarRating({
       </div>
 
       {/* FOOTER */}
-      <div className="flex items-center justify-center gap-1.5 pt-2 pb-1 text-[11px] text-stone-400 font-medium">
+      <div className="flex items-center justify-center gap-1.5 pt-1 pb-1 text-[11px] text-stone-400 font-medium">
         <Lock className="h-3.5 w-3.5 text-amber-500" />
         <span>
           Powered by <strong className="font-bold text-amber-600">{ownerName || 'Mayur'}</strong> Experience Platform
         </span>
       </div>
+
+      {/* TELEGRAM STICKER ANIMATION STYLES */}
+      <style jsx global>{`
+        .tg-sticker-pop {
+          animation: tgStickerPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .tg-sticker-bounce {
+          animation: tgStickerWobble 2.4s ease-in-out infinite alternate;
+        }
+        @keyframes tgStickerPop {
+          0% { transform: scale(0.65) rotate(-12deg); opacity: 0.6; }
+          60% { transform: scale(1.22) rotate(6deg); opacity: 1; }
+          80% { transform: scale(0.95) rotate(-3deg); }
+          100% { transform: scale(1.1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes tgStickerWobble {
+          0% { transform: translateY(0) rotate(0deg); }
+          30% { transform: translateY(-4px) rotate(-3deg); }
+          60% { transform: translateY(-1px) rotate(3deg); }
+          100% { transform: translateY(-3px) rotate(-1deg); }
+        }
+      `}</style>
     </div>
   )
 }
