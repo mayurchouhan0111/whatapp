@@ -252,6 +252,15 @@ export async function POST(request: Request) {
     // crashing the send-builder later in the stack.
     let templateRow: MessageTemplate | null = null
     if (message_type === 'template' && template_name) {
+      if (template_name === 'hello_world') {
+        return NextResponse.json(
+          {
+            error:
+              'The sample "hello_world" template is restricted by Meta to test numbers only. Please select or create a custom approved template in Settings → Templates.',
+          },
+          { status: 400 },
+        )
+      }
       const { data } = await supabase
         .from('message_templates')
         .select('*')
