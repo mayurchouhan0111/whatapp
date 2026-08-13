@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Sparkles, ShieldCheck, Lock } from 'lucide-react'
+import { ShieldCheck, Lock } from 'lucide-react'
 
 export interface RatingItem {
   rating: number
@@ -11,8 +11,8 @@ export interface RatingItem {
 }
 
 export const EMOJI_RATINGS: RatingItem[] = [
-  { rating: 1, emoji: '😠', label: 'Terrible', color: '#EF4444' },
-  { rating: 2, emoji: '😞', label: 'Poor', color: '#F97316' },
+  { rating: 1, emoji: '😡', label: 'Terrible', color: '#EF4444' },
+  { rating: 2, emoji: '🙁', label: 'Poor', color: '#F97316' },
   { rating: 3, emoji: '😊', label: 'Good', color: '#EAB308' },
   { rating: 4, emoji: '😍', label: 'Great', color: '#F59E0B' },
   { rating: 5, emoji: '🤩', label: 'Amazing', color: '#8B5CF6' },
@@ -35,7 +35,7 @@ export function StarRating({
   ownerName = 'Mayur',
   businessName = 'Mayur Experience Platform',
 }: StarRatingProps) {
-  // Initial center position index (default to 3 = rating 4 "Great", matching reference image)
+  // Default initial active index to 3 (Rating 4: "Great", matching reference image)
   const initialIndex = value ? Math.max(0, Math.min(4, value - 1)) : 3
 
   const [scrollPos, setScrollPos] = useState<number>(initialIndex)
@@ -50,14 +50,12 @@ export function StarRating({
   })
   const velocityRef = useRef<number>(0)
   const animFrameRef = useRef<number | null>(null)
-  const carouselRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  // Keep ref synchronized with state
   useEffect(() => {
     scrollPosRef.current = scrollPos
   }, [scrollPos])
 
-  // Synchronize when value changes externally
   useEffect(() => {
     if (value !== null && value !== activeRating && !isDragging) {
       const targetIdx = value - 1
@@ -66,8 +64,7 @@ export function StarRating({
     }
   }, [value, activeRating, isDragging])
 
-  // Smooth spring / cubic animation to target index
-  const animateToPos = useCallback((target: number, duration = 320) => {
+  const animateToPos = useCallback((target: number, duration = 280) => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
     const start = scrollPosRef.current
     const startTime = performance.now()
@@ -92,7 +89,6 @@ export function StarRating({
     animFrameRef.current = requestAnimationFrame(step)
   }, [])
 
-  // Gesture handling: Pointer / Touch events
   const handlePointerDown = (e: React.PointerEvent) => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
     setIsDragging(true)
@@ -107,16 +103,14 @@ export function StarRating({
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return
     const deltaX = e.clientX - dragStartRef.current.x
-    // Responsive step distance (~68px per item)
-    const stepWidth = 68
+    const stepWidth = 60
     const rawPos = dragStartRef.current.scrollStart - deltaX / stepWidth
 
-    // Rubberband elastic bounds at edges (-0.3 to 4.3)
     let clampedPos = rawPos
     if (rawPos < 0) {
-      clampedPos = rawPos * 0.25
+      clampedPos = rawPos * 0.2
     } else if (rawPos > 4) {
-      clampedPos = 4 + (rawPos - 4) * 0.25
+      clampedPos = 4 + (rawPos - 4) * 0.2
     }
 
     const now = performance.now()
@@ -129,7 +123,6 @@ export function StarRating({
     setScrollPos(clampedPos)
     scrollPosRef.current = clampedPos
 
-    // Update active rating in real time as drag occurs
     const nearest = Math.max(1, Math.min(5, Math.round(clampedPos) + 1))
     if (nearest !== activeRating) {
       setActiveRating(nearest)
@@ -140,196 +133,145 @@ export function StarRating({
     if (!isDragging) return
     setIsDragging(false)
 
-    // Momentum snapping calculation
-    let target = Math.round(scrollPosRef.current + velocityRef.current * 100)
+    let target = Math.round(scrollPosRef.current + velocityRef.current * 80)
     target = Math.max(0, Math.min(4, target))
 
-    setActiveRating(target + 1)
-    animateToPos(target, 280)
+    const newRating = target + 1
+    setActiveRating(newRating)
+    animateToPos(target, 250)
 
-    // Optional haptic vibration
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-      try {
-        navigator.vibrate(15)
-      } catch {}
+      try { navigator.vibrate(15) } catch {}
     }
+
+    setTimeout(() => {
+      onChange(newRating)
+    }, 220)
   }
 
-  // Handle direct tap selection on an emoji
   const handleSelectEmoji = (index: number) => {
     if (isDragging) return
     const newRating = index + 1
-    if (activeRating === newRating) {
-      // Tapping the centered active emoji confirms selection
-      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-        try { navigator.vibrate(25) } catch {}
-      }
-      onChange(newRating)
-      return
-    }
     setActiveRating(newRating)
-    animateToPos(index, 300)
+    animateToPos(index, 260)
 
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-      try {
-        navigator.vibrate(20)
-      } catch {}
+      try { navigator.vibrate(20) } catch {}
     }
+
+    setTimeout(() => {
+      onChange(newRating)
+    }, 220)
   }
 
-  // Calculate track indicator SVG coordinates along curved path
+  // Calculate coordinates along arc path for 5 items
+  // Path starts at (32, 20), sags down to (160, 44) in center, ends at (288, 20)
   const trackWidth = 320
-  const indPct = Math.max(0, Math.min(1, scrollPos / 4))
-  const indX = 35 + indPct * (trackWidth - 70)
-  const indY = 24 + Math.pow((indPct - 0.5) * 2, 2) * 16
+  const getNodeCoords = (index: number) => {
+    const t = index / 4
+    const x = 32 + t * (trackWidth - 64)
+    // Quadratic bezier y equation for P0(32, 20), P1(160, 44), P2(288, 20)
+    const y = (1 - t) * (1 - t) * 20 + 2 * (1 - t) * t * 44 + t * t * 20
+    return { x, y }
+  }
 
-  const activeItem = EMOJI_RATINGS[Math.max(0, Math.min(4, activeRating - 1))]
+  // Active indicator coordinates along continuous curve
+  const pct = Math.max(0, Math.min(1, scrollPos / 4))
+  const indX = 32 + pct * (trackWidth - 64)
+  const indY = (1 - pct) * (1 - pct) * 20 + 2 * (1 - pct) * pct * 44 + pct * pct * 20
 
   return (
-    <div className="w-full flex flex-col items-center select-none touch-pan-y">
-      {/* 5. INTERACTIVE EMOJI CAROUSEL AREA */}
+    <div className="w-full flex flex-col items-center select-none">
+      {/* 5 EMOJIS ARC CONTAINER */}
       <div
-        ref={carouselRef}
+        ref={containerRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className="relative w-full max-w-[360px] h-[190px] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-visible my-1"
+        className="relative w-full max-w-[340px] h-[125px] flex items-center justify-between cursor-grab active:cursor-grabbing my-1 px-1 overflow-visible"
       >
-        {/* Soft glowing radial backdrop under active emoji */}
-        <div
-          className="absolute w-40 h-40 rounded-full opacity-35 blur-2xl transition-all duration-300 pointer-events-none"
-          style={{
-            left: `calc(50% + ${(scrollPos - 2) * -16}px - 80px)`,
-            top: '15px',
-            background: `radial-gradient(circle, ${activeItem.color} 0%, transparent 70%)`,
-          }}
-        />
+        {EMOJI_RATINGS.map((item, index) => {
+          const coords = getNodeCoords(index)
+          const absOffset = Math.abs(index - scrollPos)
+          const isActive = absOffset < 0.45
 
-        {/* Emojis Container */}
-        <div className="relative w-full h-full flex items-center justify-center">
-          {EMOJI_RATINGS.map((item, index) => {
-            // Distance from current scroll position
-            const offset = index - scrollPos
-            const absOffset = Math.abs(offset)
+          return (
+            <div
+              key={item.rating}
+              onClick={() => handleSelectEmoji(index)}
+              className="absolute flex flex-col items-center cursor-pointer transition-all duration-200"
+              style={{
+                left: `${coords.x}px`,
+                top: `${coords.y - 42}px`,
+                transform: 'translateX(-50%)',
+                zIndex: isActive ? 30 : 10,
+              }}
+            >
+              {/* Emoji Circle Button */}
+              <div className="relative flex items-center justify-center">
+                {isActive && (
+                  <>
+                    {/* Glowing outer halo */}
+                    <div
+                      className="absolute -inset-3 rounded-full opacity-60 blur-md pointer-events-none animate-pulse"
+                      style={{ background: `radial-gradient(circle, ${item.color}66 0%, transparent 70%)` }}
+                    />
+                    {/* Sparkle accent */}
+                    <span className="absolute -top-2.5 -right-2 text-xs">✨</span>
+                  </>
+                )}
 
-            // Dynamic continuous scaling & opacity
-            const scale = Math.max(0.68, 1.42 - absOffset * 0.36)
-            const opacity = Math.max(0.35, 1.0 - absOffset * 0.28)
-
-            // 3D Arc vertical curve (center is elevated)
-            const yArc = Math.pow(offset, 2) * 8
-            const yElevation = absOffset < 0.5 ? -14 * (1 - absOffset * 2) : 0
-            const translateY = yArc + yElevation
-
-            // Horizontal displacement
-            const translateX = offset * 68
-
-            const isActive = absOffset < 0.4
-
-            return (
-              <div
-                key={item.rating}
-                onClick={() => handleSelectEmoji(index)}
-                className="absolute flex flex-col items-center transition-transform duration-75 ease-out cursor-pointer"
-                style={{
-                  transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
-                  opacity,
-                  zIndex: Math.round(100 - absOffset * 20),
-                }}
-              >
-                {/* Active Glowing Ring & Particle Container */}
-                <div className="relative flex items-center justify-center">
-                  {isActive && (
-                    <>
-                      {/* Outer pulsing ring */}
-                      <div
-                        className="absolute -inset-3.5 rounded-full opacity-40 animate-ping pointer-events-none"
-                        style={{ border: `2.5px solid ${item.color}` }}
-                      />
-                      {/* Soft ambient blur ring */}
-                      <div
-                        className="absolute -inset-4 rounded-full opacity-60 blur-md pointer-events-none"
-                        style={{ background: `radial-gradient(circle, ${item.color}45 0%, transparent 70%)` }}
-                      />
-                      {/* Floating sparkle accents */}
-                      <span className="absolute -top-3 -right-2 text-xs animate-bounce" style={{ animationDuration: '1.8s' }}>
-                        ✨
-                      </span>
-                      <span className="absolute -bottom-2 -left-2 text-[10px] animate-pulse">🌟</span>
-                    </>
-                  )}
-
-                  {/* Emoji Circle Button */}
-                  <div
-                    className={`relative flex items-center justify-center rounded-full transition-all duration-300 ${
-                      isActive
-                        ? 'w-20 h-20 shadow-[0_12px_28px_rgba(245,158,11,0.35)] ring-[3.5px] ring-amber-400 bg-gradient-to-b from-amber-50 to-amber-100/90'
-                        : 'w-14 h-14 bg-white/90 shadow-md border border-stone-200/80 hover:bg-white hover:border-amber-200'
-                    }`}
-                  >
-                    <span
-                      className={`transition-transform duration-200 ${
-                        isActive ? 'text-4xl scale-110 drop-shadow-md' : 'text-2xl opacity-90'
-                      }`}
-                    >
-                      {item.emoji}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Animated Rating Label */}
-                <span
-                  className={`mt-2.5 text-xs tracking-tight transition-all duration-200 ${
+                <div
+                  className={`flex items-center justify-center rounded-full transition-all duration-300 ${
                     isActive
-                      ? 'text-amber-600 font-extrabold text-sm scale-110 drop-shadow-xs'
-                      : 'text-stone-500 font-semibold opacity-85'
+                      ? 'w-14 h-14 bg-gradient-to-b from-amber-50 to-amber-100/90 ring-[3.5px] ring-amber-400 shadow-[0_8px_20px_rgba(245,158,11,0.35)] scale-110'
+                      : 'w-11 h-11 bg-white border border-stone-200/90 shadow-2xs hover:border-amber-300 hover:scale-105'
                   }`}
-                  style={{
-                    color: isActive ? '#D97706' : '#78716C',
-                  }}
                 >
-                  {item.label}
-                </span>
+                  <span className={`transition-transform duration-200 ${isActive ? 'text-3xl' : 'text-xl'}`}>
+                    {item.emoji}
+                  </span>
+                </div>
               </div>
-            )
-          })}
-        </div>
+
+              {/* Rating Label */}
+              <span
+                className={`mt-1.5 text-center transition-all duration-200 ${
+                  isActive
+                    ? 'text-xs font-black text-[#D97706] scale-105'
+                    : 'text-[11px] font-semibold text-stone-500'
+                }`}
+              >
+                {item.label}
+              </span>
+            </div>
+          )
+        })}
       </div>
 
-      {/* 11. CURVED RATING TRACK SVG */}
-      <div className="relative w-full max-w-[340px] h-12 flex items-center justify-center mt-1">
+      {/* CURVED SVG TRACK LINE & NODES */}
+      <div className="relative w-full max-w-[340px] h-10 flex items-center justify-center -mt-3">
         <svg viewBox="0 0 320 50" className="w-full h-full overflow-visible">
-          {/* Subtle curved track line matching arc */}
+          {/* Subtle curved track line */}
           <path
-            d="M 35 24 Q 160 40 285 24"
+            d="M 32 20 Q 160 44 288 20"
             fill="none"
             stroke="#E7E5E4"
             strokeWidth="2.5"
             strokeLinecap="round"
           />
-          <path
-            d="M 35 24 Q 160 40 285 24"
-            fill="none"
-            stroke="#FDE68A"
-            strokeWidth="1.5"
-            strokeDasharray="4 4"
-            strokeLinecap="round"
-            className="opacity-70"
-          />
 
-          {/* 5 Rating Position Dots */}
+          {/* 5 Position Nodes */}
           {[0, 1, 2, 3, 4].map((i) => {
-            const pct = i / 4
-            const px = 35 + pct * (trackWidth - 70)
-            const py = 24 + Math.pow((pct - 0.5) * 2, 2) * 16
-            const isDotActive = Math.abs(i - scrollPos) < 0.4
+            const coords = getNodeCoords(i)
+            const isDotActive = Math.abs(i - scrollPos) < 0.45
 
             return (
               <g key={i} onClick={() => handleSelectEmoji(i)} className="cursor-pointer">
                 <circle
-                  cx={px}
-                  cy={py}
+                  cx={coords.x}
+                  cy={coords.y}
                   r={isDotActive ? '6' : '4'}
                   fill={isDotActive ? '#F59E0B' : '#FFFFFF'}
                   stroke={isDotActive ? '#F59E0B' : '#D6D3D1'}
@@ -340,54 +282,33 @@ export function StarRating({
             )
           })}
 
-          {/* Animated Active Indicator Dot gliding smoothly along track */}
+          {/* Active Glide Dot */}
           <circle
             cx={indX}
             cy={indY}
-            r="7"
+            r="6.5"
             fill="#F59E0B"
             stroke="#FFFFFF"
-            strokeWidth="2.5"
-            className="drop-shadow-[0_2px_8px_rgba(245,158,11,0.6)] transition-all duration-75"
+            strokeWidth="2"
+            className="drop-shadow-[0_2px_6px_rgba(245,158,11,0.5)] transition-all duration-75"
           />
         </svg>
       </div>
 
-      {/* 12. EXPLICIT RATING SELECTION BUTTON */}
-      <button
-        type="button"
-        onClick={() => {
-          if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-            try {
-              navigator.vibrate(25)
-            } catch {}
-          }
-          onChange(activeRating)
-        }}
-        className="w-full max-w-[340px] mt-4 py-3.5 px-6 rounded-2xl font-black text-white shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.97] flex items-center justify-center gap-2.5 text-base cursor-pointer tracking-wide group"
-        style={{
-          background: `linear-gradient(135deg, ${activeItem.color}, ${activeItem.color}E6)`,
-          boxShadow: `0 10px 28px -4px ${activeItem.color}66`,
-        }}
-      >
-        <span>Select &ldquo;{activeItem.label}&rdquo;</span>
-        <span className="text-xl transition-transform duration-200 group-hover:scale-125">{activeItem.emoji}</span>
-      </button>
-
-      {/* 16. SECURITY CONFIRMATION BOX */}
-      <div className="w-full max-w-[340px] mt-6 mb-4 rounded-2xl bg-[#F0FDF4] border border-[#DCFCE7] p-4 flex items-center justify-center gap-3 shadow-xs transition-all duration-300">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shrink-0">
+      {/* SECURITY / TRUST CONFIRMATION BADGE */}
+      <div className="w-full max-w-[340px] mt-5 mb-4 rounded-2xl bg-[#F4FBF7] border border-[#DCFCE7] p-4 flex items-center gap-3.5 shadow-2xs">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100/90 text-emerald-600 shrink-0">
           <ShieldCheck className="h-5 w-5" />
         </div>
-        <p className="text-xs text-stone-600 leading-snug font-medium text-left">
+        <p className="text-xs text-stone-600 leading-relaxed font-medium text-left">
           Your feedback is securely logged and{' '}
           <span className="font-bold text-emerald-600">highly valued</span>
         </p>
       </div>
 
       {/* FOOTER */}
-      <div className="flex items-center justify-center gap-1.5 pt-2 pb-1 text-[11px] text-stone-400 font-medium">
-        <Lock className="h-3.5 w-3.5 text-amber-500/80" />
+      <div className="flex items-center justify-center gap-1.5 pt-1 pb-1 text-[11px] text-stone-400 font-medium">
+        <Lock className="h-3.5 w-3.5 text-amber-500" />
         <span>
           Powered by <strong className="font-bold text-amber-600">{ownerName || 'Mayur'}</strong> Experience Platform
         </span>
@@ -395,6 +316,3 @@ export function StarRating({
     </div>
   )
 }
-
-
-

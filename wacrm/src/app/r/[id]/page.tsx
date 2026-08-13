@@ -651,14 +651,16 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border/30 bg-muted/5 px-6 py-3">
-          <div className="flex items-center justify-center gap-2">
-            <Camera className="h-3 w-3 text-muted-foreground/40" />
-            <p className="text-[10px] text-muted-foreground/50 text-center">
-              Powered by <span className="font-semibold text-muted-foreground/70">{data.businessName}</span> Experience Platform
-            </p>
+        {step !== 'rating' && (
+          <div className="border-t border-border/30 bg-muted/5 px-6 py-3">
+            <div className="flex items-center justify-center gap-2">
+              <Camera className="h-3 w-3 text-muted-foreground/40" />
+              <p className="text-[10px] text-muted-foreground/50 text-center">
+                Powered by <span className="font-semibold text-muted-foreground/70">{data.businessName}</span> Experience Platform
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <style jsx global>{`
