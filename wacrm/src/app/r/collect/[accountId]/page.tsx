@@ -3,7 +3,7 @@
 import { use, useEffect, useState, Suspense } from 'react'
 import {
   Send, Phone, User, Table as TableIcon, CheckCircle2,
-  Copy, Sparkles, Loader2, UtensilsCrossed, AlertCircle,
+  Copy, Sparkles, Loader2, UtensilsCrossed, AlertCircle, MessageCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,7 +22,10 @@ function PublicCollectorContent({ accountId }: { accountId: string }) {
 
   const [submitting, setSubmitting] = useState(false)
   const [lastSentLink, setLastSentLink] = useState<string | null>(null)
+  const [lastSentPhone, setLastSentPhone] = useState('')
+  const [lastSentName, setLastSentName] = useState('')
   const [sentViaWa, setSentViaWa] = useState(false)
+  const [waReason, setWaReason] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -64,6 +67,8 @@ function PublicCollectorContent({ accountId }: { accountId: string }) {
 
     setSubmitting(true)
     setLastSentLink(null)
+    const phoneToSubmit = customerPhone.trim()
+    const nameToSubmit = customerName.trim()
 
     try {
       const res = await fetch('/api/public/reputation/staff/collect', {
@@ -71,8 +76,8 @@ function PublicCollectorContent({ accountId }: { accountId: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           accountId,
-          phone: customerPhone.trim(),
-          name: customerName.trim() || undefined,
+          phone: phoneToSubmit,
+          name: nameToSubmit || undefined,
           tableNumber: tableNumber.trim() || undefined,
           staffId: selectedStaffId || undefined,
         }),
@@ -82,7 +87,10 @@ function PublicCollectorContent({ accountId }: { accountId: string }) {
       if (!res.ok) throw new Error(payload.error || 'Failed to send request.')
 
       setLastSentLink(payload.reviewLink)
+      setLastSentPhone(phoneToSubmit)
+      setLastSentName(nameToSubmit)
       setSentViaWa(payload.sentViaWhatsapp)
+      setWaReason(payload.waErrorReason || null)
 
       // Clear phone & table for next customer
       setCustomerPhone('')
@@ -230,20 +238,44 @@ function PublicCollectorContent({ accountId }: { accountId: string }) {
 
             {/* Success Result Box */}
             {lastSentLink && (
-              <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-center space-y-2 animate-scale-in">
-                <div className="flex items-center justify-center gap-1.5 text-emerald-600 font-bold text-xs">
-                  <CheckCircle2 className="h-4 w-4" />
-                  {sentViaWa ? 'Sent via WhatsApp to Customer!' : 'Review Link Created!'}
+              <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-center space-y-2.5 animate-scale-in">
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                    <CheckCircle2 className="h-4 w-4" />
+                    {sentViaWa ? 'Sent Automatically via WhatsApp Meta API!' : 'Contact Added & Review Link Ready!'}
+                  </div>
+                  {!sentViaWa && waReason && (
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium px-2">
+                      Note: {waReason} Use the WhatsApp button below to send directly!
+                    </p>
+                  )}
                 </div>
+
                 <p className="text-[11px] text-muted-foreground font-mono break-all bg-background/60 p-2 rounded-lg border border-border/40">
                   {lastSentLink}
                 </p>
+
+                {/* 1-Tap Send via WhatsApp Button */}
+                <a
+                  href={`https://api.whatsapp.com/send?phone=${encodeURIComponent(
+                    lastSentPhone ? lastSentPhone.replace(/\D/g, '') : ''
+                  )}&text=${encodeURIComponent(
+                    `Hi ${lastSentName || 'there'}, thank you for dining with us at ${businessName}! We value your feedback. Please click here to rate your experience and spin the wheel for rewards: ${lastSentLink}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold rounded-lg shadow-md transition-all decoration-none"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Send Instant WhatsApp Message
+                </a>
+
                 <div className="flex justify-center gap-2 pt-1">
                   <Button
                     variant="outline"
                     size="xs"
                     onClick={() => copyToClipboard(lastSentLink)}
-                    className="text-xs font-bold gap-1"
+                    className="text-xs font-bold gap-1 flex-1"
                   >
                     {copied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                     {copied ? 'Copied!' : 'Copy Link'}
@@ -252,9 +284,9 @@ function PublicCollectorContent({ accountId }: { accountId: string }) {
                     variant="secondary"
                     size="xs"
                     onClick={() => window.open(lastSentLink, '_blank')}
-                    className="text-xs font-bold gap-1"
+                    className="text-xs font-bold gap-1 flex-1"
                   >
-                    <Sparkles className="h-3.5 w-3.5" /> Open Preview
+                    <Sparkles className="h-3.5 w-3.5" /> Preview
                   </Button>
                 </div>
               </div>

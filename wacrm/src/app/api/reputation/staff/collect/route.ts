@@ -9,6 +9,15 @@ import {
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
 import { checkFeatureGate, checkPlanLimit } from '@/lib/billing/limits'
+function safeDecryptToken(rawToken: string): string {
+  if (!rawToken) return ''
+  if (!rawToken.includes(':')) return rawToken
+  try {
+    return decrypt(rawToken)
+  } catch {
+    return rawToken
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -147,15 +156,21 @@ export async function POST(request: Request) {
 
     // 4. Try sending via WhatsApp if configured
     let sentViaWhatsapp = false
+    let waErrorReason: string | null = null
+
     const { data: whatsappConfig } = await supabase
       .from('whatsapp_config')
       .select('*')
       .eq('account_id', accountId)
       .maybeSingle()
 
-    if (whatsappConfig && whatsappConfig.phone_number_id && whatsappConfig.access_token) {
+    if (!whatsappConfig) {
+      waErrorReason = 'No WhatsApp Business configuration found for this account.'
+    } else if (!whatsappConfig.phone_number_id || !whatsappConfig.access_token) {
+      waErrorReason = 'WhatsApp Phone Number ID or Access Token is missing.'
+    } else {
       try {
-        const accessToken = decrypt(whatsappConfig.access_token)
+        const accessToken = safeDecryptToken(whatsappConfig.access_token)
         const { data: account } = await supabase
           .from('accounts')
           .select('name')
@@ -215,13 +230,17 @@ export async function POST(request: Request) {
               })
             }
             sentViaWhatsapp = true
+            waErrorReason = null
             break
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err)
+            waErrorReason = msg
+            console.error(`[staff/collect] Meta API send error for phone ${v}:`, msg)
             if (!isRecipientNotAllowedError(msg)) break
           }
         }
       } catch (waErr) {
+        waErrorReason = waErr instanceof Error ? waErr.message : String(waErr)
         console.error('[staff/collect] WhatsApp error:', waErr)
       }
     }
@@ -231,6 +250,7 @@ export async function POST(request: Request) {
       data: reviewRequest,
       reviewLink,
       sentViaWhatsapp,
+      waErrorReason,
     })
   } catch (error) {
     console.error('[reputation/staff/collect/POST] error:', error)
