@@ -148,6 +148,26 @@ export const RATE_LIMITS = {
    *  instance deploy needs the Redis swap described at the top of
    *  this file (the per-key call sites don't change). */
   publicApi: { limit: 120, windowMs: 60_000 },
+  /** Public review page reads (`GET /r/[id]`), keyed per IP. Loose —
+   *  a forwarded link may legitimately retry under flaky mobile
+   *  connectivity, but enumeration of request IDs should be bounded. */
+  reputationRead: { limit: 120, windowMs: 60_000 },
+  /** Public review submissions / reward claims (`PUT /r/[id]`), keyed
+   *  per IP. Tight: reserves one rating + optional coupon per review,
+   *  so burst replays of the same link are cheap to block. */
+  reputationWrite: { limit: 15, windowMs: 60_000 },
+  /** Public voice transcription (`POST /api/public/reputation/voice`),
+   *  keyed per IP. Whisper burns provider credits per request, so this
+   *  must be strict enough to stop a script from draining the key. */
+  reputationVoice: { limit: 10, windowMs: 60_000 },
+  /** Public AI review polish (`POST /api/public/reputation/ai-generate`),
+   *  keyed per IP. Same provider-cost reasoning as voice. */
+  reputationAiPolish: { limit: 20, windowMs: 60_000 },
+  /** Public waiter terminal collect (`POST /api/public/reputation/
+   *  staff/collect` + `/qr`), keyed per IP. This both creates a
+   *  review_request AND fires a WhatsApp invite, so an unauthenticated
+   *  sweep must be capped hard. */
+  reputationCollect: { limit: 20, windowMs: 60_000 },
 } as const;
 
 /** Test-only helper. Clears the in-memory state so unit tests don't

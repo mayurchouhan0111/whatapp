@@ -8,8 +8,9 @@ import {
   phoneVariants,
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
+import { checkFeatureGate, checkPlanLimit } from '@/lib/billing/limits'
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const supabase = await createClient()
 
@@ -41,6 +42,7 @@ export async function GET(request: Request) {
       .select('*, contact:contacts(*)')
       .eq('account_id', accountId)
       .order('created_at', { ascending: false })
+      .limit(500)
 
     if (requestsError) {
       console.error('[reputation/requests/GET] failed:', requestsError.message)
@@ -81,6 +83,19 @@ export async function POST(request: Request) {
       )
     }
 
+    const reputationEnabled = await checkFeatureGate(accountId, 'reputation')
+    if (!reputationEnabled) {
+      return NextResponse.json(
+        { error: 'Reputation tools are not enabled on your plan. Please upgrade.' },
+        { status: 403 },
+      )
+    }
+
+    const reviewLimit = await checkPlanLimit(accountId, 'review_requests_per_month')
+    if (!reviewLimit.allowed) {
+      return NextResponse.json({ error: reviewLimit.message }, { status: 403 })
+    }
+
     const body = await request.json()
     const { contact_id, contact_ids } = body
 
@@ -95,10 +110,20 @@ export async function POST(request: Request) {
       )
     }
 
+    // The current implementation sends one review invitation at a time.
+    // Only a single contact is supported for now — passing multiple ids
+    // would silently drop everyone after the first.
+    if (targetContactIds.length > 1) {
+      return NextResponse.json(
+        { error: 'Sending to multiple contacts at once is not supported yet. Send one at a time.' },
+        { status: 400 }
+      )
+    }
+
     const { data: contact, error: contactErr } = await supabase
       .from('contacts')
       .select('*')
-      .eq('id', contact_id)
+      .eq('id', targetContactIds[0])
       .eq('account_id', accountId)
       .single()
 
@@ -126,7 +151,7 @@ export async function POST(request: Request) {
       .from('conversations')
       .select('id')
       .eq('account_id', accountId)
-      .eq('contact_id', contact_id)
+      .eq('contact_id', contact.id)
       .maybeSingle()
 
     if (!conversation) {
@@ -134,7 +159,7 @@ export async function POST(request: Request) {
         .from('conversations')
         .insert({
           account_id: accountId,
-          contact_id: contact_id,
+          contact_id: contact.id,
           status: 'open',
           last_message_text: '[Review Request Initiated]',
           last_message_at: new Date().toISOString(),
@@ -156,7 +181,7 @@ export async function POST(request: Request) {
       .from('review_requests')
       .insert({
         account_id: accountId,
-        contact_id: contact_id,
+        contact_id: contact.id,
         status: 'sent',
       })
       .select()

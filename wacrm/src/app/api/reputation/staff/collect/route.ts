@@ -8,6 +8,7 @@ import {
   phoneVariants,
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
+import { checkFeatureGate, checkPlanLimit } from '@/lib/billing/limits'
 
 export async function POST(request: Request) {
   try {
@@ -34,6 +35,19 @@ export async function POST(request: Request) {
         { error: 'Profile is not linked to an account.' },
         { status: 403 }
       )
+    }
+
+    const reputationEnabled = await checkFeatureGate(accountId, 'reputation')
+    if (!reputationEnabled) {
+      return NextResponse.json(
+        { error: 'Reputation tools are not enabled on your plan. Please upgrade.' },
+        { status: 403 },
+      )
+    }
+
+    const reviewLimit = await checkPlanLimit(accountId, 'review_requests_per_month')
+    if (!reviewLimit.allowed) {
+      return NextResponse.json({ error: reviewLimit.message }, { status: 403 })
     }
 
     const body = await request.json()

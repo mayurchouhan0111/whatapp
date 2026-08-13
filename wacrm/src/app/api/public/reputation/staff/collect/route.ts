@@ -8,9 +8,19 @@ import {
   phoneVariants,
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit'
+
+function clientIp(request: Request): string {
+  const fwd = request.headers.get('x-forwarded-for')
+  if (fwd) return fwd.split(',')[0]?.trim() || 'unknown'
+  return request.headers.get('x-real-ip') || 'unknown'
+}
 
 export async function GET(request: Request) {
   try {
+    const rl = checkRateLimit(`reputation-collect-read:${clientIp(request)}`, RATE_LIMITS.reputationCollect)
+    if (!rl.success) return rateLimitResponse(rl)
+
     const { searchParams } = new URL(request.url)
     const accountId = searchParams.get('accountId')
 
@@ -53,6 +63,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const rl = checkRateLimit(`reputation-collect-write:${clientIp(request)}`, RATE_LIMITS.reputationCollect)
+    if (!rl.success) return rateLimitResponse(rl)
+
     const db = supabaseAdmin()
     const body = await request.json()
     const { accountId, phone, name, staffId, tableNumber } = body as {

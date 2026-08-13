@@ -3,8 +3,36 @@ import { supabaseAdmin } from '@/lib/flows/admin-client'
 import {
   handlePostReviewAutomation,
 } from '@/lib/reputation/automation-handler'
-import { upsertLoyaltyPass, pickReward, generateDiscountCode, calculateRewardExpiry } from '@/lib/reputation/helpers'
+import {
+  upsertLoyaltyPass,
+  pickReward,
+  generateDiscountCode,
+  calculateRewardExpiry,
+  sanitizeRewardsConfig,
+  computeSentiment,
+  isValidRating,
+} from '@/lib/reputation/helpers'
 import { DEFAULT_REWARDS } from '@/types/reputation'
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit'
+import type { RewardSlice } from '@/types/reputation'
+
+function clientIp(request: Request): string {
+  const fwd = request.headers.get('x-forwarded-for')
+  if (fwd) return fwd.split(',')[0]?.trim() || 'unknown'
+  return request.headers.get('x-real-ip') || 'unknown'
+}
+
+function bindReward(reward: RewardSlice, discountCode: string, expiresAt: string, expiresAtIso: string) {
+  return {
+    label: reward.label,
+    emoji: reward.emoji,
+    discountCode,
+    discountPercent: reward.discount_percent || 15,
+    color: reward.color,
+    expiresAt,
+    expiresAtIso,
+  }
+}
 
 export async function GET(
   request: Request,
@@ -17,6 +45,9 @@ export async function GET(
     if (!id) {
       return NextResponse.json({ error: 'Missing request ID.' }, { status: 400 })
     }
+
+    const rl = checkRateLimit(`reputation-read:${clientIp(request)}`, RATE_LIMITS.reputationRead)
+    if (!rl.success) return rateLimitResponse(rl)
 
     const { data: reviewRequest, error: reqErr } = await db
       .from('review_requests')
@@ -60,12 +91,18 @@ export async function GET(
         .eq('id', id)
     }
 
+    const { data: loyalty } = await db
+      .from('customer_loyalty_passes')
+      .select('total_visits, stamps_count')
+      .eq('account_id', reviewRequest.account_id)
+      .eq('contact_id', reviewRequest.contact_id)
+      .maybeSingle()
+
     return NextResponse.json({
       data: {
         id: reviewRequest.id,
         businessName: account?.name || 'our business',
         contactName: contact?.name || 'Customer',
-        contactPhone: contact?.phone || '',
         googleReviewUrl: settings?.google_review_url || '',
         gateReviews: settings?.gate_reviews !== false,
         reviewThreshold: settings?.review_threshold ?? 4,
@@ -83,9 +120,12 @@ export async function GET(
           enableSpinWheel: settings?.enable_spin_wheel !== false,
           enableVoiceReview: settings?.enable_voice_review !== false,
           enableAiChips: settings?.enable_ai_chips !== false,
-          rewardsConfig: settings?.rewards_config || DEFAULT_REWARDS,
+          rewardsConfig: sanitizeRewardsConfig(settings?.rewards_config),
           rewardValidDays: settings?.reward_valid_days || 15,
         },
+        loyalty: loyalty
+          ? { total_visits: loyalty.total_visits, stamps_count: loyalty.stamps_count }
+          : null,
       },
     })
   } catch (error) {
@@ -106,6 +146,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Missing request ID.' }, { status: 400 })
     }
 
+    const rl = checkRateLimit(`reputation-write:${clientIp(request)}`, RATE_LIMITS.reputationWrite)
+    if (!rl.success) return rateLimitResponse(rl)
+
     const { data: reviewRequest, error: reqErr } = await db
       .from('review_requests')
       .select('*, contact:contacts(phone)')
@@ -123,44 +166,75 @@ export async function PUT(
       action,
       tagsSelected,
       aiGeneratedText,
-      voiceTranscript,
-      sentimentScore,
       recoveryActionRequested,
     } = body
 
     if (action === 'click_google') {
-      const finalRating = rating || 5
-      const rewardsConfig = body.rewardsConfig || DEFAULT_REWARDS
-      const pickedReward = pickReward(rewardsConfig)
-      const discountCode = generateDiscountCode()
+      if (!isValidRating(rating)) {
+        return NextResponse.json({ error: 'Valid rating (1-5) is required.' }, { status: 400 })
+      }
 
+      // Idempotency: a review request can only ever be claimed once.
+      // Replays (double-taps, refreshes, back-button) must return the
+      // already-stored coupon instead of minting a second one.
+      if (
+        reviewRequest.status === 'clicked' &&
+        reviewRequest.discount_code &&
+        reviewRequest.spin_reward_claimed
+      ) {
+        const reward: RewardSlice = {
+          label: reviewRequest.spin_reward_claimed,
+          emoji: '🎁',
+          probability: 0,
+          color: DEFAULT_REWARDS[0].color,
+        }
+        return NextResponse.json({
+          success: true,
+          alreadyClaimed: true,
+          reward: bindReward(
+            reward,
+            reviewRequest.discount_code,
+            reviewRequest.reward_expires_at || '',
+            reviewRequest.reward_expires_at || '',
+          ),
+        })
+      }
+
+      // Rewards come from the owner's saved config in the DB — never
+      // from the client. A tampered `rewardsConfig` body is ignored.
       const { data: settings } = await db
         .from('reputation_settings')
-        .select('reward_valid_days')
+        .select('rewards_config, reward_valid_days, enable_spin_wheel')
         .eq('account_id', reviewRequest.account_id)
         .maybeSingle()
 
       const validDays = settings?.reward_valid_days || 15
-      const { expiresAtIso, formattedDate } = calculateRewardExpiry(validDays)
+      const spinEnabled = settings?.enable_spin_wheel !== false
+      const pickedReward = pickReward(sanitizeRewardsConfig(settings?.rewards_config))
+      const discountCode = spinEnabled ? generateDiscountCode() : null
+      const { expiresAtIso, formattedDate } = spinEnabled
+        ? calculateRewardExpiry(validDays)
+        : { expiresAtIso: null, formattedDate: null }
+
+      const sentiment = computeSentiment(rating)
 
       await db
         .from('review_requests')
         .update({
           status: 'clicked',
-          rating: finalRating,
+          rating,
           clicked_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          tags_selected: tagsSelected || null,
+          tags_selected: Array.isArray(tagsSelected) ? tagsSelected : null,
           ai_generated_text: aiGeneratedText || null,
-          voice_transcript: voiceTranscript || null,
-          sentiment_score: sentimentScore || null,
-          spin_reward_claimed: pickedReward.label,
+          sentiment_score: sentiment,
+          spin_reward_claimed: spinEnabled ? pickedReward.label : null,
           discount_code: discountCode,
           reward_expires_at: expiresAtIso,
         })
         .eq('id', id)
 
-      if (reviewRequest.contact_id) {
+      if (reviewRequest.contact_id && !spinEnabled) {
         await upsertLoyaltyPass(db, reviewRequest.account_id, reviewRequest.contact_id)
       }
 
@@ -169,29 +243,25 @@ export async function PUT(
         accountId: reviewRequest.account_id,
         contactId: reviewRequest.contact_id,
         contactPhone,
-        rating: finalRating,
-        spinReward: pickedReward.label,
-        discountCode,
+        rating,
+        spinReward: spinEnabled ? pickedReward.label : undefined,
+        discountCode: discountCode || undefined,
       })
 
       return NextResponse.json({
         success: true,
-        reward: {
-          label: pickedReward.label,
-          emoji: pickedReward.emoji,
-          discountCode,
-          discountPercent: pickedReward.discount_percent || 15,
-          color: pickedReward.color,
-          expiresAt: formattedDate,
-          expiresAtIso,
-        },
+        reward: spinEnabled
+          ? bindReward(pickedReward, discountCode!, expiresAtIso!, formattedDate!)
+          : null,
       })
     }
 
     if (action === 'submit_feedback') {
-      if (typeof rating !== 'number' || rating < 1 || rating > 5) {
+      if (!isValidRating(rating)) {
         return NextResponse.json({ error: 'Valid rating (1-5) is required.' }, { status: 400 })
       }
+
+      const alreadyRated = reviewRequest.status === 'rated'
 
       await db
         .from('review_requests')
@@ -199,10 +269,9 @@ export async function PUT(
           status: 'rated',
           rating,
           feedback: feedback || null,
-          tags_selected: tagsSelected || null,
+          tags_selected: Array.isArray(tagsSelected) ? tagsSelected : null,
           ai_generated_text: aiGeneratedText || null,
-          voice_transcript: voiceTranscript || null,
-          sentiment_score: sentimentScore || null,
+          sentiment_score: computeSentiment(rating),
           recovery_action_requested: recoveryActionRequested || null,
           recovery_status: recoveryActionRequested ? 'pending' : null,
           updated_at: new Date().toISOString(),
@@ -216,19 +285,24 @@ export async function PUT(
         : ''
       const noteContent = `[Google Review Page] Star Rating: ${rating}/5 ${starsStr}${tagStr}${recoveryStr}\nPrivate Feedback: "${feedback || '(None)'}"`
 
-      await db.from('contact_notes').insert({
-        contact_id: reviewRequest.contact_id,
-        account_id: reviewRequest.account_id,
-        note_text: noteContent,
-      })
+      // Insert the private note + fire recovery automation only on the
+      // first submission — replays would otherwise stack duplicate
+      // notes and re-send recovery WhatsApps.
+      if (!alreadyRated) {
+        await db.from('contact_notes').insert({
+          contact_id: reviewRequest.contact_id,
+          account_id: reviewRequest.account_id,
+          note_text: noteContent,
+        })
 
-      const contactPhone = (reviewRequest.contact as { phone?: string })?.phone || ''
-      await handlePostReviewAutomation({
-        accountId: reviewRequest.account_id,
-        contactId: reviewRequest.contact_id,
-        contactPhone,
-        rating,
-      })
+        const contactPhone = (reviewRequest.contact as { phone?: string })?.phone || ''
+        await handlePostReviewAutomation({
+          accountId: reviewRequest.account_id,
+          contactId: reviewRequest.contact_id,
+          contactPhone,
+          rating,
+        })
+      }
 
       return NextResponse.json({ success: true })
     }

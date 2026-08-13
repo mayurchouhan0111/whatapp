@@ -102,6 +102,33 @@ describe("RATE_LIMITS presets", () => {
     expect(RATE_LIMITS.send.windowMs).toBe(60_000);
     expect(RATE_LIMITS.broadcast.windowMs).toBe(60_000);
   });
+
+  it("public reputation budgets exist and bound write/read traffic", async () => {
+    __resetRateLimitForTests();
+    const { RATE_LIMITS } = await import("./rate-limit");
+    // Reading a review is cheap; claiming a reward / sending a review
+    // invite costs money or WhatsApp volume, so its budget must be tighter.
+    expect(RATE_LIMITS.reputationRead.limit).toBeGreaterThan(RATE_LIMITS.reputationWrite.limit);
+    expect(RATE_LIMITS.reputationWrite.windowMs).toBe(60_000);
+    // AI endpoints burn provider credits — must be capped.
+    expect(RATE_LIMITS.reputationVoice.limit).toBeLessThanOrEqual(10);
+    expect(RATE_LIMITS.reputationAiPolish.limit).toBeLessThanOrEqual(20);
+    // Collect creates contacts + fires WhatsApp invites, so it is tight.
+    expect(RATE_LIMITS.reputationCollect.limit).toBeLessThanOrEqual(20);
+  });
+
+  it("reputation write budget actually blocks a burst from one IP", async () => {
+    __resetRateLimitForTests();
+    const { checkRateLimit, RATE_LIMITS } = await import("./rate-limit");
+
+    const limit = RATE_LIMITS.reputationWrite.limit;
+    const results: boolean[] = [];
+    for (let i = 0; i < limit + 1; i++) {
+      results.push(checkRateLimit("reputation-write:1.2.3.4", RATE_LIMITS.reputationWrite).success);
+    }
+    expect(results.slice(0, limit).every(Boolean)).toBe(true);
+    expect(results[limit]).toBe(false);
+  });
 });
 
 afterEach(() => {

@@ -15,6 +15,8 @@ export interface ReputationSettingsV2 {
   enable_ai_chips: boolean;
   rewards_config: RewardSlice[];
   reward_valid_days?: number;
+  brand_voice?: BrandVoice | null;
+  ai_model_preference?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +41,9 @@ export interface ReviewRequestV2 {
   table_number: string | null;
   source_type: 'qr_web' | 'qr_whatsapp' | 'direct_link';
   ai_generated_text: string | null;
+  ai_confidence_score?: number | null;
+  ai_model_used?: string | null;
+  response_time_ms?: number | null;
   voice_transcript: string | null;
   sentiment_score: number | null;
   tags_selected: string[];
@@ -146,6 +151,32 @@ export interface PosterDesign {
   promo_hook: string;
   show_stars: boolean;
   show_owner: boolean;
+}
+
+export interface CustomerContext {
+  contactName: string;
+  pastReviewCount: number;
+  pastAverageRating: number | null;
+  lastInteractionAt: string | null;
+  isRepeatCustomer: boolean;
+  pastPositiveReviews: string[];
+  pastNegativeReviews: string[];
+}
+
+export type BrandVoiceTone = 'warm' | 'professional' | 'casual' | 'empathetic';
+
+export interface BrandVoice {
+  tone: BrandVoiceTone;
+  style: string;
+  customInstructions: string;
+}
+
+export interface AIResponse {
+  reply: string;
+  confidenceScore: number;
+  modelUsed: string;
+  responseTimeMs: number;
+  humanized: boolean;
 }
 
 export type ReviewTag =

@@ -4,9 +4,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import {
   Star, Send, Eye, MousePointerClick, MessageSquare, QrCode, Printer, Settings2,
-  Search, RotateCcw, ExternalLink, Check, CheckCircle2, AlertCircle, User, Table as TableIcon,
-  Gift, Sparkles, Award, Download, Plus, Trash2, Palette, Image, Mic, Zap,
-  BrainCircuit, TrendingUp, TrendingDown, Clock, Hash, Copy,
+  RotateCcw, ExternalLink, Check, CheckCircle2, AlertCircle, User,
+  Gift, Award, Plus, Trash2,
+  BrainCircuit, TrendingUp, TrendingDown, Clock, Copy,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,8 +17,9 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { DEFAULT_REWARDS, type RewardSlice, type ReviewTag, REVIEW_TAGS } from '@/types/reputation';
-import type { AIInsights, StaffMember, CustomerLoyaltyPass } from '@/types/reputation';
+import { DEFAULT_REWARDS, type RewardSlice } from '@/types/reputation';
+import type { AIInsights } from '@/types/reputation';
+import AiReplyGenerator from '@/components/reputation/ai-reply-generator';
 
 interface Contact { id: string; name: string; phone: string; }
 interface ReviewRequest {
@@ -54,8 +55,14 @@ export default function ReputationDashboardPage() {
   const [requests, setRequests] = useState<ReviewRequest[]>([]);
   const [settings, setSettings] = useState<ReputationSettings | null>(null);
   const [insights, setInsights] = useState<AIInsights | null>(null);
-  const [staff, setStaff] = useState<any[]>([]);
-  const [loyaltyPasses, setLoyaltyPasses] = useState<any[]>([]);
+  const [staff, setStaff] = useState<Array<{
+    id: string; name: string; role: string; qr_slug: string | null;
+    numbers_collected: number; total_scans: number; links_opened: number;
+    reviews_completed: number; average_rating: number | null; conversion_rate: number;
+  }>>([]);
+  const [loyaltyPasses, setLoyaltyPasses] = useState<Array<{
+    id: string; contact: { name: string } | null; total_visits: number; stamps_count: number;
+  }>>([]);
 
   const [googleReviewUrl, setGoogleReviewUrl] = useState('');
   const [gateReviews, setGateReviews] = useState(true);
@@ -390,6 +397,7 @@ export default function ReputationDashboardPage() {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="bg-muted/40 p-1 flex-wrap">
           <TabsTrigger value="overview" className="flex items-center gap-1.5"><Star className="h-4 w-4" /> Overview</TabsTrigger>
+          <TabsTrigger value="ai-replies" className="flex items-center gap-1.5"><BrainCircuit className="h-4 w-4" /> AI Replies</TabsTrigger>
           <TabsTrigger value="staff" className="flex items-center gap-1.5"><User className="h-4 w-4" /> Staff</TabsTrigger>
           <TabsTrigger value="recovery" className="flex items-center gap-1.5"><MessageSquare className="h-4 w-4" /> Recovery</TabsTrigger>
           <TabsTrigger value="loyalty" className="flex items-center gap-1.5"><Gift className="h-4 w-4" /> Loyalty</TabsTrigger>
@@ -507,7 +515,7 @@ export default function ReputationDashboardPage() {
                         {renderStars(fb.rating || 0)}
                         <Badge variant="secondary" className="text-[10px]">{fb.contact?.phone}</Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground whitespace-pre-wrap italic mt-1 bg-background/50 rounded-lg p-2 border border-border/30">"{fb.feedback}"</p>
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap italic mt-1 bg-background/50 rounded-lg p-2 border border-border/30">&#34;{fb.feedback}&#34;</p>
                       {fb.recovery_action_requested && (
                         <Badge variant="outline" className="text-[10px] text-rose-500 border-rose-500/30">
                           Recovery: {fb.recovery_action_requested}
@@ -545,6 +553,11 @@ export default function ReputationDashboardPage() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        {/* === AI REPLIES (HUMAN-LIKE REVIEW GENERATION) === */}
+        <TabsContent value="ai-replies" className="space-y-6 outline-none">
+          <AiReplyGenerator />
         </TabsContent>
 
         {/* === STAFF & QR ATTRIBUTION === */}
@@ -624,7 +637,7 @@ export default function ReputationDashboardPage() {
                   <select value={collectStaffId} onChange={e => setCollectStaffId(e.target.value)}
                     className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring">
                     <option value="">Select Staff Member</option>
-                    {staff.map((s: any) => (
+                    {staff.map((s) => (
                       <option key={s.id} value={s.id}>{s.name} ({s.role})</option>
                     ))}
                   </select>
@@ -682,7 +695,7 @@ export default function ReputationDashboardPage() {
                 <TableBody>
                   {staff.length === 0 ? (
                     <TableRow><TableCell colSpan={9} className="h-24 text-center text-muted-foreground text-sm">No staff members added yet.</TableCell></TableRow>
-                  ) : staff.map((s: any) => (
+                  ) : staff.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">{s.name}</TableCell>
                       <TableCell><span className="text-xs text-muted-foreground">{s.role}</span></TableCell>
@@ -831,7 +844,7 @@ export default function ReputationDashboardPage() {
                       <Award className="h-8 w-8 text-muted-foreground/30 mb-2" />
                       <p className="text-sm text-muted-foreground">No loyalty passes yet.</p>
                     </div>
-                  ) : loyaltyPasses.map((lp: any) => (
+                  ) : loyaltyPasses.map((lp) => (
                     <div key={lp.id} className="rounded-lg border p-3 flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium">{lp.contact?.name || 'Customer'}</div>

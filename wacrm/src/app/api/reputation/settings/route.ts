@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const supabase = await createClient()
 
@@ -91,6 +91,8 @@ export async function POST(request: Request) {
       reward_valid_days,
       auto_send_review_on_create,
       manager_phone,
+      brand_voice,
+      ai_model_preference,
     } = body
 
     const updateData: Record<string, unknown> = {
@@ -114,6 +116,8 @@ export async function POST(request: Request) {
     if (reward_valid_days !== undefined) updateData.reward_valid_days = Number(reward_valid_days) || 15
     if (auto_send_review_on_create !== undefined) updateData.auto_send_review_on_create = auto_send_review_on_create
     if (manager_phone !== undefined) updateData.manager_phone = manager_phone || null
+    if (brand_voice !== undefined) updateData.brand_voice = brand_voice
+    if (ai_model_preference !== undefined) updateData.ai_model_preference = ai_model_preference
 
     if (!google_review_url) {
       return NextResponse.json(

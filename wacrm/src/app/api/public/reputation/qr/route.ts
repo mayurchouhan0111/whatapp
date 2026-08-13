@@ -1,10 +1,20 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/flows/admin-client'
 import { sanitizePhoneForMeta, isValidE164 } from '@/lib/whatsapp/phone-utils'
-import { findExistingContact, isUniqueViolation } from '@/lib/contacts/dedupe'
+import { findExistingContact, isUniqueViolation, type ExistingContact } from '@/lib/contacts/dedupe'
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit'
+
+function clientIp(request: Request): string {
+  const fwd = request.headers.get('x-forwarded-for')
+  if (fwd) return fwd.split(',')[0]?.trim() || 'unknown'
+  return request.headers.get('x-real-ip') || 'unknown'
+}
 
 export async function GET(request: Request) {
   try {
+    const rl = checkRateLimit(`reputation-qr-read:${clientIp(request)}`, RATE_LIMITS.reputationCollect)
+    if (!rl.success) return rateLimitResponse(rl)
+
     const db = supabaseAdmin()
     const { searchParams } = new URL(request.url)
     const accountId = searchParams.get('accountId')
@@ -49,6 +59,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const rl = checkRateLimit(`reputation-qr-write:${clientIp(request)}`, RATE_LIMITS.reputationCollect)
+    if (!rl.success) return rateLimitResponse(rl)
+
     const db = supabaseAdmin()
     const body = await request.json()
     const { name, phone, accountId, staffId, tableNumber } = body
@@ -78,11 +91,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Business account not found.' }, { status: 404 })
     }
 
-    let contact: any = null
+    let contact: ExistingContact | null = null
     try {
       contact = await findExistingContact(db, accountId, sanitizedPhone)
-    } catch (contactErr: any) {
-      console.error('[public/reputation/qr] contact lookup failed:', contactErr.message)
+    } catch (contactErr) {
+      const err = contactErr as Error
+      console.error('[public/reputation/qr] contact lookup failed:', err.message)
     }
 
     const phoneForStorage = phone.startsWith('+') ? phone : `+${sanitizedPhone}`
@@ -112,7 +126,7 @@ export async function POST(request: Request) {
           )
         }
       } else if (newContact) {
-        contact = newContact
+        contact = newContact as ExistingContact
       } else {
         return NextResponse.json(
           { error: 'Contact created but no data returned.' },
@@ -132,7 +146,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const insertData: any = {
+    const insertData: Record<string, unknown> = {
       account_id: accountId,
       contact_id: contact.id,
       status: 'opened',

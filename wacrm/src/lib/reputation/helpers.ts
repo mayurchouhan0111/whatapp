@@ -2,12 +2,53 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   REVIEW_TAGS,
   type ReviewTag,
-  type ReviewRequestV2,
   type AIInsights,
   type StaffMember,
   type RewardSlice,
   type CustomerLoyaltyPass,
+  DEFAULT_REWARDS,
 } from '@/types/reputation';
+
+/**
+ * A rating is valid iff it is an integer in [1, 5]. Anything else
+ * (fractional, NaN, negative, out-of-range) is rejected at the API
+ * boundary so a malicious client cannot store garbage.
+ */
+export function isValidRating(value: unknown): value is number {
+  return (
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 1 &&
+    value <= 5
+  );
+}
+
+/** Server-computed sentiment in [-1, 1] from a validated rating. */
+export function computeSentiment(rating: number): number {
+  return (rating - 3) / 2;
+}
+
+/**
+ * Validate + normalize an untrusted rewards config. The public review
+ * page must NEVER trust a client-sent `rewardsConfig` — always run it
+ * through this and fall back to DEFAULT_REWARDS for anything malformed.
+ */
+export function sanitizeRewardsConfig(config: unknown): RewardSlice[] {
+  if (!Array.isArray(config)) return DEFAULT_REWARDS;
+
+  const cleaned = config.filter(
+    (slice): slice is RewardSlice =>
+      !!slice &&
+      typeof slice === 'object' &&
+      typeof (slice as { label?: unknown }).label === 'string' &&
+      typeof (slice as { probability?: unknown }).probability === 'number' &&
+      Number.isFinite((slice as { probability?: number }).probability) &&
+      (slice as { probability?: number }).probability! >= 0 &&
+      typeof (slice as { color?: unknown }).color === 'string',
+  );
+
+  return cleaned.length > 0 ? cleaned : DEFAULT_REWARDS;
+}
 
 export function composeReviewText(tags: ReviewTag[], voiceTranscript?: string): string {
   const tagText = tags
@@ -28,6 +69,9 @@ export function composeReviewText(tags: ReviewTag[], voiceTranscript?: string): 
 }
 
 export function pickReward(rewardsConfig: RewardSlice[]): RewardSlice {
+  if (!Array.isArray(rewardsConfig) || rewardsConfig.length === 0) {
+    return DEFAULT_REWARDS[0];
+  }
   const rand = Math.random();
   let cumulative = 0;
   for (const slice of rewardsConfig) {
@@ -87,8 +131,8 @@ export async function upsertLoyaltyPass(
   return data;
 }
 
-export function calculateRewardExpiry(validDays: number = 15): { expiresAtIso: string; formattedDate: string } {
-  const date = new Date();
+export function calculateRewardExpiry(validDays: number = 15, now: Date = new Date()): { expiresAtIso: string; formattedDate: string } {
+  const date = new Date(now);
   date.setDate(date.getDate() + (validDays || 15));
   const expiresAtIso = date.toISOString();
   const formattedDate = date.toLocaleDateString('en-US', {
@@ -116,28 +160,36 @@ export async function getStaffAnalytics(
     .eq('account_id', accountId)
     .order('name');
 
-  if (!staff) return [];
+  if (!staff || staff.length === 0) return [];
 
-  const results = [];
-  for (const member of staff) {
-    const { data: reviews } = await db
-      .from('review_requests')
-      .select('rating, status')
-      .eq('account_id', accountId)
-      .eq('staff_id', member.id);
+  const staffIds = staff.map((s) => s.id);
 
-    const numbersCollected = reviews?.length || 0;
-    const linksOpened = reviews?.filter((r) => ['opened', 'rated', 'clicked'].includes(r.status)).length || 0;
-    const reviewsCompleted = reviews?.filter((r) => ['rated', 'clicked'].includes(r.status)).length || 0;
-    
-    const rated = reviews?.filter((r) => r.rating !== null) || [];
+  const { data: reviews } = await db
+    .from('review_requests')
+    .select('staff_id, rating, status')
+    .eq('account_id', accountId)
+    .in('staff_id', staffIds);
+
+  const reviewsByStaff: Record<string, { rating: number | null; status: string }[]> = {};
+  for (const r of reviews || []) {
+    if (!r.staff_id) continue;
+    if (!reviewsByStaff[r.staff_id]) reviewsByStaff[r.staff_id] = [];
+    reviewsByStaff[r.staff_id].push(r);
+  }
+
+  return staff.map((member) => {
+    const memberReviews = reviewsByStaff[member.id] || [];
+    const numbersCollected = memberReviews.length;
+    const linksOpened = memberReviews.filter((r) => ['opened', 'rated', 'clicked'].includes(r.status)).length;
+    const reviewsCompleted = memberReviews.filter((r) => ['rated', 'clicked'].includes(r.status)).length;
+    const rated = memberReviews.filter((r) => r.rating !== null);
     const avgRating =
       rated.length > 0
         ? rated.reduce((sum, r) => sum + (r.rating || 0), 0) / rated.length
         : null;
     const conversionRate = numbersCollected > 0 ? (reviewsCompleted / numbersCollected) * 100 : 0;
 
-    results.push({
+    return {
       ...member,
       total_scans: numbersCollected,
       numbers_collected: numbersCollected,
@@ -145,10 +197,8 @@ export async function getStaffAnalytics(
       reviews_completed: reviewsCompleted,
       average_rating: avgRating,
       conversion_rate: conversionRate,
-    });
-  }
-
-  return results;
+    };
+  });
 }
 
 export async function getAIInsights(
@@ -234,67 +284,6 @@ export async function getAIInsights(
     sentiment_trend: [],
     summary,
   };
-}
-
-export async function generateAIReply(
-  reviewText: string,
-  rating: number,
-  businessName: string,
-): Promise<string> {
-  const prompt = `Generate a professional, warm, brand-aligned Google review response for a ${rating}-star review that says: "${reviewText}". Business: ${businessName}. Keep it under 150 words, thank them, and if negative acknowledge the issue politely.`;
-
-  const apiKey = process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return fallbackReply(reviewText, rating);
-  }
-
-  try {
-    if (process.env.OPENAI_API_KEY) {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: 'You are a professional customer experience manager.' },
-            { role: 'user', content: prompt },
-          ],
-          max_tokens: 200,
-        }),
-      });
-      const data = await res.json();
-      return data.choices?.[0]?.message?.content?.trim() || fallbackReply(reviewText, rating);
-    }
-
-    if (process.env.GEMINI_API_KEY) {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        },
-      );
-      const data = await res.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || fallbackReply(reviewText, rating);
-    }
-  } catch {
-    return fallbackReply(reviewText, rating);
-  }
-
-  return fallbackReply(reviewText, rating);
-}
-
-function fallbackReply(reviewText: string, rating: number): string {
-  if (rating >= 4) {
-    return `Thank you so much for your wonderful ${rating}-star review! We're thrilled you had a great experience with us. Your feedback means the world to our team, and we look forward to serving you again soon!`;
-  }
-  return `Thank you for your feedback. We're sorry your experience didn't meet expectations. We take all reviews seriously and will use your input to improve. Please reach out to us directly so we can make things right.`;
 }
 
 export async function transcribeAudio(audioBuffer: ArrayBuffer): Promise<string> {

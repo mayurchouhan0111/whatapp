@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getAIInsights } from '@/lib/reputation/helpers'
+import { checkFeatureGate } from '@/lib/billing/limits'
 
 export async function GET() {
   try {
@@ -24,6 +25,14 @@ export async function GET() {
     const accountId = profile?.account_id
     if (!accountId) {
       return NextResponse.json({ error: 'Profile is not linked to an account.' }, { status: 403 })
+    }
+
+    const reputationEnabled = await checkFeatureGate(accountId, 'reputation')
+    if (!reputationEnabled) {
+      return NextResponse.json(
+        { error: 'Reputation tools are not enabled on your plan. Please upgrade.' },
+        { status: 403 },
+      )
     }
 
     const insights = await getAIInsights(supabase, accountId)

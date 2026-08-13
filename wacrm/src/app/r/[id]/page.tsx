@@ -21,9 +21,10 @@ interface V2Settings {
 }
 
 interface ReviewRequestData {
-  id: string; businessName: string; contactName: string; contactPhone: string
+  id: string; businessName: string; contactName: string
   googleReviewUrl: string; gateReviews: boolean; reviewThreshold: number
   status: string; rating?: number; staffMember?: { name: string; role: string } | null
+  loyalty?: { total_visits: number; stamps_count: number } | null
   v2: V2Settings
 }
 
@@ -44,7 +45,7 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
   const [spinReward, setSpinReward] = useState<{ label: string; emoji: string; discountCode: string; discountPercent?: number; color: string; expiresAt?: string } | null>(null)
   const [isSpinning, setIsSpinning] = useState(false)
   const [spinAngle, setSpinAngle] = useState(0)
-  const [loyaltyData] = useState<{ total_visits: number; stamps_count: number } | null>(null)
+  const [loyaltyData, setLoyaltyData] = useState<{ total_visits: number; stamps_count: number } | null>(null)
 
   const [isRecording, setIsRecording] = useState(false)
   const [transcribing, setTranscribing] = useState(false)
@@ -60,6 +61,9 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
       .then((res) => { if (!res.ok) throw new Error('Review request not found or expired.'); return res.json() })
       .then((payload) => {
         setData(payload.data)
+        if (payload.data.loyalty) {
+          setLoyaltyData({ total_visits: payload.data.loyalty.total_visits, stamps_count: payload.data.loyalty.stamps_count })
+        }
         if (payload.data.rating) { setRating(payload.data.rating); setStep('completed') }
         setLoading(false)
       })
@@ -704,8 +708,7 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
                       </div>
                     </div>
 
-                    <Button onClick={async () => {
-                      try { await fetch(`/api/public/reputation/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'click_google', rating: rating || 5 }) }) } catch {}
+                    <Button onClick={() => {
                       if (data.googleReviewUrl) window.location.href = data.googleReviewUrl
                     }} variant="default" className="w-full h-12 text-sm font-bold text-white shadow-lg" style={{ backgroundColor: bc }}>
                       <ExternalLink className="mr-2 h-4 w-4" />
