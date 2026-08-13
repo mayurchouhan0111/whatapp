@@ -440,13 +440,17 @@ export function SpinWheelCard({
             {/* Inner Rim Shadow Overlay */}
             <circle cx="150" cy="150" r="134" fill="url(#inner-rim-shadow)" pointerEvents="none" />
 
-            {/* Layer 7: Mechanical Center Hub */}
-            <g style={{ transform: `scale(${1 + hubWobble * 0.01})`, transformOrigin: '150px 150px' }}>
-              <circle cx="150" cy="150" r="34" fill="url(#gold-rim)" stroke="rgba(0,0,0,0.2)" strokeWidth="1" />
-              <circle cx="150" cy="150" r="28" fill="url(#center-hub-metal)" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" />
-              <circle cx="150" cy="150" r="14" fill="#F59E0B" opacity="0.15" />
-              <text x="150" y="152" textAnchor="middle" dominantBaseline="middle" fontSize="18">
-                🎁
+            {/* Layer 7: Mechanical Center Hub with Interactive SPIN Button */}
+            <g
+              onClick={handleSpinClick}
+              className="cursor-pointer group/hub"
+              style={{ transform: `scale(${1 + hubWobble * 0.01})`, transformOrigin: '150px 150px' }}
+            >
+              <circle cx="150" cy="150" r="34" fill="url(#gold-rim)" stroke="rgba(0,0,0,0.25)" strokeWidth="1.5" className="drop-shadow-md" />
+              <circle cx="150" cy="150" r="27" fill="url(#center-hub-metal)" stroke="rgba(255,255,255,0.9)" strokeWidth="1.5" />
+              <circle cx="150" cy="150" r="20" fill="#F59E0B" className="group-hover/hub:fill-amber-400 transition-colors shadow-inner" />
+              <text x="150" y="153" textAnchor="middle" dominantBaseline="middle" fontSize="11" fontWeight="900" fill="#FFFFFF" letterSpacing="0.8">
+                SPIN
               </text>
             </g>
 
