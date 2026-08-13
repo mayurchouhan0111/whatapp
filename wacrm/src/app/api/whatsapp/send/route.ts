@@ -252,11 +252,12 @@ export async function POST(request: Request) {
     // crashing the send-builder later in the stack.
     let templateRow: MessageTemplate | null = null
     if (message_type === 'template' && template_name) {
-      if (template_name === 'hello_world') {
+      const lowerName = template_name.toLowerCase()
+      if (lowerName === 'hello_world' || lowerName.startsWith('jaspers_market_')) {
         return NextResponse.json(
           {
             error:
-              'The sample "hello_world" template is restricted by Meta to test numbers only. Please select or create a custom approved template in Settings → Templates.',
+              'Meta sample templates (hello_world, jaspers_market_*) are restricted by Meta to test numbers only. Please use your custom approved template in Settings → Templates.',
           },
           { status: 400 },
         )

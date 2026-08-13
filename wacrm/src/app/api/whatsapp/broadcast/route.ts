@@ -144,6 +144,17 @@ export async function POST(request: Request) {
       )
     }
 
+    const lowerTemplateName = template_name.toLowerCase()
+    if (lowerTemplateName === 'hello_world' || lowerTemplateName.startsWith('jaspers_market_')) {
+      return NextResponse.json(
+        {
+          error:
+            'Meta sample templates (hello_world, jaspers_market_*) are restricted by Meta to test numbers only. Please use your custom approved template in Settings → Templates.',
+        },
+        { status: 400 }
+      )
+    }
+
     const { data: config, error: configError } = await supabase
       .from('whatsapp_config')
       .select('*')

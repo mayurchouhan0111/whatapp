@@ -109,7 +109,8 @@ export function TemplatePicker({
         .select("*")
         .eq("user_id", user.id)
         .eq("status", "APPROVED")
-        .neq("name", "hello_world")
+        .not("name", "ilike", "hello_world")
+        .not("name", "ilike", "jaspers_market_%")
         .order("created_at", { ascending: false });
 
       if (cancelled) return;

@@ -96,6 +96,10 @@ async function sendViaMeta(input: SendInput): Promise<{ whatsapp_message_id: str
 
   const attempt = async (phone: string): Promise<string> => {
     if (input.kind === 'template') {
+      const lowerName = input.templateName.toLowerCase()
+      if (lowerName === 'hello_world' || lowerName.startsWith('jaspers_market_')) {
+        throw new Error('Meta sample templates (hello_world, jaspers_market_*) are restricted to test numbers only.')
+      }
       const r = await sendTemplateMessage({
         phoneNumberId: config.phone_number_id,
         accessToken,

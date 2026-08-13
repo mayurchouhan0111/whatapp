@@ -48,6 +48,13 @@ export async function POST(request: Request) {
       throw badRequest('"template_name" is required for template messages');
     }
 
+    if (message_type === 'template' && template_name) {
+      const lowerName = template_name.toLowerCase();
+      if (lowerName === 'hello_world' || lowerName.startsWith('jaspers_market_')) {
+        throw badRequest('Meta sample templates (hello_world, jaspers_market_*) are restricted by Meta to test numbers only. Please use your custom approved template.');
+      }
+    }
+
     // 1. Fetch WhatsApp config for this account
     const { data: config, error: configError } = await ctx.supabase
       .from('whatsapp_config')
