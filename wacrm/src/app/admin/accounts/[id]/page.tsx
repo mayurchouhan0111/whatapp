@@ -102,22 +102,32 @@ async function updateAccount(formData: FormData) {
   const allowWhiteLabel = formData.get('allow_white_label') === 'on'
   const allowReputation = formData.get('allow_reputation') === 'on'
 
-  const { error } = await admin
+  const updatePayload: Record<string, unknown> = {
+    plan_tier: planTier,
+    max_users: maxUsers,
+    max_contacts: maxContacts,
+    max_pipelines: maxPipelines,
+    max_active_flows: maxActiveFlows,
+    max_broadcasts_per_month: maxBroadcasts,
+    allow_api_access: allowApiAccess,
+    allow_white_label: allowWhiteLabel,
+    allow_reputation: allowReputation,
+    max_products: maxProducts,
+    max_orders_per_month: maxOrders,
+  }
+
+  let { error } = await admin
     .from('accounts')
-    .update({
-      plan_tier: planTier,
-      max_users: maxUsers,
-      max_contacts: maxContacts,
-      max_pipelines: maxPipelines,
-      max_active_flows: maxActiveFlows,
-      max_broadcasts_per_month: maxBroadcasts,
-      allow_api_access: allowApiAccess,
-      allow_white_label: allowWhiteLabel,
-      allow_reputation: allowReputation,
-      max_products: maxProducts,
-      max_orders_per_month: maxOrders,
-    })
+    .update(updatePayload)
     .eq('id', accountId)
+
+  // Defensive: if the production DB predates migration 042 and is missing
+  // the allow_reputation column, retry without it so the rest of the save
+  // still succeeds. The column can be added later via SQL.
+  if (error && /allow_reputation/.test(error.message)) {
+    delete updatePayload.allow_reputation
+    ;({ error } = await admin.from('accounts').update(updatePayload).eq('id', accountId))
+  }
 
   if (error) {
     console.error('[admin] account update failed:', error.message)
