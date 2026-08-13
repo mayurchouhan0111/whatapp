@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { sendTextMessage } from '@/lib/whatsapp/meta-api'
+import { sendTextMessage, sendTemplateMessage } from '@/lib/whatsapp/meta-api'
+import { isMessageTemplate } from '@/lib/whatsapp/template-row-guard'
 import { decrypt } from '@/lib/whatsapp/encryption'
 import {
   sanitizePhoneForMeta,
@@ -209,15 +210,46 @@ export async function POST(request: Request) {
           conversation = newConv
         }
 
+        // Check if an approved Meta message template exists for this account
+        const { data: appTemplate } = await supabase
+          .from('message_templates')
+          .select('*')
+          .eq('account_id', accountId)
+          .eq('status', 'APPROVED')
+          .limit(1)
+          .maybeSingle()
+
         const variants = phoneVariants(sanitizedPhone)
         for (const v of variants) {
           try {
-            const waMsgId = await sendTextMessage({
-              phoneNumberId: whatsappConfig.phone_number_id,
-              accessToken,
-              to: v,
-              text: messageText,
-            })
+            let waMsgId: { messageId: string }
+            if (appTemplate && isMessageTemplate(appTemplate)) {
+              try {
+                waMsgId = await sendTemplateMessage({
+                  phoneNumberId: whatsappConfig.phone_number_id,
+                  accessToken,
+                  to: v,
+                  templateName: appTemplate.name,
+                  language: appTemplate.language || 'en_US',
+                  template: appTemplate,
+                  messageParams: { body: [customerName, reviewLink] },
+                })
+              } catch {
+                waMsgId = await sendTextMessage({
+                  phoneNumberId: whatsappConfig.phone_number_id,
+                  accessToken,
+                  to: v,
+                  text: messageText,
+                })
+              }
+            } else {
+              waMsgId = await sendTextMessage({
+                phoneNumberId: whatsappConfig.phone_number_id,
+                accessToken,
+                to: v,
+                text: messageText,
+              })
+            }
 
             if (conversation?.id) {
               await supabase.from('messages').insert({
