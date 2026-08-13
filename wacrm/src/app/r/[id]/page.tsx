@@ -247,10 +247,10 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
   const bc = data.v2.brandingColor || '#a78bfa'
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#FAF9F6] via-[#F6F4ED] to-[#EFECE3] px-4 py-8">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#FAF8F5] via-[#F7F4EE] to-[#EFECE3] px-4 py-8">
       {/* Animated background elements */}
-      <ParticleField color="#F59E0B" count={20} />
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full opacity-[0.08] pointer-events-none"
+      <ParticleField color="#F59E0B" count={16} />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full opacity-[0.06] pointer-events-none"
         style={{ background: `radial-gradient(circle, ${bc} 0%, transparent 70%)` }} />
       <div className="absolute bottom-0 left-1/4 h-[300px] w-[300px] rounded-full opacity-[0.05] pointer-events-none"
         style={{ background: `radial-gradient(circle, #F59E0B 0%, transparent 70%)` }} />
@@ -279,10 +279,15 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
       {/* Main card */}
       <div
         ref={cardRef}
-        className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-stone-200/70 bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.07),0_2px_8px_rgba(0,0,0,0.03)] backdrop-blur-xl transition-all duration-500"
+        className="relative w-full max-w-md overflow-hidden rounded-[40px] border border-stone-100/90 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] backdrop-blur-xl transition-all duration-500"
       >
+        {/* Decorative subtle golden waves at bottom of card */}
+        <svg className="absolute bottom-0 inset-x-0 w-full h-24 opacity-[0.10] pointer-events-none z-0" viewBox="0 0 400 100" preserveAspectRatio="none">
+          <path d="M0,60 C150,95 250,25 400,60 L400,100 L0,100 Z" fill="#F59E0B" />
+        </svg>
+
         {/* Animated gradient border */}
-        <div className="absolute inset-x-0 top-0 h-[2.5px] opacity-70 motion-safe:animate-gradient-shift"
+        <div className="absolute inset-x-0 top-0 h-[2.5px] opacity-70 motion-safe:animate-gradient-shift z-10"
           style={{ background: `linear-gradient(90deg, transparent 0%, ${bc}40 30%, ${bc} 50%, ${bc}40 70%, transparent 100%)`, backgroundSize: '200% 100%' }} />
 
         <div className={`transition-all duration-500 ${step === 'welcome' ? '' : ''}`}>
