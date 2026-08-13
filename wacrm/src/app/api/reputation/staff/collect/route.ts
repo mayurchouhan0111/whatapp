@@ -233,12 +233,14 @@ export async function POST(request: Request) {
       try {
         const accessToken = safeDecryptToken(whatsappConfig.access_token)
 
-        // Check if an approved Meta message template exists for this account
-        const { data: appTemplate } = await supabase
+        // Check if a dedicated review template exists (e.g. 'review_request') or any approved review template (excluding hello_world)
+        let { data: appTemplate } = await supabase
           .from('message_templates')
           .select('*')
           .eq('account_id', accountId)
           .eq('status', 'APPROVED')
+          .neq('name', 'hello_world')
+          .ilike('name', '%review%')
           .limit(1)
           .maybeSingle()
 
