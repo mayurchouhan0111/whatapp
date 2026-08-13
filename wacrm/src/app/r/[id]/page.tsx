@@ -11,6 +11,7 @@ import { REVIEW_TAGS, type ReviewTag, type RewardSlice } from '@/types/reputatio
 import { composeReviewText } from '@/lib/reputation/helpers'
 import { ParticleField } from './components/particle-field'
 import { StarRating } from './components/star-rating'
+import { SpinWheelCard } from './components/spin-wheel-card'
 
 interface V2Settings {
   ownerPhotoUrl: string | null; ownerName: string | null
@@ -246,13 +247,13 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
   const bc = data.v2.brandingColor || '#a78bfa'
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-background via-background to-muted/30 px-4 py-12">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#FAF9F6] via-[#F6F4ED] to-[#EFECE3] px-4 py-8">
       {/* Animated background elements */}
-      <ParticleField color={bc} count={25} />
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full opacity-[0.04] pointer-events-none"
+      <ParticleField color="#F59E0B" count={20} />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full opacity-[0.08] pointer-events-none"
         style={{ background: `radial-gradient(circle, ${bc} 0%, transparent 70%)` }} />
-      <div className="absolute bottom-0 left-1/4 h-[300px] w-[300px] rounded-full opacity-[0.03] pointer-events-none"
-        style={{ background: `radial-gradient(circle, ${bc} 0%, transparent 70%)` }} />
+      <div className="absolute bottom-0 left-1/4 h-[300px] w-[300px] rounded-full opacity-[0.05] pointer-events-none"
+        style={{ background: `radial-gradient(circle, #F59E0B 0%, transparent 70%)` }} />
 
       {/* Confetti */}
       {confetti.length > 0 && (
@@ -278,10 +279,10 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
       {/* Main card */}
       <div
         ref={cardRef}
-        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border/80 bg-card/95 shadow-[0_0_40px_rgba(0,0,0,0.15)] backdrop-blur-xl transition-all duration-500"
+        className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-stone-200/70 bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.07),0_2px_8px_rgba(0,0,0,0.03)] backdrop-blur-xl transition-all duration-500"
       >
         {/* Animated gradient border */}
-        <div className="absolute inset-x-0 top-0 h-[2px] opacity-60 motion-safe:animate-gradient-shift"
+        <div className="absolute inset-x-0 top-0 h-[2.5px] opacity-70 motion-safe:animate-gradient-shift"
           style={{ background: `linear-gradient(90deg, transparent 0%, ${bc}40 30%, ${bc} 50%, ${bc}40 70%, transparent 100%)`, backgroundSize: '200% 100%' }} />
 
         <div className={`transition-all duration-500 ${step === 'welcome' ? '' : ''}`}>
@@ -352,21 +353,46 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
 
           {/* RATING */}
           {step === 'rating' && (
-            <div className="animate-slide-up">
-              <div className="border-b border-border/50 bg-muted/10 px-6 py-5 text-center">
-                <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: bc }}>Your Experience Matters</p>
-                <h2 className="mt-1 text-lg font-bold text-foreground truncate">{data.businessName}</h2>
-              </div>
-              <div className="p-6 space-y-6 text-center">
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold tracking-tight text-foreground">Hi {data.contactName}!</h3>
-                  <p className="text-sm text-muted-foreground">How was your experience today?</p>
-                </div>
+            <div className="animate-slide-up px-6 pt-4 pb-6 text-center flex flex-col items-center">
+              {/* iOS Sheet Handle Bar */}
+              <div className="w-10 h-1 rounded-full bg-stone-300/80 mb-4" />
 
-                <StarRating value={rating} onChange={handleStarClick} color={bc} />
+              {/* Header */}
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#D97706]">
+                YOUR EXPERIENCE MATTERS
+              </p>
+              <h2 className="mt-1 text-xl font-extrabold text-stone-900 tracking-tight">
+                {data.v2.ownerName || 'Mayur'}
+              </h2>
 
-                <p className="text-xs text-muted-foreground/60">Your feedback is securely logged and highly valued</p>
+              {/* Header subtle divider */}
+              <div className="w-full border-b border-stone-200/60 my-4" />
+
+              {/* Main Greeting */}
+              <div className="space-y-1 my-1">
+                <h3 className="text-2xl font-black tracking-tight text-stone-900">
+                  Hi {data.contactName || 'Mayur Chouhan'}!
+                </h3>
+                <p className="text-sm font-medium text-stone-500">
+                  How was your experience today?
+                </p>
               </div>
+
+              {/* Rating Instruction Pill Container */}
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#FFFDF5] border border-[#F3E6C8] px-4 py-2 text-xs font-semibold text-stone-600 shadow-2xs my-4">
+                <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-400 animate-pulse" />
+                <span>Tap an emoji to rate your experience</span>
+              </div>
+
+              {/* Interactive Emoji Carousel Component */}
+              <StarRating
+                value={rating}
+                onChange={handleStarClick}
+                color={bc}
+                contactName={data.contactName}
+                ownerName={data.v2.ownerName || 'Mayur'}
+                businessName={data.businessName}
+              />
             </div>
           )}
 
@@ -555,168 +581,14 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
           {/* SPIN WHEEL */}
           {step === 'spin' && spinReward && (
             <div className="animate-scale-in">
-              <div className="p-6 space-y-6 text-center">
-                <div className="flex justify-center">
-                  <div className="relative">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/20 to-amber-600/30 border border-amber-400/40 shadow-[0_0_20px_rgba(245,158,11,0.2)] motion-safe:animate-float-slow">
-                      <Gift className="h-8 w-8 text-amber-500" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-[11px] font-bold text-amber-600 border border-amber-500/20 uppercase tracking-wider">
-                    <Sparkles className="h-3 w-3" /> Exclusive Guest Reward
-                  </span>
-                  <h3 className="text-2xl font-extrabold tracking-tight text-foreground">Spin & Win Rewards!</h3>
-                  <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                    Thanks for sharing your review! Tap spin to reveal your special discount coupon for your next visit.
-                  </p>
-                </div>
-
-                {/* Ultra-Premium 3D Metallic Spin Wheel */}
-                <div className="relative mx-auto h-64 w-64 p-2">
-                  {/* Outer glowing halo */}
-                  <div className="absolute inset-0 rounded-full opacity-40 motion-safe:animate-pulse-soft"
-                    style={{ boxShadow: `0 0 50px 15px ${bc}50, inset 0 0 20px rgba(255,255,255,0.4)` }} />
-
-                  <svg viewBox="0 0 200 200" className="h-full w-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]">
-                    <defs>
-                      {/* Metallic Gold Bezel Gradient */}
-                      <linearGradient id="gold-bezel" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#ffe259" />
-                        <stop offset="30%" stopColor="#ffa751" />
-                        <stop offset="70%" stopColor="#ffd700" />
-                        <stop offset="100%" stopColor="#b8860b" />
-                      </linearGradient>
-
-                      {/* Glossy Center Hub Gradient */}
-                      <radialGradient id="center-hub-grad" cx="40%" cy="40%" r="60%">
-                        <stop offset="0%" stopColor="#ffffff" />
-                        <stop offset="50%" stopColor="#f3f4f6" />
-                        <stop offset="100%" stopColor="#d1d5db" />
-                      </radialGradient>
-
-                      <filter id="wheel-slice-shadow">
-                        <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodOpacity="0.25" />
-                      </filter>
-                    </defs>
-
-                    {/* Golden Outer Rim */}
-                    <circle cx="100" cy="100" r="97" fill="url(#gold-bezel)" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" />
-                    <circle cx="100" cy="100" r="92" fill="#111827" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-
-                    {/* Glowing LED Bulbs on Perimeter */}
-                    {Array.from({ length: 12 }).map((_, i) => {
-                      const angle = (i * 30 * Math.PI) / 180
-                      const bx = 100 + 94.5 * Math.cos(angle)
-                      const by = 100 + 94.5 * Math.sin(angle)
-                      return (
-                        <circle key={i} cx={bx} cy={by} r="2.2"
-                          fill={i % 2 === 0 ? '#fff7ed' : '#fef08a'}
-                          stroke="#d97706" strokeWidth="0.6"
-                          className="motion-safe:animate-pulse"
-                          style={{ animationDelay: `${i * 0.1}s` }} />
-                      )
-                    })}
-
-                    {/* Wheel Slices Group with Spin Rotation */}
-                    <g style={{ transform: `rotate(${spinAngle}deg)`, transformOrigin: '100px 100px', transition: isSpinning ? 'none' : 'transform 0.1s ease-out' }}>
-                      {data.v2.rewardsConfig.map((slice, i) => {
-                        const totalProb = data.v2.rewardsConfig.reduce((s, r) => s + r.probability, 0)
-                        const sliceAngle = (slice.probability / totalProb) * 360
-                        const offset = data.v2.rewardsConfig.slice(0, i).reduce((s, r) => s + (r.probability / totalProb) * 360, 0)
-                        const midAngle = offset + sliceAngle / 2
-                        const rad = (midAngle * Math.PI) / 180
-                        const r = 88
-                        const cx = 100, cy = 100
-                        const x1 = cx + r * Math.cos((offset * Math.PI) / 180)
-                        const y1 = cy + r * Math.sin((offset * Math.PI) / 180)
-                        const x2 = cx + r * Math.cos(((offset + sliceAngle) * Math.PI) / 180)
-                        const y2 = cy + r * Math.sin(((offset + sliceAngle) * Math.PI) / 180)
-                        const largeArc = sliceAngle > 180 ? 1 : 0
-                        return (
-                          <g key={i}>
-                            <path d={`M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                              fill={slice.color} stroke="rgba(255,255,255,0.4)" strokeWidth="1.2" filter="url(#wheel-slice-shadow)" />
-                            <text x={cx + 58 * Math.cos(rad)} y={cy + 58 * Math.sin(rad)}
-                              textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="12" fontWeight="bold"
-                              style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
-                              {slice.emoji}
-                            </text>
-                          </g>
-                        )
-                      })}
-                    </g>
-
-                    {/* Center Hub */}
-                    <circle cx="100" cy="100" r="22" fill="url(#gold-bezel)" />
-                    <circle cx="100" cy="100" r="18" fill="url(#center-hub-grad)" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
-                    <circle cx="100" cy="100" r="6" fill="#4b5563" />
-
-                    {/* 3D Pointer Arrow */}
-                    <g filter="drop-shadow(0 3px 6px rgba(0,0,0,0.4))">
-                      <polygon points="100,2 92,20 108,20" fill="#dc2626" stroke="#ffffff" strokeWidth="1.5" />
-                      <polygon points="100,5 95,18 100,18" fill="#ef4444" />
-                      <circle cx="100" cy="14" r="2.5" fill="#ffffff" />
-                    </g>
-                  </svg>
-                </div>
-
-                <Button onClick={handleSpinWheel} disabled={isSpinning}
-                  className="w-full font-bold text-white shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] active:scale-[0.97] h-13 text-base rounded-xl"
-                  style={{ backgroundColor: bc, boxShadow: `0 8px 25px ${bc}45` }}>
-                  {isSpinning ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Spinning Wheel...</> : <>{spinReward.emoji} TAP TO SPIN THE WHEEL</>}
-                </Button>
-
-                {/* VIP Coupon Reveal Card with Expiry Date */}
-                {!isSpinning && spinAngle > 0 && (
-                  <div className="space-y-4 animate-scale-in pt-2">
-                    <div className="relative overflow-hidden rounded-2xl border-2 border-amber-400/60 bg-gradient-to-br from-amber-500/10 via-background to-amber-500/5 p-5 shadow-2xl backdrop-blur-md text-center">
-                      <div className="absolute top-0 right-0 -mr-6 -mt-6 h-20 w-20 rounded-full bg-amber-400/20 blur-xl pointer-events-none" />
-                      
-                      <div className="flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest text-amber-600 mb-1">
-                        <Award className="h-4 w-4" /> VIP Discount Voucher
-                      </div>
-
-                      <div className="my-2">
-                        <p className="text-2xl font-black tracking-tight text-foreground">{spinReward.emoji} {spinReward.label}</p>
-                        {spinReward.discountPercent && spinReward.discountPercent > 0 && (
-                          <div className="mt-1 inline-block rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-0.5 text-xs font-bold text-emerald-600">
-                            {spinReward.discountPercent}% OFF on Next Visit!
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Promo Code Box */}
-                      {spinReward.discountCode && (
-                        <div className="mt-3 flex items-center justify-between rounded-xl bg-card border-2 border-dashed border-amber-400/50 p-3 shadow-inner">
-                          <div className="text-left">
-                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Coupon Code</p>
-                            <code className="text-base font-black tracking-widest text-amber-600 font-mono">{spinReward.discountCode}</code>
-                          </div>
-                          <Button variant="secondary" size="sm" onClick={() => copyToClipboard(spinReward.discountCode!)} className="text-xs font-bold gap-1 shadow-sm">
-                            {copied ? <><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Copied!</> : <><Copy className="h-3.5 w-3.5" /> Copy</>}
-                          </Button>
-                        </div>
-                      )}
-
-                      {/* Valid Expiry Date Badge */}
-                      <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-600 border border-rose-500/20">
-                        <Clock className="h-3.5 w-3.5 shrink-0" />
-                        <span>Valid Until: <strong>{spinReward.expiresAt || '15 Days from today'}</strong></span>
-                      </div>
-                    </div>
-
-                    <Button onClick={() => {
-                      if (data.googleReviewUrl) window.location.href = data.googleReviewUrl
-                    }} variant="default" className="w-full h-12 text-sm font-bold text-white shadow-lg" style={{ backgroundColor: bc }}>
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Post Review on Google to Claim
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <SpinWheelCard
+                rewardsConfig={data.v2.rewardsConfig}
+                spinReward={spinReward}
+                brandingColor={bc}
+                onClaimReviewClick={() => {
+                  if (data.googleReviewUrl) window.location.href = data.googleReviewUrl
+                }}
+              />
             </div>
           )}
 
