@@ -16,6 +16,7 @@ export interface AccountDetail {
   max_broadcasts_per_month: number
   allow_api_access: boolean
   allow_white_label: boolean
+  allow_reputation: boolean
   max_products?: number
   max_orders_per_month?: number
   created_at: string
@@ -99,6 +100,7 @@ async function updateAccount(formData: FormData) {
 
   const allowApiAccess = formData.get('allow_api_access') === 'on'
   const allowWhiteLabel = formData.get('allow_white_label') === 'on'
+  const allowReputation = formData.get('allow_reputation') === 'on'
 
   const { error } = await admin
     .from('accounts')
@@ -111,6 +113,7 @@ async function updateAccount(formData: FormData) {
       max_broadcasts_per_month: maxBroadcasts,
       allow_api_access: allowApiAccess,
       allow_white_label: allowWhiteLabel,
+      allow_reputation: allowReputation,
       max_products: maxProducts,
       max_orders_per_month: maxOrders,
     })

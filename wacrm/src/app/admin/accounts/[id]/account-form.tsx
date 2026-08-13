@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { getPlanDefaults, type PlanTier } from '@/lib/billing/limits'
-import { ShieldAlert, Cpu, Palette, Check, ArrowLeft, Users, Contact, GitBranch, Radio, Send, Store, Package, BarChart3 } from 'lucide-react'
+import { ShieldAlert, Cpu, Palette, Check, ArrowLeft, Users, Contact, GitBranch, Radio, Send, Store, Package, BarChart3, Star } from 'lucide-react'
 import Link from 'next/link'
 import type { AccountDetail, SaasModule } from './page'
 
@@ -168,6 +168,24 @@ export function AccountForm({
                       <span className="text-sm font-medium text-foreground">White-label</span>
                     </div>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">Removes Vbuild branding</p>
+                  </div>
+                </label>
+
+                <label className="relative flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background p-4 hover:bg-muted/30 hover:border-primary/40 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary">
+                  <input
+                    type="checkbox"
+                    name="allow_reputation"
+                    defaultChecked={planTier === account.plan_tier ? account.allow_reputation : defaults.allow_reputation}
+                    className="sr-only"
+                  />
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
+                    <Star className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-foreground">Reputation</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">Google Review requests & analytics</p>
                   </div>
                 </label>
               </div>
