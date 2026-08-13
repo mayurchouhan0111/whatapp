@@ -153,16 +153,20 @@ export function StarRating({
         navigator.vibrate(15)
       } catch {}
     }
-
-    setTimeout(() => {
-      onChange(target + 1)
-    }, 250)
   }
 
   // Handle direct tap selection on an emoji
   const handleSelectEmoji = (index: number) => {
     if (isDragging) return
     const newRating = index + 1
+    if (activeRating === newRating) {
+      // Tapping the centered active emoji confirms selection
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        try { navigator.vibrate(25) } catch {}
+      }
+      onChange(newRating)
+      return
+    }
     setActiveRating(newRating)
     animateToPos(index, 300)
 
@@ -171,10 +175,6 @@ export function StarRating({
         navigator.vibrate(20)
       } catch {}
     }
-
-    setTimeout(() => {
-      onChange(newRating)
-    }, 280)
   }
 
   // Calculate track indicator SVG coordinates along curved path
@@ -352,6 +352,27 @@ export function StarRating({
           />
         </svg>
       </div>
+
+      {/* 12. EXPLICIT RATING SELECTION BUTTON */}
+      <button
+        type="button"
+        onClick={() => {
+          if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+            try {
+              navigator.vibrate(25)
+            } catch {}
+          }
+          onChange(activeRating)
+        }}
+        className="w-full max-w-[340px] mt-4 py-3.5 px-6 rounded-2xl font-black text-white shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.97] flex items-center justify-center gap-2.5 text-base cursor-pointer tracking-wide group"
+        style={{
+          background: `linear-gradient(135deg, ${activeItem.color}, ${activeItem.color}E6)`,
+          boxShadow: `0 10px 28px -4px ${activeItem.color}66`,
+        }}
+      >
+        <span>Select &ldquo;{activeItem.label}&rdquo;</span>
+        <span className="text-xl transition-transform duration-200 group-hover:scale-125">{activeItem.emoji}</span>
+      </button>
 
       {/* 16. SECURITY CONFIRMATION BOX */}
       <div className="w-full max-w-[340px] mt-6 mb-4 rounded-2xl bg-[#F0FDF4] border border-[#DCFCE7] p-4 flex items-center justify-center gap-3 shadow-xs transition-all duration-300">
