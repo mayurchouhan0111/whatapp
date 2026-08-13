@@ -1,11 +1,16 @@
 /**
  * Sanitize phone number for Meta WhatsApp API.
  * Meta requires digits only — no + prefix, no spaces, no dashes.
- * e.g. "+370 63949836" → "37063949836"
+ * e.g. "+91 99993 874796" → "9199993874796"
+ * If a 10-digit Indian number is entered (e.g. "99993874796"), automatically prepends country code "91".
  */
 export function sanitizePhoneForMeta(phone: string): string {
   if (!phone) return ''
-  return phone.replace(/\D/g, '')
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 10 && /^[6-9]/.test(digits)) {
+    return `91${digits}`
+  }
+  return digits
 }
 
 /**
@@ -15,6 +20,22 @@ export function sanitizePhoneForMeta(phone: string): string {
 export function normalizePhone(phone: string): string {
   if (!phone) return ''
   return phone.replace(/\D/g, '')
+}
+
+/**
+ * Format raw digit string for friendly UI display.
+ * e.g. "9199993874796" → "+91 99993 874796"
+ */
+export function formatPhoneDisplay(phone: string): string {
+  if (!phone) return ''
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`
+  }
+  if (digits.length === 10) {
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`
+  }
+  return `+${digits}`
 }
 
 /**
