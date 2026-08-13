@@ -14,6 +14,20 @@ export function sanitizePhoneForMeta(phone: string): string {
 }
 
 /**
+ * Format phone number into standard E.164 format with + prefix for DB storage.
+ * e.g. "99993874796" → "+9199993874796"
+ * e.g. "9199993874796" → "+9199993874796"
+ */
+export function formatE164Phone(phone: string): string {
+  if (!phone) return ''
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 10 && /^[6-9]/.test(digits)) {
+    return `+91${digits}`
+  }
+  return `+${digits}`
+}
+
+/**
  * Normalize phone number by removing all non-digit characters.
  * Used for comparing phone numbers in different formats.
  */

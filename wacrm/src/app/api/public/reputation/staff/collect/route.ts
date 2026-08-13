@@ -5,6 +5,7 @@ import { isMessageTemplate } from '@/lib/whatsapp/template-row-guard'
 import { decrypt } from '@/lib/whatsapp/encryption'
 import {
   sanitizePhoneForMeta,
+  formatE164Phone,
   isValidE164,
   phoneVariants,
   isRecipientNotAllowedError,
@@ -94,6 +95,7 @@ export async function POST(request: Request) {
       )
     }
 
+    const formattedPhone = formatE164Phone(phone)
     const sanitizedPhone = sanitizePhoneForMeta(phone)
     if (!isValidE164(sanitizedPhone)) {
       return NextResponse.json(
@@ -115,12 +117,12 @@ export async function POST(request: Request) {
 
     const customerName = name?.trim() || 'Valued Customer'
 
-    // 1. Upsert Contact
+    // 1. Upsert Contact (match either +919876543210 or 919876543210)
     const { data: existingContact } = await db
       .from('contacts')
       .select('*')
       .eq('account_id', accountId)
-      .eq('phone', sanitizedPhone)
+      .or(`phone.eq.${formattedPhone},phone.eq.${sanitizedPhone}`)
       .maybeSingle()
 
     let contactId = existingContact?.id
@@ -132,7 +134,7 @@ export async function POST(request: Request) {
           account_id: accountId,
           user_id: account.owner_user_id,
           name: customerName,
-          phone: sanitizedPhone,
+          phone: formattedPhone,
         })
         .select('id')
         .single()
@@ -179,7 +181,65 @@ export async function POST(request: Request) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`
     const reviewLink = `${siteUrl}/r/${reviewRequest.id}`
 
-    // 4. Send WhatsApp message if configured
+    const businessName = account?.name || 'our restaurant'
+    let messageText = settings?.sms_template ||
+      'Hi {{contact_name}}, thank you for dining with us at {{business_name}}! We value your feedback. Please click here to rate your experience and spin the wheel for rewards: {{review_link}}'
+
+    messageText = messageText
+      .replace(/\{\{contact_name\}\}/g, customerName)
+      .replace(/\{\{business_name\}\}/g, businessName)
+      .replace(/\{\{review_link\}\}/g, reviewLink)
+
+    // ALWAYS create/ensure conversation row exists so contact appears in Inbox
+    let { data: conversation } = await db
+      .from('conversations')
+      .select('id')
+      .eq('account_id', accountId)
+      .eq('contact_id', contactId)
+      .maybeSingle()
+
+    if (!conversation) {
+      const { data: newConv } = await db
+        .from('conversations')
+        .insert({
+          account_id: accountId,
+          user_id: account.owner_user_id,
+          contact_id: contactId,
+          status: 'open',
+          last_message_text: messageText,
+          last_message_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+      conversation = newConv
+    } else {
+      await db
+        .from('conversations')
+        .update({
+          last_message_text: messageText,
+          last_message_at: new Date().toISOString(),
+        })
+        .eq('id', conversation.id)
+    }
+
+    // Record review invite message in database chat history
+    let storedMessageId: string | null = null
+    if (conversation?.id) {
+      const { data: msgRec } = await db
+        .from('messages')
+        .insert({
+          conversation_id: conversation.id,
+          sender_type: 'bot',
+          content_type: 'text',
+          content_text: messageText,
+          status: 'sent',
+        })
+        .select('id')
+        .single()
+      storedMessageId = msgRec?.id || null
+    }
+
+    // 4. Send WhatsApp message if Meta Cloud API is configured
     let sentViaWhatsapp = false
     let waErrorReason: string | null = null
 
@@ -196,42 +256,6 @@ export async function POST(request: Request) {
     } else {
       try {
         const accessToken = safeDecryptToken(whatsappConfig.access_token)
-        const { data: account } = await db
-          .from('accounts')
-          .select('name')
-          .eq('id', accountId)
-          .single()
-
-        const businessName = account?.name || 'our restaurant'
-        let messageText = settings?.sms_template ||
-          'Hi {{contact_name}}, thank you for dining with us at {{business_name}}! We value your feedback. Please click here to rate your experience and spin the wheel for rewards: {{review_link}}'
-
-        messageText = messageText
-          .replace(/\{\{contact_name\}\}/g, customerName)
-          .replace(/\{\{business_name\}\}/g, businessName)
-          .replace(/\{\{review_link\}\}/g, reviewLink)
-
-        let { data: conversation } = await db
-          .from('conversations')
-          .select('id')
-          .eq('account_id', accountId)
-          .eq('contact_id', contactId)
-          .maybeSingle()
-
-        if (!conversation) {
-          const { data: newConv } = await db
-            .from('conversations')
-            .insert({
-              account_id: accountId,
-              contact_id: contactId,
-              status: 'open',
-              last_message_text: messageText,
-              last_message_at: new Date().toISOString(),
-            })
-            .select('id')
-            .single()
-          conversation = newConv
-        }
 
         // Check if an approved Meta message template exists for this account
         const { data: appTemplate } = await db
@@ -274,16 +298,13 @@ export async function POST(request: Request) {
               })
             }
 
-            if (conversation?.id) {
-              await db.from('messages').insert({
-                conversation_id: conversation.id,
-                sender_type: 'bot',
-                content_type: 'text',
-                content_text: messageText,
-                message_id: waMsgId.messageId,
-                status: 'sent',
-              })
+            if (storedMessageId) {
+              await db
+                .from('messages')
+                .update({ message_id: waMsgId.messageId })
+                .eq('id', storedMessageId)
             }
+
             sentViaWhatsapp = true
             waErrorReason = null
             break
