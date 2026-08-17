@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/flows/admin-client'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { notifyPaymentApproved, notifyPaymentRejected } from '@/lib/email/send'
+import { syncAccountPlanLimits, type PlanTier } from '@/lib/billing/limits'
 
 async function getSuperAdminUserId(): Promise<string | null> {
   const cookieStore = await cookies()
@@ -23,14 +24,6 @@ async function getSuperAdminUserId(): Promise<string | null> {
 
   if (!profile?.is_super_admin) return null
   return user.id
-}
-
-const PLAN_NAME_MAP: Record<string, string> = {
-  free: 'Free',
-  starter: 'Starter',
-  growth: 'Pro',
-  pro: 'Pro',
-  enterprise: 'Pro',
 }
 
 export async function POST(
@@ -67,14 +60,44 @@ export async function POST(
   }
 
   if (action === 'approve') {
-    const dbPlanName = PLAN_NAME_MAP[payment.plan_tier] || 'Free'
+    const rawTier = String(payment.plan_tier || 'free').toLowerCase().trim()
+    const validTiers: PlanTier[] = ['free', 'starter', 'growth', 'pro', 'enterprise']
+    const planTier: PlanTier = validTiers.includes(rawTier as PlanTier) ? (rawTier as PlanTier) : 'starter'
+    const titleTier = planTier.charAt(0).toUpperCase() + planTier.slice(1)
 
-    const { data: plans } = await admin
+    // Look up matching plan by name in saas_plans
+    let planId: string | null = null
+    const { data: directMatch } = await admin
       .from('saas_plans')
       .select('id')
-      .ilike('name', dbPlanName)
+      .ilike('name', titleTier)
+      .limit(1)
 
-    if (!plans || plans.length === 0) {
+    if (directMatch && directMatch.length > 0) {
+      planId = directMatch[0].id
+    } else {
+      // Fallback candidates if exact tier name isn't seeded
+      const fallbackNames: Record<PlanTier, string[]> = {
+        free: ['Free', 'Starter'],
+        starter: ['Starter', 'Free'],
+        growth: ['Growth', 'Pro', 'Starter'],
+        pro: ['Pro', 'Growth', 'Enterprise'],
+        enterprise: ['Enterprise', 'Pro'],
+      }
+      for (const candidate of fallbackNames[planTier]) {
+        const { data: candidateMatch } = await admin
+          .from('saas_plans')
+          .select('id')
+          .ilike('name', candidate)
+          .limit(1)
+        if (candidateMatch && candidateMatch.length > 0) {
+          planId = candidateMatch[0].id
+          break
+        }
+      }
+    }
+
+    if (!planId) {
       return NextResponse.json({ error: 'Plan not found in database' }, { status: 500 })
     }
 
@@ -82,9 +105,9 @@ export async function POST(
       ? `${payment.name}'s Workspace`
       : 'My Workspace'
 
-    const { error: rpcError } = await admin.rpc('provision_workspace', {
+    const { data: accountId, error: rpcError } = await admin.rpc('provision_workspace', {
       p_user_id: payment.user_id,
-      p_plan_id: plans[0].id,
+      p_plan_id: planId,
       p_account_name: accountName,
       p_stripe_subscription_id: 'upi_sub_' + Math.random().toString(36).substring(7),
     })
@@ -92,6 +115,19 @@ export async function POST(
     if (rpcError) {
       console.error('[admin/payments] provision error:', rpcError)
       return NextResponse.json({ error: rpcError.message }, { status: 500 })
+    }
+
+    // Synchronize account limits & feature gates in accounts table
+    const targetAccountId = accountId || (
+      await admin.from('profiles').select('account_id').eq('user_id', payment.user_id).single()
+    ).data?.account_id
+
+    if (targetAccountId) {
+      try {
+        await syncAccountPlanLimits(targetAccountId, planTier)
+      } catch (syncErr: unknown) {
+        console.error('[admin/payments] limit sync warning:', syncErr)
+      }
     }
 
     await admin
@@ -142,3 +178,4 @@ export async function POST(
     return NextResponse.json({ success: true, action: 'rejected' })
   }
 }
+

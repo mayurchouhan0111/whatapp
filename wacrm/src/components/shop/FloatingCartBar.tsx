@@ -4,7 +4,7 @@ import { useStore } from "./store-context";
 import { ShoppingBag, ArrowRight } from "lucide-react";
 
 export default function FloatingCartBar() {
-  const { cart, cartItemCount, cartSubtotal, cartOpen, setCartOpen } = useStore();
+  const { cartItemCount, cartSubtotal, cartOpen, setCartOpen } = useStore();
 
   if (cartItemCount === 0 || cartOpen) return null;
 

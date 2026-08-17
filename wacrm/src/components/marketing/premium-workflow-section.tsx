@@ -1,6 +1,5 @@
 "use client"
 
-import { ArrowRight } from "lucide-react"
 import { SectionKicker } from "./section-kicker"
 import { steps } from "./premium-workflow-steps"
 

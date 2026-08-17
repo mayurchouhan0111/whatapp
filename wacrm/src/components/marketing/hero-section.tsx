@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, MessageSquare, BarChart3, Users, Star, HeadphonesIcon, TrendingUp } from "lucide-react"
+import { ArrowRight, MessageSquare, BarChart3, Star, HeadphonesIcon, TrendingUp } from "lucide-react"
 import { useState } from "react"
 import { ScrollReveal } from "./scroll-reveal"
 

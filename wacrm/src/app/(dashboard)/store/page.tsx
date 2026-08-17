@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
-import { Package, ListOrdered, IndianRupee, Clock, Power, Plus, Upload, Eye, ExternalLink, Loader2, ShoppingCart } from "lucide-react"
+import { Package, ListOrdered, IndianRupee, Clock, Plus, Upload, ExternalLink, Loader2, ShoppingCart } from "lucide-react"
 
 interface DashboardStats {
   totalProducts: number
@@ -48,7 +48,7 @@ export default function StoreDashboard() {
         .eq("id", accountId)
         .maybeSingle()
 
-      const maxProducts = (account as any)?.max_products || 0
+      const maxProducts = account?.max_products || 0
 
       const { data: config } = await supabase
         .from("store_configs")
@@ -69,9 +69,9 @@ export default function StoreDashboard() {
       const orderList = orders || []
       const totalOrders = orderList.length
       const revenue = orderList
-        .filter((o: any) => o.payment_status === "paid")
-        .reduce((sum: number, o: any) => sum + Number(o.total_amount || 0), 0)
-      const pendingOrders = orderList.filter((o: any) => o.order_status === "pending").length
+        .filter((o) => o.payment_status === "paid")
+        .reduce((sum, o) => sum + Number(o.total_amount || 0), 0)
+      const pendingOrders = orderList.filter((o) => o.order_status === "pending").length
 
       setStats({
         totalProducts: productCount || 0,

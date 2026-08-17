@@ -4,17 +4,9 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/hooks/use-auth"
 import { toast } from "sonner"
-import { Grid3X3, Loader2, Package, Plus, X, Edit2, Trash2 } from "lucide-react"
+import { Grid3X3, Loader2, Plus, Edit2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
 
 interface Category {
   name: string
@@ -83,9 +75,9 @@ export default function CategoriesPage() {
       toast.success(`Category "${name}" created.`)
       setNewCategory("")
       await loadCategories()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Add category error:", err)
-      toast.error(err.message || "Failed to add category")
+      toast.error(err instanceof Error ? err.message : "Failed to add category")
     }
   }
 
@@ -102,9 +94,9 @@ export default function CategoriesPage() {
       toast.success(`Category renamed to "${newName}".`)
       setEditingCategory(null)
       await loadCategories()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Rename category error:", err)
-      toast.error(err.message || "Failed to rename category")
+      toast.error(err instanceof Error ? err.message : "Failed to rename category")
     }
   }
 
@@ -125,9 +117,9 @@ export default function CategoriesPage() {
         .eq("name", `__cat_placeholder__${name}`)
       toast.success(`Category "${name}" deleted.`)
       await loadCategories()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Delete category error:", err)
-      toast.error(err.message || "Failed to delete category")
+      toast.error(err instanceof Error ? err.message : "Failed to delete category")
     }
   }
 

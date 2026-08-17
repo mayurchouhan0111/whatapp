@@ -176,8 +176,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCheckoutName("");
       setCheckoutPhone("");
       setCheckoutAddress("");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to place order.");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to place order.");
     }
   }, [checkoutName, checkoutPhone, checkoutAddress, cart, cartTotal, paymentMethod, store]);
 

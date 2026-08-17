@@ -164,19 +164,6 @@ export async function getAccountLimits(accountId: string): Promise<AccountLimits
   }
 }
 
-function columnFor(type: LimitType): string {
-  switch (type) {
-    case 'users': return 'profiles'
-    case 'contacts': return 'contacts'
-    case 'pipelines': return 'pipelines'
-    case 'active_flows': return 'flows'
-    case 'broadcasts_per_month': return 'broadcasts'
-    case 'products': return 'products'
-    case 'orders_per_month': return 'orders'
-    case 'review_requests_per_month': return 'review_requests'
-  }
-}
-
 export async function checkPlanLimit(
   accountId: string,
   type: LimitType,
@@ -320,5 +307,39 @@ export async function checkFeatureGate(
 
 export async function checkStorefrontAccess(accountId: string): Promise<boolean> {
   return checkFeatureGate(accountId, 'store')
+}
+
+export async function syncAccountPlanLimits(
+  accountId: string,
+  planTier: PlanTier,
+): Promise<void> {
+  const defaults = getPlanDefaults(planTier)
+  const admin = supabaseAdmin()
+  const { error } = await admin
+    .from('accounts')
+    .update({
+      plan_tier: planTier,
+      max_users: defaults.max_users,
+      max_contacts: defaults.max_contacts,
+      max_pipelines: defaults.max_pipelines,
+      max_active_flows: defaults.max_active_flows,
+      max_broadcasts_per_month: defaults.max_broadcasts_per_month,
+      allow_flows: defaults.allow_flows,
+      allow_api_access: defaults.allow_api_access,
+      allow_white_label: defaults.allow_white_label,
+      allow_store: defaults.allow_store,
+      allow_reputation: defaults.allow_reputation,
+      store_expires_at: defaults.store_expires_at,
+      max_products: defaults.max_products,
+      max_orders_per_month: defaults.max_orders_per_month,
+      max_review_requests: defaults.max_review_requests,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', accountId)
+
+  if (error) {
+    console.error('[syncAccountPlanLimits] Failed to update account limits:', error.message)
+    throw new Error(`Failed to sync account plan limits: ${error.message}`)
+  }
 }
 

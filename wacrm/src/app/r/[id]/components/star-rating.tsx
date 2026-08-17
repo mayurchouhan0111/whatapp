@@ -30,10 +30,7 @@ interface StarRatingProps {
 export function StarRating({
   value,
   onChange,
-  color = '#F59E0B',
-  contactName = 'Mayur Chouhan',
   ownerName = 'Mayur',
-  businessName = 'Mayur Experience Platform',
 }: StarRatingProps) {
   const initialIndex = value ? Math.max(0, Math.min(4, value - 1)) : 3
 
@@ -55,15 +52,6 @@ export function StarRating({
   useEffect(() => {
     scrollPosRef.current = scrollPos
   }, [scrollPos])
-
-  useEffect(() => {
-    if (value !== null && value !== activeRating && !isDragging) {
-      const targetIdx = value - 1
-      setActiveRating(value)
-      setStickerPopKey((k) => k + 1)
-      animateToPos(targetIdx)
-    }
-  }, [value, activeRating, isDragging])
 
   const animateToPos = useCallback((target: number, duration = 300) => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
@@ -89,6 +77,18 @@ export function StarRating({
 
     animFrameRef.current = requestAnimationFrame(step)
   }, [])
+
+  useEffect(() => {
+    if (value !== null && value !== activeRating && !isDragging) {
+      const targetIdx = value - 1
+      // Sync internal state with the incoming prop, then animate the carousel.
+      // Runs once per prop change; React re-renders immediately after.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActiveRating(value)
+      setStickerPopKey((k) => k + 1)
+      animateToPos(targetIdx)
+    }
+  }, [value, activeRating, isDragging])
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)

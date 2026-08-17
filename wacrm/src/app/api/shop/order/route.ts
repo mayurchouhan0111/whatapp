@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { findExistingContact } from '@/lib/contacts/dedupe';
 import { normalizePhone } from '@/lib/whatsapp/phone-utils';
 import { checkPlanLimit, checkStorefrontAccess } from '@/lib/billing/limits';
@@ -7,7 +7,7 @@ import { decrypt } from '@/lib/whatsapp/encryption';
 import { sendTextMessage } from '@/lib/whatsapp/meta-api';
 
 // Lazy-initialized to bypass build-time env check
-let _adminClient: any = null;
+let _adminClient: SupabaseClient | null = null;
 function supabaseAdmin() {
   if (!_adminClient) {
     _adminClient = createClient(
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
     }
 
     // 7. Calculate Pricing securely from DB (never trust client prices)
-    const productIds = items.map((i: any) => i.product_id);
+    const productIds = items.map((i) => i.product_id);
     const { data: dbProducts, error: dbProductsError } = await db
       .from('products')
       .select('*')
@@ -119,8 +119,8 @@ export async function POST(request: Request) {
     }
 
     let totalAmount = 0;
-    const validatedItems = items.map((item: any) => {
-      const dbProd = dbProducts.find((p: any) => p.id === item.product_id);
+    const validatedItems = items.map((item) => {
+      const dbProd = dbProducts.find((p) => p.id === item.product_id);
       if (!dbProd || !dbProd.is_available) {
         throw new Error(`Product ${item.name} is no longer available.`);
       }
@@ -292,8 +292,8 @@ Thank you for shopping with us! We will notify you once your package is dispatch
       store_name: store.name,
     });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Checkout API error:', err);
-    return NextResponse.json({ error: err.message || 'Checkout failed internally.' }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Checkout failed internally.' }, { status: 500 });
   }
 }

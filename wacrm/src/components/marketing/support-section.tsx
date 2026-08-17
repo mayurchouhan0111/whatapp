@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { HeadphonesIcon, ArrowRight } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { SectionKicker } from "./section-kicker"
 import { ScrollReveal } from "./scroll-reveal"

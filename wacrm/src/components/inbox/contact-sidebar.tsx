@@ -3,14 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { cn } from "@/lib/utils";
 import type { Contact, Deal, ContactNote, Tag } from "@/types";
+import type { ReviewRequestV2 } from "@/types/reputation";
 import {
   Phone,
   Mail,
   Copy,
   Check,
-  User,
   Tag as TagIcon,
   DollarSign,
   StickyNote,
@@ -34,7 +33,7 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
   const [tags, setTags] = useState<(Tag & { contact_tag_id: string })[]>([]);
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
-  const [latestRequest, setLatestRequest] = useState<any>(null);
+  const [latestRequest, setLatestRequest] = useState<ReviewRequestV2 | null>(null);
   const [sendingReview, setSendingReview] = useState(false);
 
   const fetchContactData = useCallback(async () => {
@@ -88,7 +87,6 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
   // Load on contact change. setContactData/setTags run inside async
   // Supabase callbacks, not synchronously in the effect body.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchContactData();
   }, [fetchContactData]);
 

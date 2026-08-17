@@ -1,4 +1,4 @@
-import { CheckCircle, Shield, Zap, BarChart3, Users, Sparkles, MessagesSquare } from "lucide-react"
+import { CheckCircle, Shield, Zap, BarChart3, Users, MessagesSquare } from "lucide-react"
 import { SectionKicker } from "./section-kicker"
 
 const reasons = [

@@ -170,7 +170,7 @@ function SubscribePage() {
               </button>
 
               <p className="text-xs text-muted-foreground text-center">
-                Your payment will be verified by our team. You'll get access once confirmed.
+                Your payment will be verified by our team. You&apos;ll get access once confirmed.
               </p>
             </form>
           </div>

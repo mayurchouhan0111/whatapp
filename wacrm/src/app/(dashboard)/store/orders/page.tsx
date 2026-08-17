@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import {
-  Search, Loader2, ShoppingBag, MessageSquare, ChevronDown, X, IndianRupee
+  Search, Loader2, ShoppingBag, MessageSquare
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +16,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
+
+interface OrderItem {
+  product_id?: string
+  name: string
+  quantity: number
+  price?: number
+  sale_price?: number
+}
 
 interface Order {
   id: string
@@ -28,7 +36,7 @@ interface Order {
   payment_method: string
   payment_status: string
   order_status: string
-  items: any
+  items: OrderItem[]
   deal_id: string | null
   created_at: string
 }
@@ -196,12 +204,6 @@ export default function OrdersPage() {
             const dateStr = new Date(order.created_at).toLocaleDateString("en-IN", {
               day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
             })
-            const itemsList =
-              typeof order.items === "string"
-                ? JSON.parse(order.items)
-                : Array.isArray(order.items)
-                  ? order.items
-                  : []
             const STATUS_VARIANTS: Record<string, string> = {
               pending: "bg-amber-50 text-amber-700 border-amber-200",
               confirmed: "bg-blue-50 text-blue-700 border-blue-200",
@@ -282,7 +284,7 @@ export default function OrdersPage() {
                 <div className="rounded-lg border border-border bg-muted/30 p-3">
                   <p className="text-xs font-semibold text-muted-foreground mb-2">Items ({Array.isArray(selectedOrder.items) ? selectedOrder.items.length : 0})</p>
                   <div className="space-y-1.5">
-                    {(Array.isArray(selectedOrder.items) ? selectedOrder.items : []).map((item: any, idx: number) => (
+                    {(Array.isArray(selectedOrder.items) ? selectedOrder.items : []).map((item, idx) => (
                       <div key={idx} className="flex justify-between text-sm">
                         <span>{item.name} <span className="font-medium">x{item.quantity}</span></span>
                         <span className="font-medium">₹{Number(item.price || item.sale_price || 0) * (item.quantity || 1)}</span>

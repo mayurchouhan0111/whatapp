@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Star, MessageSquare, QrCode, BarChart3, ArrowRight, ThumbsUp, ThumbsDown, ExternalLink } from "lucide-react"
+import { Star, ArrowRight, ThumbsUp } from "lucide-react"
 import Link from "next/link"
 import { SectionKicker } from "./section-kicker"
 

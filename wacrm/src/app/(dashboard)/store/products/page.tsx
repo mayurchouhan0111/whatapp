@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/hooks/use-auth"
 import { toast } from "sonner"
 import {
-  Search, Plus, Upload, Download, Edit2, Trash2, Loader2, Package, ImageIcon, ChevronDown, X
+  Search, Plus, Upload, Download, Edit2, Trash2, Loader2, Package, ImageIcon
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,6 +34,16 @@ interface Product {
   position: number
 }
 
+interface CsvProduct {
+  name: string
+  description: string
+  regular_price: number
+  sale_price: number
+  category: string
+  image_url: string
+  is_available: boolean
+}
+
 export default function ProductsPage() {
   const supabase = createClient()
   const { accountId, profileLoading } = useAuth()
@@ -56,7 +66,7 @@ export default function ProductsPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   const [importOpen, setImportOpen] = useState(false)
-  const [csvProducts, setCsvProducts] = useState<any[]>([])
+  const [csvProducts, setCsvProducts] = useState<CsvProduct[]>([])
   const [importing, setImporting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -77,7 +87,7 @@ export default function ProductsPage() {
         .select("max_products")
         .eq("id", accountId)
         .maybeSingle()
-      setMaxProducts((account as any)?.max_products || 0)
+      setMaxProducts(account?.max_products || 0)
 
       const { data } = await supabase
         .from("products")
@@ -156,9 +166,9 @@ export default function ProductsPage() {
 
       setModalOpen(false)
       await loadProducts()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Save product error:", err)
-      toast.error(err.message || "Failed to save product.")
+      toast.error(err instanceof Error ? err.message : "Failed to save product.")
     } finally {
       setSaving(false)
     }
@@ -173,9 +183,9 @@ export default function ProductsPage() {
       setDeleteOpen(false)
       setDeleteTarget(null)
       await loadProducts()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Delete product error:", err)
-      toast.error(err.message || "Failed to delete product.")
+      toast.error(err instanceof Error ? err.message : "Failed to delete product.")
     }
   }
 
@@ -190,7 +200,7 @@ export default function ProductsPage() {
       const lines = text.split(/\r?\n/)
       if (lines.length < 2) { toast.error("CSV must have a header row and data."); return }
       const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/['"]/g, ""))
-      const results: any[] = []
+      const results: Record<string, string>[] = []
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim()
         if (!line) continue
@@ -203,11 +213,11 @@ export default function ProductsPage() {
           else { currentVal += ch }
         }
         values.push(currentVal.trim().replace(/^"|"$/g, ""))
-        const item: any = {}
+        const item: Record<string, string> = {}
         headers.forEach((h, idx) => { if (h) item[h] = values[idx] || "" })
         results.push(item)
       }
-      const valid = []
+      const valid: CsvProduct[] = []
       for (const row of results) {
         const name = (row.name || row.title || "").trim()
         if (!name) continue
@@ -247,7 +257,7 @@ export default function ProductsPage() {
       toast.success(`Imported ${toImport.length} product(s).`)
       setImportOpen(false)
       await loadProducts()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("CSV import error:", err)
       toast.error("Failed to import products.")
     } finally {
@@ -289,8 +299,8 @@ export default function ProductsPage() {
       toast.success(`Deleted ${selectedIds.size} product(s).`)
       setSelectedIds(new Set())
       await loadProducts()
-    } catch (err: any) {
-      toast.error(err.message || "Bulk delete failed.")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Bulk delete failed.")
     }
   }
 

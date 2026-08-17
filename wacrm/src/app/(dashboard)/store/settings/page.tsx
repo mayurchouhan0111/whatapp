@@ -71,14 +71,14 @@ export default function StoreSettingsPage() {
         .eq("id", accountId)
         .maybeSingle()
 
-      if (!account || !(account as any).allow_store) {
+      if (!account || !account.allow_store) {
         setHasAccess(false)
         setLoading(false)
         return
       }
 
-      if ((account as any).store_expires_at) {
-        const expiry = new Date((account as any).store_expires_at)
+      if (account.store_expires_at) {
+        const expiry = new Date(account.store_expires_at)
         if (expiry < new Date()) {
           setHasAccess(false)
           setExpiryDate(expiry.toLocaleDateString())
@@ -99,13 +99,13 @@ export default function StoreSettingsPage() {
       if (config) {
         setStoreConfig(config as StoreConfig)
         setForm({
-          slug: (config as any).slug || "",
-          name: (config as any).name || "",
-          description: (config as any).description || "",
-          banner_url: (config as any).banner_url || "",
-          whatsapp_number: (config as any).whatsapp_number || "",
-          upi_id: (config as any).upi_id || "",
-          is_active: (config as any).is_active ?? true,
+          slug: config.slug || "",
+          name: config.name || "",
+          description: config.description || "",
+          banner_url: config.banner_url || "",
+          whatsapp_number: config.whatsapp_number || "",
+          upi_id: config.upi_id || "",
+          is_active: config.is_active ?? true,
         })
       } else {
         setForm((prev) => ({
@@ -156,9 +156,9 @@ export default function StoreSettingsPage() {
 
       toast.success("Store settings saved!")
       await loadSettings()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Save error:", err)
-      toast.error(err.message || "Failed to save settings")
+      toast.error(err instanceof Error ? err.message : "Failed to save settings")
     } finally {
       setSaving(false)
     }

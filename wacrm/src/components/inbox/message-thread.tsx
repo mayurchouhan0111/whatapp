@@ -36,7 +36,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageBubble } from "./message-bubble";
 import { MessageActions } from "./message-actions";
 import {
@@ -221,20 +220,20 @@ export function MessageThread({
 
   // 24-hour session timer
   const sessionInfo = useMemo(() => {
-    if (!messages.length) return { expired: false, remaining: "" };
+    if (!messages.length) return { expired: true, remaining: "Template required to initiate conversation" };
 
     // Find last customer message
     const lastCustomerMsg = [...messages]
       .reverse()
       .find((m) => m.sender_type === "customer");
 
-    if (!lastCustomerMsg) return { expired: true, remaining: "No customer messages" };
+    if (!lastCustomerMsg) return { expired: true, remaining: "No customer messages (Template required)" };
 
     const hoursSince = differenceInHours(new Date(), new Date(lastCustomerMsg.created_at));
     const expired = hoursSince >= 24;
 
     if (expired) {
-      return { expired: true, remaining: "Expired" };
+      return { expired: true, remaining: "Expired (Template required)" };
     }
 
     const hoursLeft = 24 - hoursSince;

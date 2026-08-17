@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "./store-context";
-import { X, Minus, Plus, ShoppingBag, Sparkles, CheckCircle, Truck, Star, Hash } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, Sparkles, CheckCircle, Truck, Star } from "lucide-react";
 import { useState } from "react";
 
 export default function ProductDetailModal() {

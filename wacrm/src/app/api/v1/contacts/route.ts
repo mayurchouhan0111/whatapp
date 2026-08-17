@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     const ctx = await requireApiKey(request, 'contacts:write');
     const body = await request.json();
 
-    const { name, phone, email, tags, custom_fields } = body;
+    const { name, phone, email, tags } = body;
 
     if (!phone) {
       throw badRequest('phone number is required');

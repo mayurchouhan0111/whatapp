@@ -1,4 +1,4 @@
-import { ShoppingBag, Globe, MessageSquare, Package, BarChart3, Zap, Bell, TrendingUp } from "lucide-react"
+import { ShoppingBag, Globe, MessageSquare, Package, BarChart3, Zap, Bell } from "lucide-react"
 import Link from "next/link"
 import { SectionKicker } from "./section-kicker"
 

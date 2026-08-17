@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Star, Zap, CheckCircle, ArrowRight, Sparkles, MessageSquare, Gift } from "lucide-react"
+import { Star, Zap, CheckCircle, ArrowRight, Sparkles, Gift } from "lucide-react"
 import { useState } from "react"
 import { SectionKicker } from "./section-kicker"
 

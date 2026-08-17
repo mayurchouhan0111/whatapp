@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import {
-  Star, ExternalLink, QrCode, Printer, AlertCircle, CheckCircle2, RotateCcw,
+  Star, QrCode, Printer, AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

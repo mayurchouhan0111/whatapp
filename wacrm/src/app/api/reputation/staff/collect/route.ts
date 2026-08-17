@@ -234,7 +234,7 @@ export async function POST(request: Request) {
         const accessToken = safeDecryptToken(whatsappConfig.access_token)
 
         // Check if a dedicated review template exists (e.g. 'review_request') or any approved review template (excluding hello_world)
-        let { data: appTemplate } = await supabase
+        const { data: appTemplate } = await supabase
           .from('message_templates')
           .select('*')
           .eq('account_id', accountId)

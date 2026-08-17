@@ -87,6 +87,7 @@ export default function StorefrontPage({
   const [checkoutPhone, setCheckoutPhone] = useState("");
   const [checkoutAddress, setCheckoutAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "cod">("upi");
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -226,7 +227,7 @@ export default function StorefrontPage({
     }, 100);
   }
 
-  function handleCheckout() {
+  async function handleCheckout() {
     if (!checkoutName.trim()) {
       toast.error("Please enter your name.");
       return;
@@ -244,29 +245,58 @@ export default function StorefrontPage({
       return;
     }
 
+    setIsPlacingOrder(true);
     try {
+      // 1. Submit order to backend API to validate stock, record order in DB, and create CRM pipeline deal
+      const res = await fetch("/api/shop/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          customer_name: checkoutName.trim(),
+          customer_phone: checkoutPhone.trim(),
+          delivery_address: checkoutAddress.trim(),
+          payment_method: paymentMethod,
+          items: cart.map((item) => ({
+            product_id: item.product.id,
+            name: item.product.name,
+            quantity: item.quantity,
+          })),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to place order.");
+      }
+
+      const shortOrderId = data.order_id ? data.order_id.split("-")[0].toUpperCase() : "NEW";
+
       const itemsList = cart
         .map((i) => `• ${i.product.name} x${i.quantity}`)
         .join("\n");
       
-      const upiNote = paymentMethod === "upi" && store?.upi_id
-        ? `\n\n(Please send payment to UPI ID: ${store.upi_id})`
+      const upiNote = paymentMethod === "upi" && (data.upi_id || store?.upi_id)
+        ? `\n\n(Please send payment to UPI ID: ${data.upi_id || store?.upi_id})`
         : "";
       
-      const waMessage = `New Order\n\n` +
-        `Name: ${checkoutName.trim()}\n` +
-        `Phone: ${checkoutPhone.trim()}\n` +
-        `Address: ${checkoutAddress.trim()}\n\n` +
-        `Items:\n${itemsList}\n\n` +
-        `Total: ₹${cartTotal}\n` +
-        `Payment Method: ${paymentMethod === "upi" ? "UPI" : "Cash on Delivery"}${upiNote}`;
+      const waMessage = `🛍️ *New Order #${shortOrderId}*\n\n` +
+        `*Customer Details:*\n` +
+        `• Name: ${checkoutName.trim()}\n` +
+        `• Phone: ${checkoutPhone.trim()}\n` +
+        `• Address: ${checkoutAddress.trim()}\n\n` +
+        `*Items Ordered:*\n${itemsList}\n\n` +
+        `*Total Amount:* ₹${data.total_amount || cartTotal}\n` +
+        `*Payment Method:* ${paymentMethod === "upi" ? "UPI" : "Cash on Delivery"}${upiNote}`;
 
-      const waNumber = store?.whatsapp_number || "";
+      const waNumber = data.whatsapp_number || store?.whatsapp_number || "";
       const cleanNumber = waNumber.replace(/\D/g, "");
-      const waUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(waMessage)}`;
-      window.open(waUrl, "_blank");
+      if (cleanNumber) {
+        const waUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(waMessage)}`;
+        window.open(waUrl, "_blank");
+      }
 
-      toast.success("Order details sent to WhatsApp!");
+      toast.success(`Order #${shortOrderId} placed successfully!`);
 
       // Clear state
       setCart([]);
@@ -275,9 +305,11 @@ export default function StorefrontPage({
       setCheckoutPhone("");
       setCheckoutAddress("");
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Checkout failed:", err);
-      toast.error(err.message || "Failed to place order.");
+      toast.error(err instanceof Error ? err.message : "Failed to place order.");
+    } finally {
+      setIsPlacingOrder(false);
     }
   }
 
@@ -701,7 +733,7 @@ export default function StorefrontPage({
                         id="cust_name"
                         placeholder="John Doe"
                         value={checkoutName}
-                        onChange={(e: any) => setCheckoutName(e.target.value)}
+                        onChange={(e) => setCheckoutName(e.target.value)}
                         className="text-slate-800 bg-white border-slate-200 focus:text-slate-800 focus:bg-white placeholder:text-slate-400 focus-visible:ring-teal-600 focus-visible:border-teal-600"
                       />
                     </div>
@@ -711,7 +743,7 @@ export default function StorefrontPage({
                         id="cust_phone"
                         placeholder="e.g. +91 98765 43210"
                         value={checkoutPhone}
-                        onChange={(e: any) => setCheckoutPhone(e.target.value)}
+                        onChange={(e) => setCheckoutPhone(e.target.value)}
                         className="text-slate-800 bg-white border-slate-200 focus:text-slate-800 focus:bg-white placeholder:text-slate-400 focus-visible:ring-teal-600 focus-visible:border-teal-600"
                       />
                       {checkoutPhone && !/^[\d\s\+\-\(\)]{10,}$/.test(checkoutPhone) && (
@@ -725,7 +757,7 @@ export default function StorefrontPage({
                         placeholder="Flat no., Street name, Landmark, Pin code"
                         rows={3}
                         value={checkoutAddress}
-                        onChange={(e: any) => setCheckoutAddress(e.target.value)}
+                        onChange={(e) => setCheckoutAddress(e.target.value)}
                         className="text-slate-800 bg-white border-slate-200 focus:text-slate-800 focus:bg-white placeholder:text-slate-400 focus-visible:ring-teal-600 focus-visible:border-teal-600"
                       />
                     </div>
@@ -806,15 +838,25 @@ export default function StorefrontPage({
 
                 <button
                   onClick={handleCheckout}
-                  className="w-full flex items-center justify-between rounded-xl bg-teal-600 text-white font-extrabold px-5 py-3.5 hover:bg-teal-700 transition-colors shadow-lg shadow-teal-600/10 cursor-pointer"
+                  disabled={isPlacingOrder}
+                  className={`w-full flex items-center justify-between rounded-xl bg-teal-600 text-white font-extrabold px-5 py-3.5 hover:bg-teal-700 transition-colors shadow-lg shadow-teal-600/10 cursor-pointer ${isPlacingOrder ? "opacity-70 cursor-not-allowed" : ""}`}
                 >
                   <div className="flex flex-col text-left">
                     <span className="text-[10px] font-bold text-teal-200">TOTAL AMOUNT</span>
                     <span className="text-sm font-black">₹{cartTotal}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span>Place Order</span>
-                    <ArrowRight className="size-4" />
+                  <div className="flex items-center gap-1.5">
+                    {isPlacingOrder ? (
+                      <>
+                        <div className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Place Order</span>
+                        <ArrowRight className="size-4" />
+                      </>
+                    )}
                   </div>
                 </button>
               </div>

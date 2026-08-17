@@ -26,6 +26,9 @@ export function ScrollReveal({
 
   useEffect(() => {
     if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      // Fallback for environments without IntersectionObserver: reveal
+      // immediately instead of leaving content permanently hidden.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsVisible(true)
       return
     }

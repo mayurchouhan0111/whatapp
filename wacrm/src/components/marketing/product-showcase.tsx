@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { MessageSquare, GitBranch, Radio, BarChart3, Users, Bell, Clock, CheckCircle, TrendingUp, Target } from "lucide-react"
+import { MessageSquare, GitBranch, Radio, BarChart3, Users, Bell, TrendingUp, Target } from "lucide-react"
 import { SectionKicker } from "./section-kicker"
 
 const TABS = [

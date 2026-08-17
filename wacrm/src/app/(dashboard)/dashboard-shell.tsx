@@ -85,7 +85,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
               <div className="max-w-md space-y-2">
                 <h2 className="text-2xl font-bold tracking-tight">Access Denied</h2>
                 <p className="text-muted-foreground">
-                  You don't have the required permissions or active module for this page. Please upgrade your SaaS plan or contact your workspace owner.
+                  You don&apos;t have the required permissions or active module for this page. Please upgrade your SaaS plan or contact your workspace owner.
                 </p>
               </div>
             </div>

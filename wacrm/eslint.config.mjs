@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Netlify build output (generated serverless artifacts, not source).
+    ".netlify/**",
     // Vendored minified opus-recorder encoder worker (served statically).
     "public/opus/**",
   ]),

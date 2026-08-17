@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/hooks/use-auth"
-import { Loader2, Users, MessageSquare, IndianRupee } from "lucide-react"
+import { Loader2, Users, MessageSquare } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
 
 interface Customer {
   contact_id: string | null
@@ -43,7 +42,7 @@ export default function CustomersPage() {
       const orders = data || []
 
       const customerMap = new Map<string, Customer>()
-      for (const order of orders as any[]) {
+      for (const order of orders) {
         const phone = order.customer_phone || "unknown"
         if (!customerMap.has(phone)) {
           customerMap.set(phone, {

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { decrypt } from '@/lib/whatsapp/encryption';
 import { sendTextMessage } from '@/lib/whatsapp/meta-api';
 
 // Lazy-initialized to bypass build-time env check
-let _adminClient: any = null;
+let _adminClient: SupabaseClient | null = null;
 function supabaseAdmin() {
   if (!_adminClient) {
     _adminClient = createClient(
@@ -130,9 +130,9 @@ Thank you for shopping with us! We will notify you once your package is dispatch
       } else {
         whatsappErrorMsg = 'WhatsApp Business config is disconnected or not configured.';
       }
-    } catch (waErr: any) {
+    } catch (waErr: unknown) {
       console.error('Automated WhatsApp store receipt failed:', waErr);
-      whatsappErrorMsg = waErr.message || 'WhatsApp sending error.';
+      whatsappErrorMsg = waErr instanceof Error ? waErr.message : 'WhatsApp sending error.';
     }
 
     return NextResponse.json({
@@ -142,8 +142,8 @@ Thank you for shopping with us! We will notify you once your package is dispatch
       whatsapp_error: whatsappErrorMsg || undefined,
     });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Order pay API error:', err);
-    return NextResponse.json({ error: err.message || 'Payment confirmation failed internally.' }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Payment confirmation failed internally.' }, { status: 500 });
   }
 }

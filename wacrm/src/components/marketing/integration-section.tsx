@@ -1,5 +1,4 @@
 import { SectionKicker } from "./section-kicker"
-import { Link2 } from "lucide-react"
 
 const INTEGRATIONS = [
   "Shopify", "Razorpay", "Zoho", "Freshworks", "Zendesk",

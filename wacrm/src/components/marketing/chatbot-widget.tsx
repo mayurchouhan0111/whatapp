@@ -103,6 +103,9 @@ function TypeWriter({ text, speed = 25, onDone }: { text: string; speed?: number
 
   useEffect(() => {
     idx.current = 0
+    // Reset the typewriter buffer when the message text changes; runs
+    // before the interval starts so the cursor starts from the first char.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDisplayed("")
     const interval = setInterval(() => {
       if (idx.current < text.length) {
@@ -126,7 +129,7 @@ export function ChatbotWidget() {
   const [lang, setLang] = useState<"en" | "hi" | null>(null)
   const [typing, setTyping] = useState(false)
   const [botDone, setBotDone] = useState(false)
-  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null)
+  const [, setSpeakingIdx] = useState<number | null>(null)
   const [pulse, setPulse] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const thinkingTimer = useRef<NodeJS.Timeout | null>(null)

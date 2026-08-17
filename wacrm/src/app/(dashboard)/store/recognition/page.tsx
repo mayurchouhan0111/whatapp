@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { toast } from "sonner"
 import {
   Camera, Eye, Settings, ShoppingBag, Loader2, Sparkles, Check, CheckCircle2,
-  AlertCircle, ShieldCheck, Play, RefreshCw, X, IndianRupee, Volume2, VolumeX,
+  AlertCircle, ShieldCheck, Play, RefreshCw, X, Volume2, VolumeX,
   Scan, Sliders, Users, Trash, PlusCircle, MinusCircle, UserCheck, ShieldAlert
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -73,7 +73,7 @@ export default function AIRecognitionPage() {
   const { accountId, profileLoading } = useAuth()
 
   // State Management
-  const [loading, setLoading] = useState(true)
+  const [, setLoading] = useState(true)
   const [isDemoMode, setIsDemoMode] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
 
@@ -239,7 +239,7 @@ export default function AIRecognitionPage() {
 
         if (facesData) {
           const map: Record<string, ContactFace> = {}
-          facesData.forEach((f: any) => {
+          facesData.forEach((f) => {
             map[f.contact_id] = {
               contact_id: f.contact_id,
               face_photo_url: f.face_photo_url,
@@ -261,7 +261,7 @@ export default function AIRecognitionPage() {
         if (logsData) {
           // Resolve visitor logs format
           const formattedLogs: VisitorLog[] = await Promise.all(
-            logsData.map(async (l: any) => {
+            logsData.map(async (l) => {
               const phone = l.contact?.phone || "unknown"
               const name = l.contact?.name || "Visitor"
               const customerStats = await fetchCustomerStats(phone)
@@ -395,7 +395,7 @@ export default function AIRecognitionPage() {
       }
 
       toast.success("Settings saved successfully!")
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Save config error:", err)
       toast.error("Failed to save settings to DB. Saved locally instead.")
       localStorage.setItem("wacrm_ai_config", JSON.stringify(config))
@@ -417,10 +417,10 @@ export default function AIRecognitionPage() {
       if (error || !data) return { totalSpent: 0, totalOrders: 0 }
 
       let totalSpent = 0
-      let totalOrders = data.length
+      const totalOrders = data.length
       let lastOrderDate: string | undefined
 
-      data.forEach((o: any) => {
+      data.forEach((o) => {
         totalSpent += Number(o.total_amount || 0)
         if (!lastOrderDate || new Date(o.created_at) > new Date(lastOrderDate)) {
           lastOrderDate = o.created_at
@@ -478,7 +478,7 @@ export default function AIRecognitionPage() {
   function playAlertSound(category: string) {
     if (!soundEnabled) return
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const audioCtx = new (window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)()
       const osc = audioCtx.createOscillator()
       const gain = audioCtx.createGain()
       
@@ -639,8 +639,8 @@ export default function AIRecognitionPage() {
       let spent = 0
       let ordersCount = 0
       let lastVisit = "Never"
-      let preferredProducts = "General Catalog"
-      let salesExecutive = "Amit"
+      const preferredProducts = "General Catalog"
+      const salesExecutive = "Amit"
 
       // In simulation, we check the visitor history or link to simulator selection
       // Let's link it to the last active visitor or a selected customer
@@ -732,8 +732,8 @@ export default function AIRecognitionPage() {
         if (error) throw error
       }
 
-      setActiveBillingCustomer((prev: any) => ({
-        ...prev,
+      setActiveBillingCustomer((prev) => ({
+        ...prev!,
         faceEnrolled: true
       }))
 
@@ -805,8 +805,8 @@ export default function AIRecognitionPage() {
       setIsProcessingBill(true)
       const totalAmount = cart.reduce((sum, item) => sum + item.product.sale_price * item.quantity, 0)
       
-      let name = cust?.contact?.name || "Walk-in Customer"
-      let phone = cust?.contact?.phone || "919999999999"
+      const name = cust?.contact?.name || "Walk-in Customer"
+      const phone = cust?.contact?.phone || "919999999999"
       let contactId = cust?.contact?.id || null
 
       // Create new contact if unregistered
@@ -873,7 +873,7 @@ export default function AIRecognitionPage() {
       setActiveBillingCustomer(null)
       loadInitialData() // refresh databases
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Billing error:", err)
       toast.error("Billing checkout failed")
     } finally {
@@ -1042,16 +1042,17 @@ export default function AIRecognitionPage() {
       }
       setIsEntranceWebcam(true)
       toast.success("Entrance Webcam activated!")
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Entrance Webcam Error:", err)
-      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+      const errName = err instanceof Error ? err.name : ""
+      if (errName === "NotAllowedError" || errName === "PermissionDeniedError") {
         toast.error("Webcam access denied. Please click the lock/camera icon in your address bar and choose 'Allow'.")
-      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+      } else if (errName === "NotFoundError" || errName === "DevicesNotFoundError") {
         toast.error("No webcam device detected on your system. Please plug in a camera.")
-      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+      } else if (errName === "NotReadableError" || errName === "TrackStartError") {
         toast.error("Webcam is already in use by another application (e.g. Zoom, Teams, OBS). Close them and try again.")
       } else {
-        toast.error(`Webcam error: ${err.message || "Failed to start camera feed"}`)
+        toast.error(`Webcam error: ${err instanceof Error ? err.message : "Failed to start camera feed"}`)
       }
     }
   }
@@ -1082,16 +1083,17 @@ export default function AIRecognitionPage() {
       }
       setIsBillingWebcam(true)
       toast.success("Billing Counter Webcam activated!")
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Billing Webcam Error:", err)
-      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+      const errName = err instanceof Error ? err.name : ""
+      if (errName === "NotAllowedError" || errName === "PermissionDeniedError") {
         toast.error("Webcam access denied. Please click the lock/camera icon in your address bar and choose 'Allow'.")
-      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+      } else if (errName === "NotFoundError" || errName === "DevicesNotFoundError") {
         toast.error("No webcam device detected on your system. Please plug in a camera.")
-      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+      } else if (errName === "NotReadableError" || errName === "TrackStartError") {
         toast.error("Webcam is already in use by another application (e.g. Zoom, Teams, OBS). Close them and try again.")
       } else {
-        toast.error(`Webcam error: ${err.message || "Failed to start camera feed"}`)
+        toast.error(`Webcam error: ${err instanceof Error ? err.message : "Failed to start camera feed"}`)
       }
     }
   }
@@ -1558,7 +1560,7 @@ export default function AIRecognitionPage() {
                               <Switch
                                 id="consent-toggle"
                                 checked={activeBillingCustomer.consentChecked}
-                                onCheckedChange={(val) => setActiveBillingCustomer((p: any) => ({ ...p, consentChecked: val }))}
+                                onCheckedChange={(val) => setActiveBillingCustomer((p) => ({ ...p!, consentChecked: val }))}
                               />
                             </div>
 
@@ -1587,13 +1589,13 @@ export default function AIRecognitionPage() {
                               if (contact) {
                                 // load details
                                 fetchCustomerStats(contact.phone).then((stats) => {
-                                  setActiveBillingCustomer((prev: any) => ({
-                                    ...prev,
-                                    contact,
-                                    spent: stats.totalSpent,
-                                    ordersCount: stats.totalOrders,
-                                    faceEnrolled: !!enrolledFaces[contact.id]
-                                  }))
+                                  setActiveBillingCustomer((prev) => ({
+                                  ...prev!,
+                                  contact,
+                                  spent: stats.totalSpent,
+                                  ordersCount: stats.totalOrders,
+                                  faceEnrolled: !!enrolledFaces[contact.id]
+                                }))
                                 })
                               }
                             }}
@@ -1616,7 +1618,7 @@ export default function AIRecognitionPage() {
                     <Scan className="h-8 w-8 text-slate-600 animate-pulse" />
                     <p className="text-xs font-semibold">No Active Customer Scanned</p>
                     <p className="text-[10px] text-slate-500 max-w-[200px]">
-                      Perform a "Scan Customer" under the Camera 2 billing counter tab to begin.
+                      Perform a &quot;Scan Customer&quot; under the Camera 2 billing counter tab to begin.
                     </p>
                   </div>
                 )}

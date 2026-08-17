@@ -38,12 +38,12 @@ function PublicCollectorContent({ accountId }: { accountId: string }) {
       })
       .then((payload) => {
         setBusinessName(payload.data.businessName || 'Restaurant')
-        const staff = payload.data.staff || []
+        const staff: { id: string; name: string; role: string }[] = payload.data.staff || []
         setStaffList(staff)
 
         // Restore previously selected staff member on waiter's phone
         const savedId = localStorage.getItem(`waiter_staff_${accountId}`)
-        if (savedId && staff.some((s: any) => s.id === savedId)) {
+        if (savedId && staff.some((s) => s.id === savedId)) {
           setSelectedStaffId(savedId)
         } else if (staff.length > 0) {
           setSelectedStaffId(staff[0].id)

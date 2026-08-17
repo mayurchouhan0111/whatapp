@@ -69,7 +69,6 @@ export default function ReputationDashboardPage() {
   const [reviewThreshold, setReviewThreshold] = useState(4);
   const [smsTemplate, setSmsTemplate] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [qrLink, setQrLink] = useState('');
 
   // V2 settings & Auto-trigger options
@@ -296,23 +295,6 @@ export default function ReputationDashboardPage() {
     printWindow.document.close();
   };
 
-  const handleResend = async (contactId: string) => {
-    try {
-      toast.loading('Queueing review request...', { id: 'resend' });
-      const res = await fetch('/api/reputation/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contact_id: contactId }),
-      });
-      const payload = await res.json();
-      if (!res.ok) throw new Error(payload.error || 'Failed to resend request');
-      toast.success('Review request queued and sent via WhatsApp!', { id: 'resend' });
-      loadData();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Resend request failed.', { id: 'resend' });
-    }
-  };
-
   const totalSent = requests.length;
   const openedCount = requests.filter(r => ['opened', 'rated', 'clicked'].includes(r.status)).length;
   const openRate = totalSent > 0 ? (openedCount / totalSent) * 100 : 0;
@@ -326,23 +308,6 @@ export default function ReputationDashboardPage() {
   const maxCount = Math.max(...ratingCounts, 1);
 
   const privateFeedbacks = requests.filter(r => r.rating !== null && r.rating < (settings?.review_threshold ?? 4) && r.feedback);
-
-  const filteredRequests = requests.filter(r => {
-    const n = r.contact?.name || ''; const p = r.contact?.phone || ''; const q = searchTerm.toLowerCase();
-    return n.toLowerCase().includes(q) || p.includes(q);
-  });
-
-  const getStatusBadge = (status: ReviewRequest['status']) => {
-    const config: Record<string, { text: string; className: string }> = {
-      sent: { text: 'Sent', className: 'bg-blue-500/10 text-blue-500 border-blue-500/25' },
-      opened: { text: 'Opened', className: 'bg-amber-500/10 text-amber-500 border-amber-500/25' },
-      clicked: { text: 'Google Review', className: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25' },
-      rated: { text: 'Private Review', className: 'bg-green-500/10 text-green-500 border-green-500/25' },
-      failed: { text: 'Failed', className: 'bg-rose-500/10 text-rose-500 border-rose-500/25' },
-    };
-    const c = config[status] || { text: status, className: '' };
-    return <Badge variant="outline" className={`font-semibold ${c.className}`}>{c.text}</Badge>;
-  };
 
   const renderStars = (num: number) => (
     <div className="flex items-center gap-0.5">

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import { syncAccountPlanLimits, type PlanTier } from "@/lib/billing/limits"
 
 export async function POST(req: Request) {
   try {
-    let { plan } = await req.json()
+    const { plan } = await req.json()
     const cookieStore = await cookies()
 
     const supabaseAuth = createServerClient(
@@ -23,28 +24,46 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
-    // Map pricing page plan names to actual DB plan names
-    // The DB currently only has Free / Starter / Pro plans seeded.
-    const planNameMap: Record<string, string> = {
-      free: 'Free',
-      starter: 'Starter',
-      growth: 'Pro',
-      pro: 'Pro',
-      enterprise: 'Pro',
-    }
-    plan = planNameMap[String(plan).toLowerCase()] ?? plan
+    const rawTier = String(plan || 'free').toLowerCase().trim()
+    const validTiers: PlanTier[] = ['free', 'starter', 'growth', 'pro', 'enterprise']
+    const planTier: PlanTier = validTiers.includes(rawTier as PlanTier) ? (rawTier as PlanTier) : 'free'
+    const titleTier = planTier.charAt(0).toUpperCase() + planTier.slice(1)
 
-    // Look up the plan by name from saas_plans
-    const { data: plans, error: planError } = await supabaseAuth
+    // Look up matching plan by name in saas_plans
+    let planId: string | null = null
+    const { data: directMatch } = await supabaseAuth
       .from("saas_plans")
       .select("id")
-      .ilike("name", plan)
+      .ilike("name", titleTier)
+      .limit(1)
 
-    if (planError || !plans || plans.length === 0) {
-      return NextResponse.json({ error: "Plan not found" }, { status: 400 })
+    if (directMatch && directMatch.length > 0) {
+      planId = directMatch[0].id
+    } else {
+      // Fallback candidates if exact tier name isn't seeded
+      const fallbackNames: Record<PlanTier, string[]> = {
+        free: ['Free', 'Starter'],
+        starter: ['Starter', 'Free'],
+        growth: ['Growth', 'Pro', 'Starter'],
+        pro: ['Pro', 'Growth', 'Enterprise'],
+        enterprise: ['Enterprise', 'Pro'],
+      }
+      for (const candidate of fallbackNames[planTier]) {
+        const { data: candidateMatch } = await supabaseAuth
+          .from("saas_plans")
+          .select("id")
+          .ilike("name", candidate)
+          .limit(1)
+        if (candidateMatch && candidateMatch.length > 0) {
+          planId = candidateMatch[0].id
+          break
+        }
+      }
     }
 
-    const planId = plans[0].id
+    if (!planId) {
+      return NextResponse.json({ error: "Plan not found" }, { status: 400 })
+    }
 
     const supabaseAdmin = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -61,21 +80,30 @@ export async function POST(req: Request) {
       ? `${user.user_metadata.full_name}'s Workspace`
       : "My Workspace"
 
-    const { data, error } = await supabaseAdmin.rpc("provision_workspace", {
+    const { data: accountId, error: rpcError } = await supabaseAdmin.rpc("provision_workspace", {
       p_user_id: user.id,
       p_plan_id: planId,
       p_account_name: accountName,
       p_stripe_subscription_id: "manual_sub_" + Math.random().toString(36).substring(7),
     })
 
-    if (error) {
-      console.error("Provision RPC error:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (rpcError) {
+      console.error("Provision RPC error:", rpcError)
+      return NextResponse.json({ error: rpcError.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, accountId: data })
-  } catch (err: any) {
+    // Synchronize account limits & feature gates in accounts table
+    if (accountId) {
+      try {
+        await syncAccountPlanLimits(accountId, planTier)
+      } catch (syncErr: unknown) {
+        console.error("Account limit sync warning:", syncErr)
+      }
+    }
+
+    return NextResponse.json({ success: true, accountId })
+  } catch (err: unknown) {
     console.error("Provision error:", err)
-    return NextResponse.json({ error: err.message || "Unexpected error" }, { status: 500 })
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Unexpected error" }, { status: 500 })
   }
 }

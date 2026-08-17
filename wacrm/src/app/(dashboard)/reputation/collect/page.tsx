@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import {
   Send, Phone, User, Table as TableIcon, CheckCircle2,
-  Copy, Sparkles, Loader2, UtensilsCrossed, RefreshCw,
+  Copy, Sparkles, Loader2, UtensilsCrossed,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,12 +28,12 @@ export default function StaffTableCollectorPage() {
     fetch('/api/reputation/staff')
       .then((res) => res.json())
       .then((payload) => {
-        const staff = payload.data || []
+        const staff: { id: string; name: string; role: string }[] = payload.data || []
         setStaffList(staff)
 
         // Restore previously selected staff member on this phone
         const savedId = localStorage.getItem('table_waiter_id')
-        if (savedId && staff.some((s: any) => s.id === savedId)) {
+        if (savedId && staff.some((s) => s.id === savedId)) {
           setSelectedStaffId(savedId)
         } else if (staff.length > 0) {
           setSelectedStaffId(staff[0].id)

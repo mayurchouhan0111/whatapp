@@ -1,4 +1,4 @@
-import { BarChart3, Bell, Target, TrendingUp, ArrowRight, Zap, Users, MessageSquare } from "lucide-react"
+import { BarChart3, Bell, Target, TrendingUp, ArrowRight, Zap } from "lucide-react"
 import { SectionKicker } from "./section-kicker"
 
 const BENEFITS = [
@@ -11,7 +11,7 @@ const BENEFITS = [
     mockup: (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">Today's Overview</span>
+          <span className="text-xs text-muted-foreground">Today&apos;s Overview</span>
           <span className="text-[10px] text-emerald-500">+12% vs yesterday</span>
         </div>
         <div className="grid grid-cols-3 gap-2">

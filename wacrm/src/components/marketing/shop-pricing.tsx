@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ShoppingBag, Zap, CheckCircle, ArrowRight, Sparkles, Store, Gift } from "lucide-react"
+import { ShoppingBag, Zap, CheckCircle, ArrowRight, Sparkles, Gift } from "lucide-react"
 import { useState } from "react"
 import { SectionKicker } from "./section-kicker"
 

@@ -1,6 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { SectionKicker } from "./section-kicker"
-import { HelpCircle } from "lucide-react"
 
 const FAQS = [
   {

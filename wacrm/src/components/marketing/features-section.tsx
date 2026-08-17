@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { MessageSquare, Target, Radio, Zap, Users, Workflow, ShoppingBag, TrendingUp, BarChart3, Bell } from "lucide-react"
+import { MessageSquare, Target, Radio, Zap, Users, Workflow, ShoppingBag, TrendingUp, Bell } from "lucide-react"
 import Link from "next/link"
 import * as THREE from "three"
 import { SectionKicker } from "./section-kicker"

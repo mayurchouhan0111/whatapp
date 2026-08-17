@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Sparkles, Gift, Copy, CheckCircle2, Award, Clock, ChevronRight, AlertCircle, RefreshCw } from 'lucide-react'
+import { Sparkles, Copy, CheckCircle2, Award, Clock, ChevronRight, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { RewardSlice } from '@/types/reputation'
 
@@ -255,8 +255,6 @@ export function SpinWheelCard({
     setTimeout(() => setCopied(false), 2200)
   }
 
-  const activeWinningSlice = winningIndex !== null ? slices[winningIndex] : null
-
   return (
     <div className="w-full flex flex-col items-center select-none px-1 py-2">
       {/* 2. HEADER ICON CONTAINER */}
@@ -387,7 +385,7 @@ export function SpinWheelCard({
 
                 const isWinningSlice = wheelState === 'WON' || wheelState === 'REWARD_REVEALED' ? i === winningIndex : false
 
-                return (
+  return (
                   <g key={i}>
                     {/* Prize Slice Sector */}
                     <path

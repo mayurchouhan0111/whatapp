@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     if (screenshot && screenshot.size > 0) {
       const ext = screenshot.name.split('.').pop() || 'png'
       const fileName = `payment-${user.id}-${Date.now()}.${ext}`
-      const { data: uploadData, error: uploadError } = await supabaseAdmin()
+      const { error: uploadError } = await supabaseAdmin()
         .storage
         .from('payment-scans')
         .upload(fileName, screenshot, {
@@ -101,8 +101,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, payment_id: payment.id })
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[payments] submit error:', err)
-    return NextResponse.json({ error: err.message || 'Unexpected error' }, { status: 500 })
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Unexpected error' }, { status: 500 })
   }
 }

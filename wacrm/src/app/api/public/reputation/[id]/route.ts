@@ -289,9 +289,21 @@ export async function PUT(
       // first submission — replays would otherwise stack duplicate
       // notes and re-send recovery WhatsApps.
       if (!alreadyRated) {
+        // Resolve account owner user_id to satisfy contact_notes user_id constraint
+        const { data: ownerProfile } = await db
+          .from('profiles')
+          .select('user_id')
+          .eq('account_id', reviewRequest.account_id)
+          .eq('account_role', 'owner')
+          .limit(1)
+          .maybeSingle()
+
+        const noteUserId = ownerProfile?.user_id
+
         await db.from('contact_notes').insert({
           contact_id: reviewRequest.contact_id,
           account_id: reviewRequest.account_id,
+          ...(noteUserId ? { user_id: noteUserId } : {}),
           note_text: noteContent,
         })
 

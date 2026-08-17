@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Clock, CheckCircle2, XCircle, Loader2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'

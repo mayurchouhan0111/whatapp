@@ -1,4 +1,4 @@
-import { Star, Quote } from "lucide-react"
+import { Star } from "lucide-react"
 import Link from "next/link"
 import { SectionKicker } from "./section-kicker"
 

@@ -3,13 +3,23 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/hooks/use-auth"
-import { Loader2, CreditCard, IndianRupee } from "lucide-react"
+import { Loader2, CreditCard } from "lucide-react"
 
 export default function PaymentsPage() {
   const supabase = createClient()
   const { accountId, profileLoading } = useAuth()
 
-  const [payments, setPayments] = useState<any[]>([])
+  interface PaymentRow {
+    id: string
+    customer_name: string
+    customer_phone: string
+    total_amount: number
+    payment_method: string
+    payment_status: string
+    created_at: string
+  }
+
+  const [payments, setPayments] = useState<PaymentRow[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

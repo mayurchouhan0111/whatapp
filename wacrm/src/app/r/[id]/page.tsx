@@ -3,8 +3,8 @@
 import { use, useEffect, useState, useCallback, useRef } from 'react'
 import {
   MessageSquare, CheckCircle2, ChevronRight, AlertCircle,
-  Loader2, Mic, MicOff, Copy, ExternalLink, Camera, Gift, Sparkles,
-  User, Award, Clock,
+  Loader2, Mic, MicOff, Copy, ExternalLink, Camera, Sparkles,
+  User, Award,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { REVIEW_TAGS, type ReviewTag, type RewardSlice } from '@/types/reputation'
@@ -44,8 +44,6 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
   const [copied, setCopied] = useState(false)
   const [recoveryAction, setRecoveryAction] = useState<string | null>(null)
   const [spinReward, setSpinReward] = useState<{ label: string; emoji: string; discountCode: string; discountPercent?: number; color: string; expiresAt?: string } | null>(null)
-  const [isSpinning, setIsSpinning] = useState(false)
-  const [spinAngle, setSpinAngle] = useState(0)
   const [loyaltyData, setLoyaltyData] = useState<{ total_visits: number; stamps_count: number } | null>(null)
 
   const [isRecording, setIsRecording] = useState(false)
@@ -53,7 +51,6 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
   const [transcript, setTranscript] = useState('')
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
-  const spinAnimationRef = useRef<number | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -172,31 +169,7 @@ export default function PublicReviewPage({ params }: { params: Promise<{ id: str
       else window.location.href = data.googleReviewUrl
     } catch { window.location.href = data.googleReviewUrl }
     finally { setSubmitLoading(false) }
-  }
-
-  const handleSpinWheel = () => {
-    if (isSpinning || !spinReward) return
-    setIsSpinning(true)
-    const extraSpins = 6 + Math.floor(Math.random() * 4)
-    const targetAngle = 360 * extraSpins + Math.random() * 360
-    const startAngle = spinAngle
-    const duration = 4500
-    const startTime = performance.now()
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime
-      const progress = Math.min(elapsed / duration, 1)
-      const easeOut = 1 - Math.pow(1 - progress, 4)
-      setSpinAngle(startAngle + targetAngle * easeOut)
-      if (progress < 1) spinAnimationRef.current = requestAnimationFrame(animate)
-      else {
-        setIsSpinning(false)
-        triggerConfetti()
-      }
-    }
-    spinAnimationRef.current = requestAnimationFrame(animate)
-  }
-
-  useEffect(() => { return () => { if (spinAnimationRef.current) cancelAnimationFrame(spinAnimationRef.current) } }, [])
+}
 
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

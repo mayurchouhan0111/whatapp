@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { TrendingUp, MessageSquare, ArrowRight } from "lucide-react"
+import { MessageSquare, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { SectionKicker } from "./section-kicker"
 import { ScrollReveal } from "./scroll-reveal"

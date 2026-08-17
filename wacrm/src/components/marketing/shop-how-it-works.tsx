@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ShoppingBag, ShoppingCart, ClipboardList, CreditCard, Send, PackageCheck, ArrowRight, Smartphone } from "lucide-react"
-import Link from "next/link"
+import { ShoppingBag, ShoppingCart, ClipboardList, CreditCard, Send, PackageCheck, ArrowRight } from "lucide-react"
 import { SectionKicker } from "./section-kicker"
 
 const steps = [

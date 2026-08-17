@@ -86,7 +86,7 @@ export default function SettingsPage() {
         <SettingsRail active={section} onSelect={go} hints={hints} />
         <div className="min-w-0">
           {(SECTION_META[section].permission && !hasPermission(SECTION_META[section].permission!)) 
-            ? <div className="p-8 text-center text-muted-foreground border rounded-lg bg-card">You don't have permission to view this setting. Please upgrade your plan.</div>
+            ? <div className="p-8 text-center text-muted-foreground border rounded-lg bg-card">You don&apos;t have permission to view this setting. Please upgrade your plan.</div>
             : panel[section]
           }
         </div>

@@ -102,6 +102,7 @@ export async function POST(request: Request) {
         .from('contacts')
         .insert({
           account_id: ctx.accountId,
+          user_id: ctx.createdBy,
           name: normalizedPhone,
           phone: normalizedPhone,
         })

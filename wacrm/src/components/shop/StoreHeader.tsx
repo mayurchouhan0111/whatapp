@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "./store-context";
-import { Store, Search, X, ShoppingCart, Share2, Star, Truck, Zap } from "lucide-react";
+import { Store, Search, X, ShoppingCart, Share2, Star, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function StoreHeader() {

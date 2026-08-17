@@ -81,7 +81,7 @@ describe('getPlanDefaults', () => {
     expect(b.max_users).toBe(3)
   })
 
-  it('every plan tier has valid defaults', () => {
+  it('every plan tier has valid defaults and gating flags', () => {
     const tiers: PlanTier[] = ['free', 'starter', 'growth', 'pro', 'enterprise']
     for (const tier of tiers) {
       const limits = getPlanDefaults(tier)
@@ -89,6 +89,11 @@ describe('getPlanDefaults', () => {
       expect(limits.max_contacts).toBeGreaterThanOrEqual(0)
       expect(limits.max_pipelines).toBeGreaterThanOrEqual(0)
       expect(limits.max_broadcasts_per_month).toBeGreaterThanOrEqual(0)
+      expect(typeof limits.allow_flows).toBe('boolean')
+      expect(typeof limits.allow_store).toBe('boolean')
+      expect(typeof limits.allow_reputation).toBe('boolean')
+      expect(typeof limits.allow_api_access).toBe('boolean')
     }
   })
 })
+
