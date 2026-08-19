@@ -1,7 +1,8 @@
 import { supabaseAdmin } from '@/lib/flows/admin-client';
-import { sendTextMessage } from '@/lib/whatsapp/meta-api';
+import { sendTemplateMessage } from '@/lib/whatsapp/meta-api';
 import { decrypt } from '@/lib/whatsapp/encryption';
 import { sanitizePhoneForMeta, isValidE164 } from '@/lib/whatsapp/phone-utils';
+import { isMessageTemplate } from '@/lib/whatsapp/template-row-guard';
 
 export interface TriggerReviewOptions {
   accountId: string;
@@ -33,16 +34,7 @@ export async function triggerContactReviewRequest(options: TriggerReviewOptions)
     return { success: false, reason: 'Reputation settings not configured' };
   }
 
-  // 2. Fetch business account name
-  const { data: account } = await db
-    .from('accounts')
-    .select('name')
-    .eq('id', accountId)
-    .maybeSingle();
-
-  const businessName = account?.name || 'our business';
-
-  // 3. Create a review request entry in DB
+  // 2. Create a review request entry in DB
   const { data: request, error: reqErr } = await db
     .from('review_requests')
     .insert({
@@ -83,22 +75,39 @@ export async function triggerContactReviewRequest(options: TriggerReviewOptions)
     return { success: false, reason: 'Invalid phone number format for WhatsApp' };
   }
 
-  // 5. Construct customized message template
-  const defaultTemplate = `Hi {{contact_name}}! 👋 Thank you for choosing {{business_name}}. We value your experience — please take 30 seconds to rate us here:\n\n{{review_link}}\n\nYour feedback helps us serve you better! ⭐`;
-  
-  const templateText = settings.sms_template || defaultTemplate;
-  const filledMessage = templateText
-    .replace(/\{\{contact_name\}\}/g, contactName || 'there')
-    .replace(/\{\{business_name\}\}/g, businessName)
-    .replace(/\{\{review_link\}\}/g, reviewLink);
+  // 5. Send via an approved review template. Meta only allows
+  // business-initiated messages (to new or 24h-window-expired contacts)
+  // when they use an approved message template — free-form text is
+  // rejected outside the 24h customer-service window. Find the account's
+  // approved review template (excluding Meta sample templates) and send
+  // through it; surface a clear error if none exists.
+  const { data: appTemplate } = await db
+    .from('message_templates')
+    .select('*')
+    .eq('account_id', accountId)
+    .eq('status', 'APPROVED')
+    .neq('name', 'hello_world')
+    .ilike('name', '%review%')
+    .limit(1)
+    .maybeSingle()
 
   try {
     const accessToken = decrypt(whatsappConfig.access_token);
-    await sendTextMessage({
+
+    if (!appTemplate || !isMessageTemplate(appTemplate)) {
+      throw new Error(
+        'No approved review template found. Create a review template in Settings → Templates and wait for Meta to approve it, then retry.',
+      );
+    }
+
+    const result = await sendTemplateMessage({
       phoneNumberId: whatsappConfig.phone_number_id,
       accessToken,
       to: sanitizedPhone,
-      text: filledMessage,
+      templateName: appTemplate.name,
+      language: appTemplate.language || 'en_US',
+      template: appTemplate,
+      messageParams: { body: [contactName || 'there', reviewLink] },
     });
 
     return {
@@ -106,6 +115,7 @@ export async function triggerContactReviewRequest(options: TriggerReviewOptions)
       requestId: request.id,
       reviewLink,
       phoneSent: sanitizedPhone,
+      messageId: result.messageId,
     };
   } catch (err) {
     console.error('[review-trigger-service] Failed to send WhatsApp message:', err);

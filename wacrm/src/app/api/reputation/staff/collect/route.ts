@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { sendTextMessage, sendTemplateMessage } from '@/lib/whatsapp/meta-api'
+import { sendTemplateMessage } from '@/lib/whatsapp/meta-api'
 import { isMessageTemplate } from '@/lib/whatsapp/template-row-guard'
 import { decrypt } from '@/lib/whatsapp/encryption'
 import {
@@ -247,34 +247,24 @@ export async function POST(request: Request) {
         const variants = phoneVariants(sanitizedPhone)
         for (const v of variants) {
           try {
-            let waMsgId: { messageId: string }
-            if (appTemplate && isMessageTemplate(appTemplate)) {
-              try {
-                waMsgId = await sendTemplateMessage({
-                  phoneNumberId: whatsappConfig.phone_number_id,
-                  accessToken,
-                  to: v,
-                  templateName: appTemplate.name,
-                  language: appTemplate.language || 'en_US',
-                  template: appTemplate,
-                  messageParams: { body: [customerName, reviewLink] },
-                })
-              } catch {
-                waMsgId = await sendTextMessage({
-                  phoneNumberId: whatsappConfig.phone_number_id,
-                  accessToken,
-                  to: v,
-                  text: messageText,
-                })
-              }
-            } else {
-              waMsgId = await sendTextMessage({
-                phoneNumberId: whatsappConfig.phone_number_id,
-                accessToken,
-                to: v,
-                text: messageText,
-              })
+            // Business-initiated messages (new or out-of-window contacts)
+            // must use an approved template — free-form text is rejected
+            // by Meta outside the 24h customer-service window, so there is
+            // no valid free-form fallback. Surface the real error instead.
+            if (!appTemplate || !isMessageTemplate(appTemplate)) {
+              throw new Error(
+                'No approved review template found. Create a review template in Settings → Templates and wait for Meta approval, then retry.',
+              )
             }
+            const waMsgId = await sendTemplateMessage({
+              phoneNumberId: whatsappConfig.phone_number_id,
+              accessToken,
+              to: v,
+              templateName: appTemplate.name,
+              language: appTemplate.language || 'en_US',
+              template: appTemplate,
+              messageParams: { body: [customerName, reviewLink] },
+            })
 
             if (storedMessageId) {
               await supabase

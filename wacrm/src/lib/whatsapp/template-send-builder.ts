@@ -138,6 +138,18 @@ function buildBodyComponent(
   // Trim to the variable count — extra values are dropped silently so
   // a legacy caller that passes too many doesn't error out.
   const values = body.slice(0, varCount);
+  // Meta caps *text* body parameters at 30 characters each. URLs longer
+  // than that (e.g. review/verification links) are the most common cause
+  // of the cryptic "(#100) Invalid parameter" rejection — fail with an
+  // actionable message here instead of at the Meta boundary.
+  const TOO_LONG = values.find((text) => String(text).length > 30);
+  if (TOO_LONG !== undefined) {
+    const value = String(TOO_LONG);
+    throw new Error(
+      `Body parameter "${value}" (${value.length} chars) exceeds Meta's 30-character limit for text parameters. ` +
+        'For links, use a short URL (e.g. bit.ly) or move the link into a URL button in the template.',
+    );
+  }
   return {
     type: 'body',
     parameters: values.map((text) => ({ type: 'text', text: String(text) })),
