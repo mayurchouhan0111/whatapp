@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ThemeLogo } from "@/components/ui/theme-logo";
 import {
   Card,
   CardContent,
@@ -80,7 +81,7 @@ export default function ForgotPasswordPage() {
       <Card className="w-full max-w-md border-border bg-card">
         <CardHeader className="items-center text-center">
           <div className="mb-4 flex items-center justify-center">
-            <img src="/logo.png" alt="Vbuild CRM" style={{height: '56px', width: 'auto'}} className="object-contain" />
+            <ThemeLogo height={56} className="object-contain" />
           </div>
           <CardTitle className="text-xl text-foreground">Reset password</CardTitle>
           <CardDescription className="text-muted-foreground">

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { useState, useEffect } from "react"
+import { ThemeLogo } from "@/components/ui/theme-logo"
 
 const NAV_LINKS = [
   { href: "/#features", label: "Features" },
@@ -110,11 +111,9 @@ export function Header() {
 
             {/* Logo */}
             <Link href="/" className="flex items-center shrink-0">
-              <img
-                src="/logo.png"
-                alt="Vbuild CRM"
+              <ThemeLogo
+                height={40}
                 className="object-contain transition-transform duration-300 hover:scale-105"
-                style={{ height: "40px", width: "auto" }}
               />
             </Link>
 

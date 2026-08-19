@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { ThemeLogo } from "@/components/ui/theme-logo"
 
 export function Footer() {
   return (
@@ -9,11 +12,7 @@ export function Footer() {
           {/* Column 1: Brand & Socials */}
           <div className="max-w-sm">
             <Link href="/" className="inline-block">
-              <img 
-                src="/logo.png" 
-                alt="Vbuild CRM" 
-                className="h-10 w-auto object-contain" 
-              />
+              <ThemeLogo height={40} className="h-10 w-auto object-contain" />
             </Link>
             
             <p className="mt-8 text-sm leading-relaxed text-gray-500">

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useTotalUnread } from "@/hooks/use-total-unread";
+import { ThemeLogo } from "@/components/ui/theme-logo";
 import {
   Crown,
   GitBranch,
@@ -182,12 +183,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
             close button is hidden since the sidebar is always-visible. */}
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <img
-              src="/logo.png"
-              alt="Vbuild CRM"
-              style={{height: '32px', width: 'auto', maxWidth: '160px'}}
-              className="object-contain"
-            />
+            <ThemeLogo height={32} className="object-contain" style={{maxWidth: '160px'}} />
           </Link>
           <button
             type="button"
